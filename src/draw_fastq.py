@@ -1,5 +1,6 @@
 from bokeh.plotting import figure, show
-from bokeh.models import Span
+from bokeh.models import Span, BoxAnnotation
+from bokeh.colors import RGB
 import pyslow5
 
 import argparse
@@ -26,12 +27,15 @@ p = figure(title=plot_title,
 	y_axis_label='signal value', 
 	sizing_mode="stretch_width",
     height=250,
-    output_backend="webgl")
+    output_backend="webgl",
+    x_range=(3000, 4000))
 
 
 # prepare some data
 x = [1, 2, 3, 4, 5]
 y = [6, 7, 2, 4, 5]
+
+base_color_map = {'A':'limegreen','C':'blue','T':'red','G':'orange'}
 
 
 stride=5
@@ -52,16 +56,23 @@ if read is not None:
 
 # draw moves
 vlines = []
-count = 0
+move_count = 0
+base_count = 0
+previous_location = -1
 for i in moves:
-	location = trim_start+(count*stride)
+	location = trim_start+(move_count*stride)
 	if(i == '1'):
-		vline = Span(location=location, dimension='height', line_color='red', line_width=0.5)
-		vlines.append(vline)
-	count = count + 1
+		if(previous_location > 0):
+			base = bases[base_count]
+			base_box = BoxAnnotation(left=previous_location, right=location, fill_alpha=0.2, fill_color=base_color_map[base])
+			p.add_layout(base_box)
+			base_count = base_count + 1
+			vline = Span(location=location, dimension='height', line_color='cyan', line_width=0.5)
+			vlines.append(vline)
+		previous_location = location
+	move_count = move_count + 1
 
 p.renderers.extend(vlines)
-
 
 # add a line renderer with legend and line thickness to the plot
 p.line(x, y, legend_label="Temp.", line_width=2)
