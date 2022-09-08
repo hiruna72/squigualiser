@@ -12,11 +12,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--slow5', required='True', help="shows output")
 parser.add_argument('-r', '--read', required='True', help="shows output")
 parser.add_argument('-o', '--output', required='True', help="shows output")
+parser.add_argument('-m', '--trim_offset', required='True', help="trim offset")
+parser.add_argument('-c', '--chunk_offset', required='True', help="chunk offset")
 
 args = parser.parse_args()
 print(f'signal file: {args.slow5}')
 print(f'read: {args.read}')
 print(f'output file: {args.output}')
+print(f'trim_offset: {args.trim_offset}')
+print(f'chunk_offset: {args.chunk_offset}')
 
 read_id = "7a863656-a07d-425b-a3ca-7409a7c14bc1"
 # moves="1001010101010110101000010100101011011010101000110101010101000101010101001011001011011010101101010100100010110110101010100100101010010010100101010001010110111110101011101001011010101101010001010110101000010010010011010101010101001000010101011010111010111011010110101101001010101011010100000001001011000000100001000101010000010101111010111111010001010110100110110101010010110110101100100101001000110100010101101110110110111011110110110100100101010110110010010010010011000110100001000000000001000001010100001101011011011010101001001001101100101010010101000101101101101111010110101001001011101110111001101101010110111101010010101010000100000001001000000001001010010100010101000011010000100101000100010101101010101010110101010110010101010110111011001010100010011011011011010101010111001101010110111011101111101101010011001001101110101000100101101010111001110010010000101011000001100010101001010010100010000001001010011001010100000001000101010010001000100100010001010100110101000110101101010101010101101010110101001010010100001001101011010101101010101010110101101010101010110010011010101010011101001000000010110000000000000001001010100010100100101101011010100100100101010101001001101011101100011010010101000010101101101010101010101101110110111011000101010110101011010010110011010101101110101101010011000100110110110001001101101101110101110101101011011010100110101011010101010100110100111000101010110111010101001000010000000100101010101010011100010010101011010101010010010010010110110100101010100101101101010101010000100100101001000010100000101101011101011011010100101001010001101101100111001010110000000000"
@@ -29,10 +33,10 @@ bases="AAAAATATATGTCCACACAAAAACTTGTACAACAATCTTCATAGCAGCATTATTCATAATGACCAATACATGG
 # bases="GTGAGAGAACCACTTGAGCCCAGGAGTTTGAGGCTACAGTGAACCATGATCATGTCATACTGTAGCCTAAGCAACAGAGCAAGACGCTGTCTCTGAAAGGAAAGAAAACAAATGCAAGTTTTTATCACTTTGTGAGTGGCAGCCAAGTTGGAGGAGAAATAGACAATAATAAAAGAGCACTGAATAATGACAGTGAGTGGCTGGTTAGGCTCAGTTGCTAGCTAAATGGCTTCTAGAAATTCAATAAAGTTACAGCTCTGGGGACAGTCATGTAGTCAAAGAATGAGAGCGAAATTCATTACAATTGCCCATGGTCTTTATTTACATGCCTTCTAGTGAAAAATTCTAAGTGCCTAAACAGCAAGTCTGCAATGATAGCAGCTGTTTATTAAAGACTAAAAAAGAAATGGAGGCCGGGCGTGGTTGTTCACATCTGTACTCCCCTTGAATTTTGGGAGGCTGAGGCAGGCAGATTGCCTGAGGTCAGGAGCTCGGGAGCCTGGCCAACATGGTGAAATCCCATCTCTACTAAAAATACAAAAATTAGCTGGGTATGGTGGCGGGCACCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATTGCTTGAACCCAGAAGGTGAAGGTTGCAGTGAGCCAAAATCGCACCATTGCACTCCAGCCTGGGTGACAAGAGAAAGACTCTTATCTTAAAAAAAAAAGAA"
 
 
-trim_start=2290
-chunk_offset=7850
-start_index=trim_start+chunk_offset-50
-end_index=start_index+1000
+trim_offset=int(args.trim_offset)
+chunk_offset=int(args.chunk_offset)
+start_index=trim_offset+chunk_offset-50
+end_index=start_index+8000
 stride=5
 shift=end_index
 
@@ -44,7 +48,7 @@ y = [6, 7, 2, 4, 5]
 # set output to static HTML file
 output_file(filename=args.output, title=args.read)
 
-plot_title=f'{read_id}:{start_index}-{end_index}-{trim_start}-{chunk_offset}'
+plot_title=f'{read_id}:{start_index}-{end_index}-{trim_offset}-{chunk_offset}'
 tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
 p = figure(title=plot_title, 
 	x_axis_label='signal index', 
@@ -76,12 +80,14 @@ base_label = []
 vlines = []
 move_count = 0
 base_count = 0
-previous_location = -1
+location = trim_offset+chunk_offset+(move_count*stride)
+location_plot = location - start_index + stride
+previous_location = location_plot - stride
 # draw moves
 for i in moves:
-	location = trim_start+chunk_offset+(move_count*stride)
+	location = trim_offset+chunk_offset+(move_count*stride)
 	location_plot = location - start_index
-	if(i == '1'):
+	if(i == '1' and move_count > 0):
 		if(previous_location > 0):
 			base = bases[base_count]
 			
@@ -91,14 +97,10 @@ for i in moves:
 			vlines.append(vline)
 
 			base_x.append(previous_location)
-			base_y.append(50)
+			base_y.append(115)
 			label = str(base) + "\t" + str(base_count+1)
 			base_label.append(label)
 			
-			# interval = location - previous_location
-			# for j in range(0,interval):
-			# 	base_index[(move_count*stride)+j] = base_count
-
 			base_count = base_count + 1
 		previous_location = location_plot
 	move_count = move_count + 1
@@ -111,7 +113,7 @@ base_annotation = ColumnDataSource(data=dict(base_x=base_x,
 									base_label=base_label))
 
 base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-              x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas')
+              x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas', text_font_size="7pt")
 
 
 p.add_layout(base_annotation_labels)
@@ -123,6 +125,8 @@ source = ColumnDataSource(data=dict(
     xreal=Xreal,
 ))
 p.line('x', 'y',line_width=2, source=source)
+# add a circle renderer with a size, color, and alpha
+p.circle(x, y, size=2, color="red", alpha=0.5)
 
 # show the tooltip
 hover = p.select(dict(type=HoverTool))
