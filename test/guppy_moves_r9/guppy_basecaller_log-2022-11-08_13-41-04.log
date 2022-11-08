@@ -1,0 +1,29 @@
+2022-11-08 13:41:04.719180 [guppy/message] ONT Guppy basecalling software version 6.3.7+3a068e6, minimap2 version 2.22-r1101
+config file:        /media/hiruna/data/slow5_work/guppy_integration/slow5-guppy_6.3.7/data/dna_r9.4.1_450bps_sup_prom.cfg
+model file:         /media/hiruna/data/slow5_work/guppy_integration/slow5-guppy_6.3.7/data/template_r9.4.1_450bps_sup_prom.jsn
+input path:         signal.slow5
+save path:          moves
+chunk size:         8000
+chunks per runner:  208
+slow5_batch:         4096
+slow5_threads:      8
+minimum qscore:     10
+records per file:   4000
+num basecallers:    4
+gpu device:         cuda:0
+kernel path:        
+runners per device: 12
+
+Use of this software is permitted solely under the terms of the end user license agreement (EULA).By running, copying or accessing this software, you are demonstrating your acceptance of the EULA.
+The EULA may be found in /media/hiruna/data/slow5_work/guppy_integration/slow5-guppy_6.3.7/bin
+
+2022-11-08 13:41:04.719799 [guppy/info] crashpad_handler not supported on this platform.
+2022-11-08 13:41:04.826260 [guppy/info] CUDA device 0 (compute 7.5) initialised, memory limit 4104323072B (3099590656B free)
+
+2022-11-08 13:41:06.267630 [guppy/message] Found 1 fast5/slow5/blow5 files to process.
+2022-11-08 13:41:06.268294 [guppy/message] Init time: 1548 ms
+2022-11-08 13:41:06.277455 [guppy/info] Read '7a863656-a07d-425b-a3ca-7409a7c14bc1' from file "signal.slow5" has been loaded.
+2022-11-08 13:41:06.277508 [guppy/info] Dispatched batch 0 containing 1 inputs:
+2022-11-08 13:41:06.277549 [guppy/info] Batch input 0 : signal.slow5
+2022-11-08 13:41:06.388700 [guppy/info] CUDA device 0 reached memory limit while trying to allocate 20778903808 bytes, currently at 76964048/4104323072
+2022-11-08 13:41:06.389381 [guppy/error] Exception in CUDACaller worker thread: Could not allocate CUDA shared buffer, size 20778903808

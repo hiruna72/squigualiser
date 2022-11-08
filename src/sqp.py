@@ -1,0 +1,200 @@
+"""
+Signal to seQuence alignment Plot - sqp
+Hiruna Samarakoon - Garvan Medical Institute
+hiruna@unsw.edu.au
+"""
+import numpy as np
+from bokeh.plotting import figure, show, output_file, save
+from bokeh.models import Span, BoxAnnotation, HoverTool, ColumnDataSource, Label, LabelSet, CustomJS
+from bokeh.colors import RGB
+import pyslow5
+import copy
+import argparse
+import re
+
+KMER_LENGTH = 6
+BASE_LIMIT = 1000
+FRONT_CLIP = 50
+SIG_PLOT_LENGTH = 8000
+base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
+
+parser = argparse.ArgumentParser()
+   
+parser.add_argument('-f', '--fastq', required=True, help="fastq file")
+parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
+parser.add_argument('-a', '--alignment', required=True, help="alignment file")
+parser.add_argument('-o', '--output', required=True, help="shows output")
+
+args = parser.parse_args()
+print(f'fastq file: {args.fastq}')
+print(f'signal file: {args.slow5}')
+print(f'alignment file: {args.alignment}')
+print(f'output file: {args.output}')
+
+#read fastq file
+fastq_file = open(args.fastq, 'r')
+read_id = fastq_file.readline().split()[0][1:]
+fastq_seq = fastq_file.readline()
+fastq_file.close()
+
+#read alignment file
+align_file = open(args.alignment, 'r')
+alignment = align_file.readline().split()
+print(alignment)
+assert(alignment[0] == read_id)
+trim_offset = int(alignment[2])
+moves_string = alignment[12]
+align_file.close()
+
+chunk_offset = 0
+if trim_offset == 0:
+    FRONT_CLIP = 0
+start_index = trim_offset + chunk_offset - FRONT_CLIP
+end_index = start_index + SIG_PLOT_LENGTH
+stride = 5
+shift = end_index
+
+# open signal file
+x = []
+x_real = []
+y = []
+
+s5 = pyslow5.Open(args.slow5, 'r')
+read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
+if read is not None:
+    print("read_id:", read['read_id'])
+    print("len_raw_signal:", read['len_raw_signal'])
+    # x = list(range(1,read['len_raw_signal']+1))
+    # y = read['signal']
+    x = list(range(0, end_index-start_index))
+    x_real = list(range(start_index, end_index))
+    y = read['signal'][start_index:end_index]
+s5.close()
+# set output to static HTML file
+output_file(filename=args.output, title=read_id)
+
+plot_title = f'{read_id}:{start_index}-{end_index}-{trim_offset}-{chunk_offset}'
+tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+p = figure(title=plot_title,
+		   x_axis_label='signal index',
+		   y_axis_label='signal value',
+		   sizing_mode="stretch_width",
+		   height=300,
+		   output_backend="webgl",
+		   x_range=(0, 750),
+		   tools=tools_to_show)
+    # tooltips=tool_tips)
+
+
+base_x = []
+base_y = []
+base_label = []
+
+vlines = []
+move_count = 0
+base_count = 0
+location = trim_offset+chunk_offset+(move_count*stride)
+location_plot = location - start_index + stride
+previous_location = location_plot - stride
+# draw moves
+moves_string = re.sub('ss:Z:', '', moves_string)
+moves_string = re.sub('D', 'D,', moves_string)
+moves_string = re.sub('I', 'I,', moves_string)
+# print(moves_string)
+moves = re.split(r',+', moves_string)
+moves = moves[:-1]
+
+vlines = []
+base_count = KMER_LENGTH - 2
+# location = trim_offset
+# previous_location = start_index
+# draw moves
+
+signal_x = []
+signal_y = []
+
+for i in moves:
+    previous_location = location_plot
+    n_samples = 0
+    if 'D' in i:
+        i = re.sub('D', '', i)
+        n_samples = int(i)
+        prev_loc = previous_location
+        for j in range(0, n_samples):
+            base_count = base_count + 1
+            base = fastq_seq[base_count]
+            base_box = BoxAnnotation(left=prev_loc, right=prev_loc+5, fill_alpha=0.2, fill_color='white')
+            p.add_layout(base_box)
+
+            base_x.append(prev_loc)
+            base_y.append(115)
+            label = str(base) + "\t" + str(base_count + 1)
+            base_label.append(label)
+
+            prev_loc = prev_loc + 5
+            x_end = x[-1]
+            x = x + list(range(x_end, x_end+5))
+        location_plot = prev_loc
+        z = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
+        y = np.concatenate((z, y[previous_location:]), axis=0)
+        # y = y[:previous_location] + y[previous_location:]
+
+    elif 'I' in i:
+        i = re.sub('I', '', i)
+        n_samples = int(i)
+        location_plot = location_plot + n_samples
+
+        vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
+        vlines.append(vline)
+
+    else:
+        base_count = base_count + 1
+        n_samples = int(i)
+        location_plot = location_plot + n_samples
+
+        base = fastq_seq[base_count]
+        base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, fill_color=base_color_map[base])
+        p.add_layout(base_box)
+
+        vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
+        vlines.append(vline)
+
+        base_x.append(previous_location)
+        base_y.append(115)
+        label = str(base) + "\t" + str(base_count + 1)
+        base_label.append(label)
+
+    if base_count == BASE_LIMIT:
+        break
+    if location_plot > SIG_PLOT_LENGTH:
+        break
+
+p.renderers.extend(vlines)
+
+base_annotation = ColumnDataSource(data=dict(base_x=base_x,
+                                             base_y=base_y,
+                                             base_label=base_label))
+
+base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
+                                  x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
+                                  text_font_size="7pt")
+
+p.add_layout(base_annotation_labels)
+
+plot_signal_limit = location_plot + 10
+
+source = ColumnDataSource(data=dict(
+    x=x[:plot_signal_limit],
+    y=y[:plot_signal_limit],
+    x_real=x_real[:plot_signal_limit],
+))
+p.line('x', 'y', line_width=2, source=source)
+# add a circle renderer with a size, color, and alpha
+p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=2, color="red", alpha=0.5)
+
+# show the tooltip
+hover = p.select(dict(type=HoverTool))
+hover.tooltips = [("x", "@x_real"), ("y", "$y")]
+hover.mode = 'mouse'
+
+save(p)
