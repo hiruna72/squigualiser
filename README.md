@@ -7,7 +7,7 @@ git clone --recursive git@github.com:hiruna72/ideal-goggles.git
 cd ideal-goggles
 conda create -n idealg python=3.6.10 -y
 conda activate idealg
-conda install --file requirements.txt
+pip install -r requirements.txt
 ````
 
 ## STEPS
