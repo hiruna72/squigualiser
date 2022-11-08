@@ -40,7 +40,6 @@ fastq_file.close()
 #read alignment file
 align_file = open(args.alignment, 'r')
 alignment = align_file.readline().split()
-print(alignment)
 assert(alignment[0] == read_id)
 trim_offset = int(alignment[2])
 moves_string = alignment[12]
