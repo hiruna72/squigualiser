@@ -23,12 +23,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--fastq', required=True, help="fastq file")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="alignment file")
-parser.add_argument('-o', '--output', required=True, help="shows output")
+parser.add_argument('-k', '--kmer_shift', required=False, default=KMER_LENGTH, help="kmer size")
+parser.add_argument('-o', '--output', required=True, help="output file (html)")
 
 args = parser.parse_args()
 print(f'fastq file: {args.fastq}')
 print(f'signal file: {args.slow5}')
 print(f'alignment file: {args.alignment}')
+print(f'kmer_shift: {args.kmer_shift}')
 print(f'output file: {args.output}')
 
 #read fastq file
@@ -40,9 +42,8 @@ fastq_file.close()
 #read alignment file
 align_file = open(args.alignment, 'r')
 alignment = align_file.readline().split()
-assert(alignment[0] == read_id)
 trim_offset = int(alignment[2])
-moves_string = alignment[12]
+moves_string = alignment[14]
 align_file.close()
 
 chunk_offset = 0
@@ -104,6 +105,7 @@ moves = re.split(r',+', moves_string)
 moves = moves[:-1]
 
 vlines = []
+KMER_LENGTH = int(args.kmer_shift)
 base_count = KMER_LENGTH - 2
 # location = trim_offset
 # previous_location = start_index

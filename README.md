@@ -14,7 +14,7 @@ pip install -r requirements.txt
 1. Basecall a read using ont-guppy 6.3.7 to get the move table
 ````
 CHUNK_SIZE=8000
-CHUNKS_PER_RUNNER=250
+CHUNKS_PER_RUNNER=100 (decrease this value if you run into CUDA memory problems)
 MODEL_R9=dna_r9.4.1_450bps_sup_prom.cfg
 MODEL_R10=dna_r10.4.1_e8.2_400bps_sup.cfg
 SIGNAL_FILE=signal
@@ -28,7 +28,7 @@ BAM_FILE=${OUT_DIR}/pass/*.bam
 ALIGN_FILE=${OUT_DIR}/pass/alignment.txt
 
 samtools view ${BAM_FILE} | cut -f 1,9,12,19,20 | sed 's/ts:i://' | sed 's/ns:i://' | sed 's/mv:B:c,//g' | sed 's/,/\t/' | sed 's/,//g' | awk '{print $1"\t"$5"\t"$6"\t"$5"\t+\t"$1"\t"$2"\t0\t"$2"\t"$2"\t"$2"\t0\t"$4}' > TEMP0
-cut -f 13 TEMP0 | sed 's/1/,1/g' | tr ',' '\n' | tail -n+2 | awk 'BEGIN{STRIDE=5; printf"ss:Z:"} {printf(length($0)*STRIDE",")}' | sed 's/.$//' > TEMP1
+cut -f 13 TEMP0 | sed 's/1/,1/g' | tr ',' '\n' | tail -n+2 | awk 'BEGIN{STRIDE=5; printf"sc:f:1.000000\tsh:f:0.000000\tss:Z:"} {printf(length($0)*STRIDE",")}' | sed 's/.$//' > TEMP1
 cat TEMP0 | cut --complement -f 13 | paste - TEMP1 > ${ALIGN_FILE}
 rm TEMP0 TEMP1
 ````
