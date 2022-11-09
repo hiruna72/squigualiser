@@ -1,6 +1,8 @@
 # ideal-goggles
 Visualize nanopore raw signals
 
+![image](test/plot.png)
+
 ## INSTALLATION
 ````
 git clone --recursive git@github.com:hiruna72/ideal-goggles.git
