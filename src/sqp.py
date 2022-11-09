@@ -51,7 +51,6 @@ if trim_offset == 0:
     FRONT_CLIP = 0
 start_index = trim_offset + chunk_offset - FRONT_CLIP
 end_index = start_index + SIG_PLOT_LENGTH
-stride = 5
 shift = end_index
 
 # open signal file
@@ -91,11 +90,9 @@ base_y = []
 base_label = []
 
 vlines = []
-move_count = 0
 base_count = 0
-location = trim_offset+chunk_offset+(move_count*stride)
-location_plot = location - start_index + stride
-previous_location = location_plot - stride
+location_plot = trim_offset+chunk_offset - start_index
+previous_location = location_plot
 # draw moves
 moves_string = re.sub('ss:Z:', '', moves_string)
 moves_string = re.sub('D', 'D,', moves_string)
