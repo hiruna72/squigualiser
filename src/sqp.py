@@ -12,7 +12,7 @@ import copy
 import argparse
 import re
 
-KMER_LENGTH = 6
+BASE_SHIFT = 6
 BASE_LIMIT = 1000
 FRONT_CLIP = 50
 SIG_PLOT_LENGTH = 8000
@@ -23,40 +23,37 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--fastq', required=True, help="fastq file")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="alignment file")
-parser.add_argument('-k', '--kmer_shift', required=False, default=KMER_LENGTH, help="kmer size")
+parser.add_argument('-b', '--base_shift', required=False, default=BASE_SHIFT, help="base shift")
 parser.add_argument('-o', '--output', required=True, help="output file (html)")
 
 args = parser.parse_args()
 print(f'fastq file: {args.fastq}')
 print(f'signal file: {args.slow5}')
 print(f'alignment file: {args.alignment}')
-print(f'kmer_shift: {args.kmer_shift}')
+print(f'base_shift: {args.base_shift}')
 print(f'output file: {args.output}')
 
-#read fastq file
+# read fastq file
 fastq_file = open(args.fastq, 'r')
 read_id = fastq_file.readline().split()[0][1:]
-fastq_seq = fastq_file.readline()
+fastq_seq = fastq_file.readline().rstrip()
+if BASE_LIMIT > len(fastq_seq):
+    BASE_LIMIT = len(fastq_seq)
 fastq_file.close()
 
-#read alignment file
+# read alignment file
 align_file = open(args.alignment, 'r')
 alignment = align_file.readline().split()
 trim_offset = int(alignment[2])
 moves_string = alignment[14]
 align_file.close()
 
-chunk_offset = 0
-if trim_offset == 0:
-    FRONT_CLIP = 0
-start_index = trim_offset + chunk_offset - FRONT_CLIP
-end_index = start_index + SIG_PLOT_LENGTH
-shift = end_index
+
 
 # open signal file
 x = []
 x_real = []
-y = []
+y = [0]
 
 s5 = pyslow5.Open(args.slow5, 'r')
 read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
@@ -65,9 +62,21 @@ if read is not None:
     print("len_raw_signal:", read['len_raw_signal'])
     # x = list(range(1,read['len_raw_signal']+1))
     # y = read['signal']
-    x = list(range(0, end_index-start_index))
-    x_real = list(range(start_index, end_index))
-    y = read['signal'][start_index:end_index]
+
+    chunk_offset = 0
+    if trim_offset == 0:
+        FRONT_CLIP = 0
+    start_index = trim_offset + chunk_offset - FRONT_CLIP
+    if read['len_raw_signal'] < start_index + SIG_PLOT_LENGTH:
+        SIG_PLOT_LENGTH = read['len_raw_signal'] - start_index
+        end_index = read['len_raw_signal']
+    else:
+        end_index = start_index + SIG_PLOT_LENGTH
+    shift = end_index
+
+    x = list(range(0, end_index-start_index + 1))
+    x_real = list(range(start_index, end_index + 1))
+    y.extend(read['signal'][start_index:end_index])
 s5.close()
 # set output to static HTML file
 output_file(filename=args.output, title=read_id)
@@ -99,17 +108,10 @@ moves_string = re.sub('D', 'D,', moves_string)
 moves_string = re.sub('I', 'I,', moves_string)
 # print(moves_string)
 moves = re.split(r',+', moves_string)
-moves = moves[:-1]
 
 vlines = []
-KMER_LENGTH = int(args.kmer_shift)
-base_count = KMER_LENGTH - 2
-# location = trim_offset
-# previous_location = start_index
-# draw moves
-
-signal_x = []
-signal_y = []
+BASE_SHIFT = int(args.base_shift)
+base_count = BASE_SHIFT
 
 for i in moves:
     previous_location = location_plot
@@ -119,7 +121,6 @@ for i in moves:
         n_samples = int(i)
         prev_loc = previous_location
         for j in range(0, n_samples):
-            base_count = base_count + 1
             base = fastq_seq[base_count]
             base_box = BoxAnnotation(left=prev_loc, right=prev_loc+5, fill_alpha=0.2, fill_color='white')
             p.add_layout(base_box)
@@ -132,6 +133,7 @@ for i in moves:
             prev_loc = prev_loc + 5
             x_end = x[-1]
             x = x + list(range(x_end, x_end+5))
+            base_count = base_count + 1
         location_plot = prev_loc
         z = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
         y = np.concatenate((z, y[previous_location:]), axis=0)
@@ -146,7 +148,6 @@ for i in moves:
         vlines.append(vline)
 
     else:
-        base_count = base_count + 1
         n_samples = int(i)
         location_plot = location_plot + n_samples
 
@@ -161,6 +162,7 @@ for i in moves:
         base_y.append(115)
         label = str(base) + "\t" + str(base_count + 1)
         base_label.append(label)
+        base_count = base_count + 1
 
     if base_count == BASE_LIMIT:
         break

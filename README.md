@@ -39,7 +39,9 @@ rm TEMP0 TEMP1
 FASTQ_FILE=${OUT_DIR}/pass/*.fastq
 SIGNAL_FILE
 ALIGN_FILE
+BASE_SHIFT
 OUTPUT_HTML=${OUT_DIR}/output.html
 
-python src/sqp.py -f ${FASTQ_FILE} -s ${SIGNAL_FILE} -a ${ALIGN_FILE} -o ${OUTPUT_HTML} 
+python src/sqp.py --fastq ${FASTQ_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --base_shift ${BASE_SHIFT} --output ${OUTPUT_HTML}
+
 ````
