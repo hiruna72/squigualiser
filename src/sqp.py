@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import Span, BoxAnnotation, HoverTool, ColumnDataSource, Label, LabelSet, CustomJS
+from bokeh.models import Span, BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, CustomJS
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -93,6 +93,7 @@ p = figure(title=plot_title,
 		   tools=tools_to_show)
     # tooltips=tool_tips)
 
+p.toolbar.active_scroll = p.select_one(WheelZoomTool)
 
 base_x = []
 base_y = []
