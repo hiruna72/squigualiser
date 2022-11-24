@@ -106,7 +106,7 @@ previous_location = location_plot
 # draw moves
 moves_string = re.sub('ss:Z:', '', moves_string)
 moves_string = re.sub('D', 'D,', moves_string)
-moves_string = re.sub('I', 'I,', moves_string)
+moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
 # print(moves_string)
 moves = re.split(r',+', moves_string)
 
