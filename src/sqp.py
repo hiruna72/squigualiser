@@ -48,8 +48,6 @@ trim_offset = int(alignment[2])
 moves_string = alignment[14]
 align_file.close()
 
-
-
 # open signal file
 x = []
 x_real = []
