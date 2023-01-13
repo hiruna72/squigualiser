@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import Span, BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, CustomJS
+from bokeh.models import Span, BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, CustomJS, PointDrawTool
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -21,7 +21,7 @@ TRIM_OFFSET = 0
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
 
 parser = argparse.ArgumentParser()
-   
+
 parser.add_argument('-f', '--fastq', required=False, help="fastq file")
 parser.add_argument('-r', '--read_id', required=False, help="read id")
 parser.add_argument('--trim_offset', required=False, help="signal trim offset")
@@ -104,7 +104,7 @@ if read is not None:
         end_index = start_index + SIG_PLOT_LENGTH
     shift = end_index
 
-    x = list(range(0, end_index-start_index + 1))
+    x = list(range(0, end_index - start_index + 1))
     x_real = list(range(start_index, end_index + 1))
     y.extend(read['signal'][start_index:end_index])
 s5.close()
@@ -114,14 +114,14 @@ output_file(filename=args.output, title=read_id)
 plot_title = f'{read_id}:{start_index}-{end_index}-{trim_offset}-{chunk_offset}'
 tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
 p = figure(title=plot_title,
-		   x_axis_label='signal index',
-		   y_axis_label='signal value',
-		   sizing_mode="stretch_width",
-		   height=300,
-		   output_backend="webgl",
-		   x_range=(0, 750),
-		   tools=tools_to_show)
-    # tooltips=tool_tips)
+           x_axis_label='signal index',
+           y_axis_label='signal value',
+           sizing_mode="stretch_width",
+           height=300,
+           output_backend="webgl",
+           x_range=(0, 750),
+           tools=tools_to_show)
+# tooltips=tool_tips)
 
 p.toolbar.active_scroll = p.select_one(WheelZoomTool)
 
@@ -130,7 +130,7 @@ if flag_alignment == 1:
     base_y = []
     base_label = []
     base_count = 0
-    location_plot = trim_offset+chunk_offset - start_index
+    location_plot = trim_offset + chunk_offset - start_index
     previous_location = location_plot
     # draw moves
     moves_string = re.sub('ss:Z:', '', moves_string)
@@ -152,7 +152,7 @@ if flag_alignment == 1:
             prev_loc = previous_location
             for j in range(0, n_samples):
                 base = fastq_seq[base_count]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc+5, fill_alpha=0.2, fill_color='white')
+                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + 5, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
@@ -162,7 +162,7 @@ if flag_alignment == 1:
 
                 prev_loc = prev_loc + 5
                 x_end = x[-1]
-                x = x + list(range(x_end, x_end+5))
+                x = x + list(range(x_end, x_end + 5))
                 base_count = base_count + 1
             location_plot = prev_loc
             z = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
@@ -182,7 +182,8 @@ if flag_alignment == 1:
             location_plot = location_plot + n_samples
 
             base = fastq_seq[base_count]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, fill_color=base_color_map[base])
+            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2,
+                                     fill_color=base_color_map[base])
             p.add_layout(base_box)
 
             vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
@@ -220,7 +221,9 @@ source = ColumnDataSource(data=dict(
 ))
 p.line('x', 'y', line_width=2, source=source)
 # add a circle renderer with a size, color, and alpha
-p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=2, color="red", alpha=0.5)
+signal_points = p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=7, color="red", alpha=0.5)
+pdraw_tool = PointDrawTool(renderers=[signal_points])
+p.add_tools(pdraw_tool)
 
 # show the tooltip
 hover = p.select(dict(type=HoverTool))
