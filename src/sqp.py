@@ -12,23 +12,23 @@ import copy
 import argparse
 import re
 import logging
+from readpaf import parse_paf
+from sys import stdin
 
-BASE_SHIFT = 6
+
 BASE_LIMIT = 1000
-FRONT_CLIP = 50
+# FRONT_CLIP = 50
 SIG_PLOT_LENGTH = 8000
-TRIM_OFFSET = 0
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
 
 parser = argparse.ArgumentParser()
    
 parser.add_argument('-f', '--fastq', required=False, help="fastq file")
 parser.add_argument('-r', '--read_id', required=False, help="read id")
-parser.add_argument('--trim_offset', required=False, help="signal trim offset")
 parser.add_argument('--plot_signal_limit', required=False, help="signal plot length")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=False, help="alignment file")
-parser.add_argument('-b', '--base_shift', required=False, default=BASE_SHIFT, help="base shift")
+parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
 parser.add_argument('-o', '--output', required=True, help="output file (html)")
 
 args = parser.parse_args()
@@ -38,10 +38,6 @@ if args.read_id:
     flag_read_id = 1
     print(f'read_id: {args.read_id}')
     read_id = args.read_id
-
-trim_offset = TRIM_OFFSET
-if args.trim_offset:
-    trim_offset = args.trim_offset
 
 plot_signal_limit = SIG_PLOT_LENGTH
 if args.plot_signal_limit:
@@ -56,7 +52,6 @@ flag_alignment = 0
 if args.alignment:
     flag_alignment = 1
     print(f'alignment file: {args.alignment}')
-print(f'base_shift: {args.base_shift}')
 print(f'output file: {args.output}')
 
 if flag_alignment == 1 and flag_fastq == 0:
@@ -72,13 +67,17 @@ if flag_fastq == 1:
         BASE_LIMIT = len(fastq_seq)
     fastq_file.close()
 
+paf_record = {}
 if flag_alignment == 1:
     # read alignment file
-    align_file = open(args.alignment, 'r')
-    alignment = align_file.readline().split()
-    trim_offset = int(alignment[2])
-    moves_string = alignment[14]
-    align_file.close()
+    paf_records = []
+    with open(args.alignment, "r") as handle:
+        paf_records = [record for record in parse_paf(handle)]
+
+    if len(paf_records) != 1:
+        print("only one alignment record is expected")
+        exit(1)
+    paf_record = paf_records[0]
 
 # open signal file
 x = []
@@ -90,13 +89,7 @@ read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
 if read is not None:
     print("read_id:", read['read_id'])
     print("len_raw_signal:", read['len_raw_signal'])
-    # x = list(range(1,read['len_raw_signal']+1))
-    # y = read['signal']
-
-    chunk_offset = 0
-    if trim_offset == 0:
-        FRONT_CLIP = 0
-    start_index = trim_offset + chunk_offset - FRONT_CLIP
+    start_index = 0
     if read['len_raw_signal'] < start_index + SIG_PLOT_LENGTH:
         SIG_PLOT_LENGTH = read['len_raw_signal'] - start_index
         end_index = read['len_raw_signal']
@@ -111,7 +104,7 @@ s5.close()
 # set output to static HTML file
 output_file(filename=args.output, title=read_id)
 
-plot_title = f'{read_id}:{start_index}-{end_index}-{trim_offset}-{chunk_offset}'
+plot_title = f'{read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{paf_record.query_start}]  [seq_length,kmer_start_index,kmer_end_index:{paf_record.target_length},{paf_record.target_start},{paf_record.target_end}]'
 tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
 p = figure(title=plot_title,
 		   x_axis_label='signal index',
@@ -130,18 +123,18 @@ if flag_alignment == 1:
     base_y = []
     base_label = []
     base_count = 0
-    location_plot = trim_offset+chunk_offset - start_index
+    location_plot = int(paf_record.query_start)
     previous_location = location_plot
     # draw moves
-    moves_string = re.sub('ss:Z:', '', moves_string)
+    moves_string = paf_record.tags['ss'][2]
+    # moves_string = re.sub('ss:Z:', '', moves_string)
     moves_string = re.sub('D', 'D,', moves_string)
     moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
     # print(moves_string)
     moves = re.split(r',+', moves_string)
 
     vlines = []
-    BASE_SHIFT = int(args.base_shift)
-    base_count = BASE_SHIFT
+    base_count = int(paf_record.target_start)
 
     for i in moves:
         previous_location = location_plot
@@ -220,7 +213,7 @@ source = ColumnDataSource(data=dict(
 ))
 p.line('x', 'y', line_width=2, source=source)
 # add a circle renderer with a size, color, and alpha
-p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=2, color="red", alpha=0.5)
+p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=args.point_size, color="red", alpha=0.5)
 
 # show the tooltip
 hover = p.select(dict(type=HoverTool))

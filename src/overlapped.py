@@ -13,12 +13,27 @@ import argparse
 import re
 import logging
 
-BASE_SHIFT = 6
+BASE_SHIFT = 5
 BASE_LIMIT = 1000
 FRONT_CLIP = 50
 SIG_PLOT_LENGTH = 8000
 TRIM_OFFSET = 0
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
+
+# # importing the modules
+# from bokeh.plotting import figure, output_file, show
+# # file to save the model
+# output_file("gfg.html")
+# # instantiating the figure object
+# graph = figure(title="Bokeh Multi Line Graph")
+# # the points to be plotted
+# xs = [[1, 2, 3, 4, 5], [-4, -2, 0, 2, 4]]
+# ys = [[5, 3, 8, 0], [5, -4, 10, -2, 5]]
+# # plotting the graph
+# graph.multi_line(xs, ys)
+# # displaying the model
+# show(graph)
+# exit(0)
 
 parser = argparse.ArgumentParser()
    
@@ -27,6 +42,8 @@ parser.add_argument('-r', '--read_id', required=False, help="read id")
 parser.add_argument('--trim_offset', required=False, help="signal trim offset")
 parser.add_argument('--plot_signal_limit', required=False, help="signal plot length")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
+parser.add_argument('--second_slow5', required=True, help="second slow5 file")
+parser.add_argument('--second_fastq', required=False, help="second fastq file")
 parser.add_argument('-a', '--alignment', required=False, help="alignment file")
 parser.add_argument('-b', '--base_shift', required=False, default=BASE_SHIFT, help="base shift")
 parser.add_argument('-o', '--output', required=True, help="output file (html)")
@@ -213,14 +230,46 @@ if flag_alignment == 1:
 
     plot_signal_limit = location_plot + 10
 
-source = ColumnDataSource(data=dict(
-    x=x[:plot_signal_limit],
-    y=y[:plot_signal_limit],
-    x_real=x_real[:plot_signal_limit],
-))
-p.line('x', 'y', line_width=2, source=source)
+y_second = [0]
+
+
+if flag_fastq == 1:
+    # read fastq file
+    fastq_file = open(args.second_fastq, 'r')
+    read_id = fastq_file.readline().split()[0][1:]
+    fastq_seq = fastq_file.readline().rstrip()
+    if BASE_LIMIT > len(fastq_seq):
+        BASE_LIMIT = len(fastq_seq)
+    fastq_file.close()
+
+s5 = pyslow5.Open(args.second_slow5, 'r')
+read = s5.get_read(read_id, pA=True)
+if read is not None:
+    print("read_id:", read['read_id'])
+    print("len_raw_signal:", read['len_raw_signal'])
+    # x = list(range(1,read['len_raw_signal']+1))
+    # y = read['signal']
+    chunk_offset = 0
+    if trim_offset == 0:
+        FRONT_CLIP = 0
+    start_index = trim_offset + chunk_offset - FRONT_CLIP
+    if read['len_raw_signal'] < start_index + SIG_PLOT_LENGTH:
+        SIG_PLOT_LENGTH = read['len_raw_signal'] - start_index
+        end_index = read['len_raw_signal']
+    else:
+        end_index = start_index + SIG_PLOT_LENGTH
+    shift = end_index
+
+    y_second.extend(read['signal'][start_index:end_index])
+s5.close()
+
+SIGNAL_SHIFT = 15
+y_second = [value + SIGNAL_SHIFT for value in y_second]
+
+p.line(x, y, line_width=2, color='black', legend_label='nanopolsih')
+p.line(x, y_second, line_width=1, color='grey', legend_label='a14')
 # add a circle renderer with a size, color, and alpha
-p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=2, color="red", alpha=0.5)
+# p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=2, color="red", alpha=0.5)
 
 # show the tooltip
 hover = p.select(dict(type=HoverTool))

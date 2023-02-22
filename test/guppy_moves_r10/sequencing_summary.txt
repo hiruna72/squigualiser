@@ -1,2 +1,0 @@
-filename	read_id	run_id	batch_id	channel	mux	start_time	duration	minknow_events	passes_filtering	template_start	num_events_template	template_duration	sequence_length_template	mean_qscore_template	strand_score_template	median_template	mad_template	scaling_median_template	scaling_mad_template
-signal_r10.slow5	2babd419-2e01-454a-b7f4-08ad9d4e2a9e	dc60b20f5078b3546ded810fb828b49c438fbd89	0	1217	2	116887.962750	27.146750	140530189287456	TRUE	116887.962750	21717	27.146750	10626	21.507374	3.146276	97.262039	20.468988	97.262039	20.468988

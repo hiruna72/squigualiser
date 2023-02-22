@@ -1,3 +1,5 @@
 bokeh
 numpy
 pyslow5
+scikit-learn
+readpaf
