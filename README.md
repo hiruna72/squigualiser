@@ -7,7 +7,7 @@ Visualize nanopore raw signal-base alignment
 
 ### using python environment
 ````
-git clone git@github.com:hiruna72/ideal-goggles.git
+git clone https://github.com/hiruna72/ideal-goggles.git
 cd ideal-goggles
 python3 -m venv idealg
 source idealg/bin/activate
@@ -15,7 +15,7 @@ pip install -r requirements.txt
 ````
 ### using conda environment
 ````
-git clone git@github.com:hiruna72/ideal-goggles.git
+git clone https://github.com/hiruna72/ideal-goggles.git
 cd ideal-goggles
 conda create -n idealg python=3.6.10 -y
 conda activate idealg
