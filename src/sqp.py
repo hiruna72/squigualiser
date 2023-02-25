@@ -14,111 +14,41 @@ import re
 import logging
 from readpaf import parse_paf
 from sys import stdin
+from pyfaidx import Fasta
+import os
 
 
-BASE_LIMIT = 1000
-# FRONT_CLIP = 50
-SIG_PLOT_LENGTH = 8000
+
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
 
 parser = argparse.ArgumentParser()
    
-parser.add_argument('-f', '--fastq', required=False, help="fastq file")
+parser.add_argument('-f', '--fasta', required=True, help="fasta file")
 parser.add_argument('-r', '--read_id', required=False, help="read id")
-parser.add_argument('--plot_signal_limit', required=False, help="signal plot length")
+parser.add_argument('--plot_signal_limit', required=False, type=int, help="signal plot length")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-parser.add_argument('-a', '--alignment', required=False, help="alignment file")
+parser.add_argument('-a', '--alignment', required=True, help="alignment file")
 parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
-parser.add_argument('-o', '--output', required=True, help="output file (html)")
+parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+def plot_function(read_id, output_file_name, signal_tuple, paf_record, fasta_sequence, base_limit, sig_plot_length):
+    x = signal_tuple[0]
+    x_real = signal_tuple[1]
+    y = signal_tuple[2]
 
-args = parser.parse_args()
-
-flag_read_id = 0
-if args.read_id:
-    flag_read_id = 1
-    print(f'read_id: {args.read_id}')
-    read_id = args.read_id
-
-plot_signal_limit = SIG_PLOT_LENGTH
-if args.plot_signal_limit:
-    plot_signal_limit = args.plot_signal_limit
-
-flag_fastq = 0
-if args.fastq:
-    flag_fastq = 1
-    print(f'fastq file: {args.fastq}')
-print(f'signal file: {args.slow5}')
-flag_alignment = 0
-if args.alignment:
-    flag_alignment = 1
-    print(f'alignment file: {args.alignment}')
-print(f'output file: {args.output}')
-
-if flag_alignment == 1 and flag_fastq == 0:
-    logging.error("please provide both fastq and alignment files")
-    exit()
-
-if flag_fastq == 1:
-    # read fastq file
-    fastq_file = open(args.fastq, 'r')
-    read_id = fastq_file.readline().split()[0][1:]
-    fastq_seq = fastq_file.readline().rstrip()
-    if BASE_LIMIT > len(fastq_seq):
-        BASE_LIMIT = len(fastq_seq)
-    fastq_file.close()
-
-paf_record = {}
-if flag_alignment == 1:
-    # read alignment file
-    paf_records = []
-    with open(args.alignment, "r") as handle:
-        paf_records = [record for record in parse_paf(handle)]
-
-    if len(paf_records) != 1:
-        print("only one alignment record is expected")
-        exit(1)
-    paf_record = paf_records[0]
-
-# open signal file
-x = []
-x_real = []
-y = [0]
-
-s5 = pyslow5.Open(args.slow5, 'r')
-read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
-if read is not None:
-    print("read_id:", read['read_id'])
-    print("len_raw_signal:", read['len_raw_signal'])
-    start_index = 0
-    if read['len_raw_signal'] < start_index + SIG_PLOT_LENGTH:
-        SIG_PLOT_LENGTH = read['len_raw_signal'] - start_index
-        end_index = read['len_raw_signal']
-    else:
-        end_index = start_index + SIG_PLOT_LENGTH
-    shift = end_index
-
-    x = list(range(0, end_index-start_index + 1))
-    x_real = list(range(start_index, end_index + 1))
-    y.extend(read['signal'][start_index:end_index])
-s5.close()
-# set output to static HTML file
-output_file(filename=args.output, title=read_id)
-
-plot_title = f'{read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{paf_record.query_start}]  [seq_length,kmer_start_index,kmer_end_index:{paf_record.target_length},{paf_record.target_start},{paf_record.target_end}]'
-tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
-p = figure(title=plot_title,
-		   x_axis_label='signal index',
-		   y_axis_label='signal value',
-		   sizing_mode="stretch_width",
-		   height=300,
-		   output_backend="webgl",
-		   x_range=(0, 750),
-		   tools=tools_to_show)
+    plot_title = f'{read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{paf_record.query_start}]  [seq_length,kmer_start_index,kmer_end_index:{paf_record.target_length},{paf_record.target_start},{paf_record.target_end}]'
+    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+    p = figure(title=plot_title,
+               x_axis_label='signal index',
+               y_axis_label='signal value',
+               sizing_mode="stretch_width",
+               height=300,
+               output_backend="webgl",
+               x_range=(0, 750),
+               tools=tools_to_show)
     # tooltips=tool_tips)
 
-p.toolbar.active_scroll = p.select_one(WheelZoomTool)
+    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
 
-if flag_alignment == 1:
     base_x = []
     base_y = []
     base_label = []
@@ -144,7 +74,7 @@ if flag_alignment == 1:
             n_samples = int(i)
             prev_loc = previous_location
             for j in range(0, n_samples):
-                base = fastq_seq[base_count]
+                base = fasta_sequence[base_count]
                 base_box = BoxAnnotation(left=prev_loc, right=prev_loc+5, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
@@ -174,7 +104,7 @@ if flag_alignment == 1:
             n_samples = int(i)
             location_plot = location_plot + n_samples
 
-            base = fastq_seq[base_count]
+            base = fasta_sequence[base_count]
             base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, fill_color=base_color_map[base])
             p.add_layout(base_box)
 
@@ -187,9 +117,9 @@ if flag_alignment == 1:
             base_label.append(label)
             base_count = base_count + 1
 
-        if base_count == BASE_LIMIT:
+        if base_count == base_limit:
             break
-        if location_plot > SIG_PLOT_LENGTH:
+        if location_plot > sig_plot_length:
             break
 
     p.renderers.extend(vlines)
@@ -206,18 +136,69 @@ if flag_alignment == 1:
 
     plot_signal_limit = location_plot + 10
 
-source = ColumnDataSource(data=dict(
-    x=x[:plot_signal_limit],
-    y=y[:plot_signal_limit],
-    x_real=x_real[:plot_signal_limit],
-))
-p.line('x', 'y', line_width=2, source=source)
-# add a circle renderer with a size, color, and alpha
-p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=args.point_size, color="red", alpha=0.5)
+    source = ColumnDataSource(data=dict(
+        x=x[:plot_signal_limit],
+        y=y[:plot_signal_limit],
+        x_real=x_real[:plot_signal_limit],
+    ))
+    p.line('x', 'y', line_width=2, source=source)
+    # add a circle renderer with a size, color, and alpha
+    p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=args.point_size, color="red", alpha=0.5)
 
-# show the tooltip
-hover = p.select(dict(type=HoverTool))
-hover.tooltips = [("x", "@x_real"), ("y", "$y")]
-hover.mode = 'mouse'
+    # show the tooltip
+    hover = p.select(dict(type=HoverTool))
+    hover.tooltips = [("x", "@x_real"), ("y", "$y")]
+    hover.mode = 'mouse'
 
-save(p)
+    output_file(output_file_name, title=read_id)
+    save(p)
+
+args = parser.parse_args()
+
+if args.fasta:
+    print(f'fasta file: {args.fasta}')
+print(f'signal file: {args.slow5}')
+if args.alignment:
+    print(f'alignment file: {args.alignment}')
+
+if not os.path.exists(args.output_dir):
+    os.mkdir(args.output_dir)
+
+# open signal file
+s5 = pyslow5.Open(args.slow5, 'r')
+
+with open(args.alignment, "r") as handle:
+    fasta_reads = Fasta(args.fasta)
+    for paf_record in parse_paf(handle):
+        read_id = paf_record.query_name
+        fasta_seq = fasta_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
+        output_file_name = args.output_dir+"/"+read_id+".html"
+        print(f'output file: {output_file_name}')
+
+        x = []
+        x_real = []
+        y = [0]
+        base_limit = 1000
+        sig_plot_length = 8000
+        if args.plot_signal_limit:
+            sig_plot_length = args.plot_signal_limit
+        read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
+        if read is not None:
+            print("read_id:", read['read_id'])
+            print("len_raw_signal:", read['len_raw_signal'])
+            start_index = 0
+            if read['len_raw_signal'] < start_index + sig_plot_length:
+                sig_plot_length = read['len_raw_signal'] - start_index
+                end_index = read['len_raw_signal']
+            else:
+                end_index = start_index + sig_plot_length
+            shift = end_index
+
+            x = list(range(0, end_index - start_index + 1))
+            x_real = list(range(start_index, end_index + 1))
+            y.extend(read['signal'][start_index:end_index])
+        signal_tuple = (x, x_real, y)
+
+        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, paf_record=paf_record, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
+
+s5.close()

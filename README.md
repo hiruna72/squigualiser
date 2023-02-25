@@ -26,23 +26,24 @@ pip install -r requirements.txt
 1. Create a signal-base alignment PAF file using `sigb_formater` tool in [poregen](https://github.com/hiruna72/poregen)
 2. Visualize the signal to sequence alignment
 ````
-FASTQ_FILE=read.fastq
+FASTA_FILE=read.fasta
 SIGNAL_FILE=read.slow5
 ALIGN_FILE=read_signal_alignment.paf
 OUTPUT_HTML=output.html
 
-python src/sqp.py --fastq ${FASTQ_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
 
+*use samtools fasta command to create .fasta file from SAM/BAM file
 ````
 
 ## Example
 ````
 EXAMPLE_DIR=test/data/sqp/sigb_formater
-FASTQ_FILE=${EXAMPLE_DIR}/read.fastq
+FASTA_FILE=${EXAMPLE_DIR}/read.fasta
 SIGNAL_FILE=${EXAMPLE_DIR}/read.slow5
 ALIGN_FILE=${EXAMPLE_DIR}/r1k1m1.paf
 OUTPUT_HTML=output.html
 
-python src/sqp.py --fastq ${FASTQ_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
 
 ````

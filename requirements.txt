@@ -3,3 +3,4 @@ numpy
 pyslow5
 scikit-learn
 readpaf
+pyfaidx
