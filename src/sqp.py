@@ -16,8 +16,35 @@ from readpaf import parse_paf
 from sys import stdin
 from pyfaidx import Fasta
 import os
+import pysam
+
+BASE_LIMIT = 1000
+SIG_PLOT_LENGTH = 8000
+
+BAM_CMATCH = 0
+BAM_CINS = 1
+BAM_CDEL = 2
+BAM_CREF_SKIP = 3
+BAM_CSOFT_CLIP = 4
+BAM_CHARD_CLIP = 5
+BAM_CPAD = 6
+BAM_CEQUAL = 7
+BAM_CDIFF = 8
+BAM_CBACK = 9
 
 
+READ_ID = 0
+LEN_RAW_SIGNAL = 1
+START_RAW = 2
+END_RAW = 3
+STRAND = 4
+READ_ID = 5
+LEN_KMER = 6
+START_KMER = 7
+END_KMER = 8
+MATCHES = 9
+LEN_KMER = 10
+MAPQ = 11
 
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
 
@@ -27,15 +54,59 @@ parser.add_argument('-f', '--fasta', required=True, help="fasta file")
 parser.add_argument('-r', '--read_id', required=False, help="read id")
 parser.add_argument('--plot_signal_limit', required=False, type=int, help="signal plot length")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-parser.add_argument('-a', '--alignment', required=True, help="alignment file")
+parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+parser.add_argument('--region', required=False, type=str, default="", help="[start-end] region to load from SAM/BAM to plot (eg: chrX:start-end)")
+parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
 parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
-def plot_function(read_id, output_file_name, signal_tuple, paf_record, fasta_sequence, base_limit, sig_plot_length):
+
+def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
+    ref_region_start_diff = sam_record.pos + 1 - region_tuple[0]
+    ref_region_end_diff = int(sam_record.pos) + ref_seq_len - region_tuple[1]
+    if ref_region_end_diff == 0 and ref_region_start_diff == 0:
+        return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
+
+    moves = sig_algn_dic['ss']
+
+    if ref_region_start_diff < 0:
+        # we have to remove part of the sequence until we get to the sam_record.pos
+        count_bases = 0
+        eat_signal = 0
+        count_moves = 0
+        for i in moves:
+            if count_bases == abs(ref_region_start_diff):
+                break
+            count_moves += 1
+
+            if 'D' in i:
+                count_bases += 1
+            elif 'I' in i:
+                i = re.sub('I', '', i)
+                eat_signal += int(i)
+            else:
+                eat_signal += int(i)
+                count_bases += 1
+
+        moves = moves[count_moves:]
+        x = signal_tuple[0][:-eat_signal]
+        x_real = signal_tuple[1][eat_signal:]
+        y = signal_tuple[2][eat_signal:]
+        signal_tuple = (x, x_real, y)
+
+        sig_algn_dic['ss'] = moves
+
+    return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
+
+
+
+
+
+def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit, sig_plot_length):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    plot_title = f'{read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{paf_record.query_start}]  [seq_length,kmer_start_index,kmer_end_index:{paf_record.target_length},{paf_record.target_start},{paf_record.target_end}]'
+    plot_title = f'{sig_algn_dic["tag_name"]} {read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{sig_algn_data["start_raw"]}]  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
     p = figure(title=plot_title,
                x_axis_label='signal index',
@@ -53,18 +124,13 @@ def plot_function(read_id, output_file_name, signal_tuple, paf_record, fasta_seq
     base_y = []
     base_label = []
     base_count = 0
-    location_plot = int(paf_record.query_start)
+    location_plot = int(sig_algn_data["start_raw"])
     previous_location = location_plot
     # draw moves
-    moves_string = paf_record.tags['ss'][2]
-    # moves_string = re.sub('ss:Z:', '', moves_string)
-    moves_string = re.sub('D', 'D,', moves_string)
-    moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-    # print(moves_string)
-    moves = re.split(r',+', moves_string)
+    moves = sig_algn_data["ss"]
 
     vlines = []
-    base_count = int(paf_record.target_start)
+    base_count = int(sig_algn_data["start_kmer"])
 
     for i in moves:
         previous_location = location_plot
@@ -84,13 +150,14 @@ def plot_function(read_id, output_file_name, signal_tuple, paf_record, fasta_seq
                 base_label.append(label)
 
                 prev_loc = prev_loc + 5
-                x_end = x[-1]
-                x = x + list(range(x_end, x_end+5))
                 base_count = base_count + 1
             location_plot = prev_loc
-            z = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
-            y = np.concatenate((z, y[previous_location:]), axis=0)
-            # y = y[:previous_location] + y[previous_location:]
+
+            x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * 5))
+            y_add = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
+            y = np.concatenate((y_add, y[previous_location:]), axis=0)
+            x_add = np.concatenate((x_real[:previous_location], [0] * n_samples * 5), axis=0)
+            x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
 
         elif 'I' in i:
             i = re.sub('I', '', i)
@@ -130,20 +197,18 @@ def plot_function(read_id, output_file_name, signal_tuple, paf_record, fasta_seq
 
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
                                       x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
-                                      text_font_size="7pt")
+                                      text_font_size="9pt")
 
     p.add_layout(base_annotation_labels)
 
-    plot_signal_limit = location_plot + 10
-
     source = ColumnDataSource(data=dict(
-        x=x[:plot_signal_limit],
-        y=y[:plot_signal_limit],
-        x_real=x_real[:plot_signal_limit],
+        x=x[:location_plot],
+        y=y[:location_plot],
+        x_real=x_real[:location_plot],
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(x[:plot_signal_limit], y[:plot_signal_limit], size=args.point_size, color="red", alpha=0.5)
+    p.circle(x[:location_plot], y[:location_plot], size=args.point_size, color="red", alpha=0.5)
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -157,9 +222,20 @@ args = parser.parse_args()
 
 if args.fasta:
     print(f'fasta file: {args.fasta}')
+
 print(f'signal file: {args.slow5}')
+
+use_paf = 0
 if args.alignment:
     print(f'alignment file: {args.alignment}')
+    alignment_extension = args.alignment[-4:]
+    if alignment_extension == ".bam" or alignment_extension == ".sam":
+        use_paf = 0
+    elif alignment_extension == ".paf":
+        use_paf = 1
+    else:
+        print("error please provide the alignment file with correct extension")
+        exit()
 
 if not os.path.exists(args.output_dir):
     os.mkdir(args.output_dir)
@@ -167,19 +243,120 @@ if not os.path.exists(args.output_dir):
 # open signal file
 s5 = pyslow5.Open(args.slow5, 'r')
 
-with open(args.alignment, "r") as handle:
+if use_paf == 1:
+    with open(args.alignment, "r") as handle:
+        fasta_reads = Fasta(args.fasta)
+        for paf_record in parse_paf(handle):
+            read_id = paf_record.query_name
+            fasta_seq = fasta_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
+            output_file_name = args.output_dir+"/"+read_id+".html"
+            print(f'output file: {output_file_name}')
+
+            x = []
+            x_real = []
+            y = []
+            base_limit = BASE_LIMIT
+            sig_plot_length = SIG_PLOT_LENGTH
+            if args.plot_signal_limit:
+                sig_plot_length = args.plot_signal_limit
+            read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
+            if read is not None:
+                print("read_id:", read['read_id'])
+                print("len_raw_signal:", read['len_raw_signal'])
+                start_index = 0
+                if read['len_raw_signal'] < start_index + sig_plot_length:
+                    sig_plot_length = read['len_raw_signal'] - start_index
+                    end_index = read['len_raw_signal']
+                else:
+                    end_index = start_index + sig_plot_length
+                shift = end_index
+
+                x = list(range(1, end_index - start_index + 1))
+                x_real = list(range(start_index + 1, end_index + 1))  # 1based
+                y = read['signal'][start_index:end_index]
+            signal_tuple = (x, x_real, y)
+
+            sig_algn_dic = {}
+            sig_algn_dic['query_name'] = paf_record.query_name
+            sig_algn_dic['start_raw'] = paf_record.query_start
+            sig_algn_dic['len_kmer'] = paf_record.target_length
+            sig_algn_dic['start_kmer'] = paf_record.target_start
+            sig_algn_dic['end_kmer'] = paf_record.target_end
+            sig_algn_dic['tag_name'] = args.tag_name
+
+            moves_string = paf_record.tags['ss'][2]
+            moves_string = re.sub('D', 'D,', moves_string)
+            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+            moves = re.split(r',+', moves_string)
+            sig_algn_dic['ss'] = moves
+
+            plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
+else:
+    print("using bam")
+    samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
-    for paf_record in parse_paf(handle):
-        read_id = paf_record.query_name
-        fasta_seq = fasta_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
+
+    for sam_record in samfile.fetch():
+        cigar_t = sam_record.cigartuples
+        ref_seq_len = 0
+        for a in cigar_t:
+            cig_op = a[0]
+            cig_count = a[1]
+            if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
+                ref_seq_len = ref_seq_len + cig_count
+        print(ref_seq_len)
+        if ref_seq_len < BASE_LIMIT:
+            base_limit = ref_seq_len
+        else:
+            base_limit = BASE_LIMIT
+        ref_name = ""
+        ref_start = 0
+        ref_end = 0
+        if args.region != "":
+            pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+            if not pattern.match(args.region):
+                print("Error: region provided is not in correct format")
+                exit(1)
+            ref_name = args.region.split(":")[0]
+            ref_start = int(args.region.split(":")[1].split("-")[0])
+            ref_end = int(args.region.split(":")[1].split("-")[1])
+
+            if ref_name != sam_record.reference_name:
+                print("Warning: sam record's reference name and the name specified are different")
+                continue
+            print("ref_start: " + str(ref_start))
+            print("ref_end: " + str(ref_end))
+            print(int(sam_record.pos) + ref_seq_len)
+            if ref_start >= (int(sam_record.pos) + ref_seq_len):
+                print("Warning: sam record's region and the region specified do not overlap")
+                continue
+            elif ref_end <= int(sam_record.pos) + 1:
+                print("Warning: sam record's region and the region specified do not overlap")
+                continue
+
+            if ref_end > (int(sam_record.pos) + ref_seq_len):
+                ref_end = int(sam_record.pos) + ref_seq_len
+            if ref_start < (int(sam_record.pos) + 1):
+                ref_start = int(sam_record.pos) + 1
+
+            base_limit = ref_end - ref_start + 1
+        else:
+            ref_name = sam_record.reference_name
+            ref_start = int(sam_record.pos) + 1
+            ref_end = int(sam_record.pos) + ref_seq_len
+
+
+        print("plotting region:" + ref_name + ":" + str(ref_start) + "-" + str(ref_end))
+
+        read_id = sam_record.query_name
+        fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
         output_file_name = args.output_dir+"/"+read_id+".html"
         print(f'output file: {output_file_name}')
 
         x = []
         x_real = []
-        y = [0]
-        base_limit = 1000
-        sig_plot_length = 8000
+        y = []
+        sig_plot_length = SIG_PLOT_LENGTH
         if args.plot_signal_limit:
             sig_plot_length = args.plot_signal_limit
         read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
@@ -194,11 +371,32 @@ with open(args.alignment, "r") as handle:
                 end_index = start_index + sig_plot_length
             shift = end_index
 
-            x = list(range(0, end_index - start_index + 1))
-            x_real = list(range(start_index, end_index + 1))
-            y.extend(read['signal'][start_index:end_index])
+            x = list(range(1, end_index - start_index + 1))
+            x_real = list(range(start_index+1, end_index+1))             # 1based
+            y = read['signal'][start_index:end_index]
         signal_tuple = (x, x_real, y)
+        region_tuple = (ref_start, ref_end)
 
-        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, paf_record=paf_record, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
+        rq_paf = sam_record.get_tag("rq").split(',')
 
+        sig_algn_dic = {}
+        sig_algn_dic['query_name'] = sam_record.query_name
+        sig_algn_dic['start_raw'] = rq_paf[START_RAW]
+        sig_algn_dic['len_kmer'] = base_limit
+        sig_algn_dic['start_kmer'] = rq_paf[START_KMER]
+        sig_algn_dic['end_kmer'] = base_limit
+        sig_algn_dic['tag_name'] = args.tag_name + " " + ref_name + ":" + str(ref_start) + "-" + str(ref_end)
+
+        moves_string = sam_record.get_tag("ss")
+        moves_string = re.sub('D', 'D,', moves_string)
+        moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+        moves = re.split(r',+', moves_string)
+
+        sig_algn_dic['ss'] = moves
+
+        print(len(fasta_seq))
+        print(fasta_seq)
+        sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
 s5.close()

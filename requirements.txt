@@ -4,3 +4,4 @@ pyslow5
 scikit-learn
 readpaf
 pyfaidx
+pysam
