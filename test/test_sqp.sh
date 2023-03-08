@@ -154,8 +154,19 @@ REGION="chr1:92780311-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-
 cat ${OUTPUT_DIR}/*/*.html > ${OUTPUT_DIR}/pileup.html
+
+TESTCASE=16
+info "testcase:$TESTCASE - reference-signal plot"
+FASTA=${GENOME}
+SIGNAL="${RAW_DIR}/reverse_read/reads.slow5"
+ALIGNMENT="${RAW_DIR}/reverse_read/realign.sam"
+REGION="chr1:6811011-6811050"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
+
 
 info "all $TESTCASE testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

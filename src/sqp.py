@@ -19,7 +19,7 @@ import os
 import pysam
 
 BASE_LIMIT = 1000
-SIG_PLOT_LENGTH = 8000
+SIG_PLOT_LENGTH = 10000
 
 BAM_CMATCH = 0
 BAM_CINS = 1
@@ -52,7 +52,7 @@ parser = argparse.ArgumentParser()
    
 parser.add_argument('-f', '--fasta', required=True, help="fasta file")
 parser.add_argument('-r', '--read_id', required=False, help="read id")
-parser.add_argument('--plot_signal_limit', required=False, type=int, help="signal plot length")
+parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
 parser.add_argument('--region', required=False, type=str, default="", help="[start-end] region to load from SAM/BAM to plot (eg: chrX:start-end)")
@@ -101,7 +101,7 @@ def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, 
 
 
 
-def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit, sig_plot_length):
+def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
@@ -124,8 +124,9 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     base_y = []
     base_label = []
     base_count = 0
-    location_plot = int(sig_algn_data["start_raw"])
+    location_plot = 0
     previous_location = location_plot
+    initial_location = location_plot
     # draw moves
     moves = sig_algn_data["ss"]
 
@@ -186,7 +187,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
         if base_count == base_limit:
             break
-        if location_plot > sig_plot_length:
+        if location_plot - initial_location > SIG_PLOT_LENGTH:
             break
 
     p.renderers.extend(vlines)
@@ -223,6 +224,9 @@ args = parser.parse_args()
 if args.fasta:
     print(f'fasta file: {args.fasta}')
 
+if args.base_limit:
+    BASE_LIMIT = args.base_limit
+
 print(f'signal file: {args.slow5}')
 
 use_paf = 0
@@ -257,19 +261,13 @@ if use_paf == 1:
             y = []
             base_limit = BASE_LIMIT
             sig_plot_length = SIG_PLOT_LENGTH
-            if args.plot_signal_limit:
-                sig_plot_length = args.plot_signal_limit
+
             read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
             if read is not None:
                 print("read_id:", read['read_id'])
                 print("len_raw_signal:", read['len_raw_signal'])
-                start_index = 0
-                if read['len_raw_signal'] < start_index + sig_plot_length:
-                    sig_plot_length = read['len_raw_signal'] - start_index
-                    end_index = read['len_raw_signal']
-                else:
-                    end_index = start_index + sig_plot_length
-                shift = end_index
+                start_index = paf_record.query_start
+                end_index = read['len_raw_signal']
 
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
@@ -290,13 +288,15 @@ if use_paf == 1:
             moves = re.split(r',+', moves_string)
             sig_algn_dic['ss'] = moves
 
-            plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
+            plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
 else:
     print("using bam")
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
 
     for sam_record in samfile.fetch():
+        if sam_record.is_supplementary:
+            continue
         cigar_t = sam_record.cigartuples
         ref_seq_len = 0
         for a in cigar_t:
@@ -357,27 +357,25 @@ else:
         x_real = []
         y = []
         sig_plot_length = SIG_PLOT_LENGTH
-        if args.plot_signal_limit:
-            sig_plot_length = args.plot_signal_limit
+        rq_paf = sam_record.get_tag("rq").split(',')
+
         read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
         if read is not None:
             print("read_id:", read['read_id'])
             print("len_raw_signal:", read['len_raw_signal'])
-            start_index = 0
-            if read['len_raw_signal'] < start_index + sig_plot_length:
-                sig_plot_length = read['len_raw_signal'] - start_index
-                end_index = read['len_raw_signal']
-            else:
-                end_index = start_index + sig_plot_length
-            shift = end_index
+            start_index = int(rq_paf[START_RAW])
+            end_index = read['len_raw_signal']
 
             x = list(range(1, end_index - start_index + 1))
             x_real = list(range(start_index+1, end_index+1))             # 1based
             y = read['signal'][start_index:end_index]
+
+        if sam_record.is_reverse:
+            x_real.reverse()
+            y = np.flip(y)
+
         signal_tuple = (x, x_real, y)
         region_tuple = (ref_start, ref_end)
-
-        rq_paf = sam_record.get_tag("rq").split(',')
 
         sig_algn_dic = {}
         sig_algn_dic['query_name'] = sam_record.query_name
@@ -398,5 +396,5 @@ else:
         print(fasta_seq)
         sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, sig_plot_length=sig_plot_length)
+        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
 s5.close()
