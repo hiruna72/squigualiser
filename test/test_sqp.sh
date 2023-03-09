@@ -158,6 +158,16 @@ cat ${OUTPUT_DIR}/*/*.html > ${OUTPUT_DIR}/pileup.html
 
 TESTCASE=16
 info "testcase:$TESTCASE - reference-signal plot"
+FASTA="${RAW_DIR}/simulate_reads/sim.fasta"
+SIGNAL="${RAW_DIR}/simulate_reads/sim.slow5"
+ALIGNMENT="${RAW_DIR}/simulate_reads/sim.paf"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
+
+TESTCASE=17
+info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/reverse_read/reads.slow5"
 ALIGNMENT="${RAW_DIR}/reverse_read/realign.sam"
@@ -165,13 +175,8 @@ REGION="chr1:6811011-6811050"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
-
+cat ${OUTPUT}/*.html >> ${OUTPUT_DIR}/pileup2.html
 
 info "all $TESTCASE testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0
-# If you want to log to the same file: command1 >> log_file 2>&1
-# If you want different files: command1 >> log_file 2>> err_file
-# use ANSI syntax format to view stdout/stderr on SublimeText
-# use bash -n [script] and shellcheck [script] to check syntax

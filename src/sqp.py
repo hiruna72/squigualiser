@@ -61,15 +61,15 @@ parser.add_argument('--point_size', required=False, type=int, default=5, help="s
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
 
 def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
-    ref_region_start_diff = sam_record.pos + 1 - region_tuple[0]
-    ref_region_end_diff = int(sam_record.pos) + ref_seq_len - region_tuple[1]
+    ref_region_start_diff = int(sam_record.reference_start) + 1 - region_tuple[0]
+    ref_region_end_diff = int(sam_record.reference_start) + ref_seq_len - region_tuple[1]
+    # print("ref_region_start_diff: " + str(ref_region_start_diff))
     if ref_region_end_diff == 0 and ref_region_start_diff == 0:
         return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
     moves = sig_algn_dic['ss']
-
     if ref_region_start_diff < 0:
-        # we have to remove part of the sequence until we get to the sam_record.pos
+        # we have to remove part of the sequence until we get to the ref start
         count_bases = 0
         eat_signal = 0
         count_moves = 0
@@ -79,10 +79,13 @@ def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, 
             count_moves += 1
 
             if 'D' in i:
-                count_bases += 1
+                i = re.sub('D', '', i)
+                count_bases += int(i)
+                # print(i+" D "+str(int(sam_record.reference_start) + 1 + count_bases))
             elif 'I' in i:
                 i = re.sub('I', '', i)
                 eat_signal += int(i)
+                # print(i+" I "+str(int(sam_record.reference_start) + 1 + count_bases))
             else:
                 eat_signal += int(i)
                 count_bases += 1
@@ -255,6 +258,7 @@ if use_paf == 1:
             fasta_seq = fasta_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
             output_file_name = args.output_dir+"/"+read_id+".html"
             print(f'output file: {output_file_name}')
+            print(f'read_id: {read_id}')
 
             x = []
             x_real = []
@@ -264,8 +268,6 @@ if use_paf == 1:
 
             read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
             if read is not None:
-                print("read_id:", read['read_id'])
-                print("len_raw_signal:", read['len_raw_signal'])
                 start_index = paf_record.query_start
                 end_index = read['len_raw_signal']
 
@@ -290,13 +292,14 @@ if use_paf == 1:
 
             plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
 else:
-    print("using bam")
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
 
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue
+        # if sam_record.query_name != "63d4a555-4706-4295-b6aa-172b71b9c18f":
+        #     continue
         cigar_t = sam_record.cigartuples
         ref_seq_len = 0
         for a in cigar_t:
@@ -304,7 +307,8 @@ else:
             cig_count = a[1]
             if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
                 ref_seq_len = ref_seq_len + cig_count
-        print(ref_seq_len)
+
+        # print("ref_seq_len: " + str(ref_seq_len))
         if ref_seq_len < BASE_LIMIT:
             base_limit = ref_seq_len
         else:
@@ -322,32 +326,31 @@ else:
             ref_end = int(args.region.split(":")[1].split("-")[1])
 
             if ref_name != sam_record.reference_name:
-                print("Warning: sam record's reference name and the name specified are different")
+                print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
                 continue
-            print("ref_start: " + str(ref_start))
-            print("ref_end: " + str(ref_end))
-            print(int(sam_record.pos) + ref_seq_len)
-            if ref_start >= (int(sam_record.pos) + ref_seq_len):
+            # print("ref_start: " + str(ref_start))
+            # print("ref_end: " + str(ref_end))
+            # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
+            # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
+            if ref_start >= (int(sam_record.reference_start) + ref_seq_len):
                 print("Warning: sam record's region and the region specified do not overlap")
                 continue
-            elif ref_end <= int(sam_record.pos) + 1:
+            elif ref_end <= int(sam_record.reference_start) + 1:
                 print("Warning: sam record's region and the region specified do not overlap")
                 continue
 
-            if ref_end > (int(sam_record.pos) + ref_seq_len):
-                ref_end = int(sam_record.pos) + ref_seq_len
-            if ref_start < (int(sam_record.pos) + 1):
-                ref_start = int(sam_record.pos) + 1
+            if ref_end > (int(sam_record.reference_start) + ref_seq_len):
+                ref_end = int(sam_record.reference_start) + ref_seq_len
+            if ref_start < (int(sam_record.reference_start) + 1):
+                ref_start = int(sam_record.reference_start) + 1
 
             base_limit = ref_end - ref_start + 1
         else:
             ref_name = sam_record.reference_name
-            ref_start = int(sam_record.pos) + 1
-            ref_end = int(sam_record.pos) + ref_seq_len
+            ref_start = int(sam_record.reference_start) + 1
+            ref_end = int(sam_record.reference_start) + ref_seq_len
 
-
-        print("plotting region:" + ref_name + ":" + str(ref_start) + "-" + str(ref_end))
-
+        print("plot region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, sam_record.query_name))
         read_id = sam_record.query_name
         fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
         output_file_name = args.output_dir+"/"+read_id+".html"
@@ -361,8 +364,8 @@ else:
 
         read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
         if read is not None:
-            print("read_id:", read['read_id'])
-            print("len_raw_signal:", read['len_raw_signal'])
+            # print("read_id:", read['read_id'])
+            # print("len_raw_signal:", read['len_raw_signal'])
             start_index = int(rq_paf[START_RAW])
             end_index = read['len_raw_signal']
 
@@ -392,8 +395,8 @@ else:
 
         sig_algn_dic['ss'] = moves
 
-        print(len(fasta_seq))
-        print(fasta_seq)
+        # print(len(fasta_seq))
+        # print(fasta_seq)
         sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
         plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
