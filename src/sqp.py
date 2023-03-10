@@ -20,6 +20,7 @@ import pysam
 
 BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 10000
+DEFAULT_STRIDE = 5
 
 BAM_CMATCH = 0
 BAM_CINS = 1
@@ -100,14 +101,14 @@ def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, 
 
     return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
-
-
-
-
-def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit):
+def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_tuple, base_limit):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
+
+    fasta_sequence = fasta_tuple[0]
+    query_sequence = fasta_tuple[1]
+    cigar_tuple = fasta_tuple[2]
 
     plot_title = f'{sig_algn_dic["tag_name"]} {read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{sig_algn_data["start_raw"]}]  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
@@ -126,7 +127,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     base_x = []
     base_y = []
     base_label = []
-    base_count = 0
+    base_label_colors = []
     location_plot = 0
     previous_location = location_plot
     initial_location = location_plot
@@ -135,6 +136,10 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
     vlines = []
     base_count = int(sig_algn_data["start_kmer"])
+    query_base_count = 0
+
+    num_Is = 0
+    num_Ds = 0
 
     for i in moves:
         previous_location = location_plot
@@ -145,28 +150,32 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             prev_loc = previous_location
             for j in range(0, n_samples):
                 base = fasta_sequence[base_count]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc+5, fill_alpha=0.2, fill_color='white')
+                base_box = BoxAnnotation(left=prev_loc, right=prev_loc+DEFAULT_STRIDE, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
                 base_y.append(115)
                 label = str(base) + "\t" + str(base_count + 1)
                 base_label.append(label)
+                base_label_colors.append('red')
 
-                prev_loc = prev_loc + 5
-                base_count = base_count + 1
+                prev_loc += DEFAULT_STRIDE
+                base_count += 1
+                num_Ds += 1
+
             location_plot = prev_loc
 
-            x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * 5))
-            y_add = np.concatenate((y[:previous_location], [0] * n_samples * 5), axis=0)
+            x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * DEFAULT_STRIDE))
+            y_add = np.concatenate((y[:previous_location], [0] * n_samples * DEFAULT_STRIDE), axis=0)
             y = np.concatenate((y_add, y[previous_location:]), axis=0)
-            x_add = np.concatenate((x_real[:previous_location], [0] * n_samples * 5), axis=0)
+            x_add = np.concatenate((x_real[:previous_location], [0] * n_samples * DEFAULT_STRIDE), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
 
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-            location_plot = location_plot + n_samples
+            num_Is += n_samples
+            location_plot += n_samples
 
             vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
             vlines.append(vline)
@@ -186,7 +195,8 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             base_y.append(115)
             label = str(base) + "\t" + str(base_count + 1)
             base_label.append(label)
-            base_count = base_count + 1
+            base_label_colors.append('black')
+            base_count += 1
 
         if base_count == base_limit:
             break
@@ -197,11 +207,12 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x,
                                                  base_y=base_y,
-                                                 base_label=base_label))
+                                                 base_label=base_label,
+                                                 colors=base_label_colors))
 
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
                                       x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
-                                      text_font_size="9pt")
+                                      text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
 
@@ -218,6 +229,9 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover = p.select(dict(type=HoverTool))
     hover.tooltips = [("x", "@x_real"), ("y", "$y")]
     hover.mode = 'mouse'
+
+    plot_title = f'{sig_algn_dic["tag_name"]} dels:{num_Ds}b ins:{num_Is}samples {read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{sig_algn_data["start_raw"]}]  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
+    p.title = plot_title
 
     output_file(output_file_name, title=read_id)
     save(p)
@@ -290,7 +304,8 @@ if use_paf == 1:
             moves = re.split(r',+', moves_string)
             sig_algn_dic['ss'] = moves
 
-            plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
+            fasta_t = (fasta_seq, fasta_seq, fasta_seq)
+            plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
 else:
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
@@ -298,7 +313,7 @@ else:
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue
-        # if sam_record.query_name != "63d4a555-4706-4295-b6aa-172b71b9c18f":
+        # if sam_record.query_name != "76ec70fd-6731-45ab-a820-a3a26e29a035":
         #     continue
         cigar_t = sam_record.cigartuples
         ref_seq_len = 0
@@ -344,7 +359,8 @@ else:
             if ref_start < (int(sam_record.reference_start) + 1):
                 ref_start = int(sam_record.reference_start) + 1
 
-            base_limit = ref_end - ref_start + 1
+            if (ref_end - ref_start + 1) < BASE_LIMIT:
+                base_limit = ref_end - ref_start + 1
         else:
             ref_name = sam_record.reference_name
             ref_start = int(sam_record.reference_start) + 1
@@ -386,7 +402,12 @@ else:
         sig_algn_dic['len_kmer'] = base_limit
         sig_algn_dic['start_kmer'] = rq_paf[START_KMER]
         sig_algn_dic['end_kmer'] = base_limit
-        sig_algn_dic['tag_name'] = args.tag_name + " " + ref_name + ":" + str(ref_start) + "-" + str(ref_end)
+
+        strand_dir = "+"
+        if sam_record.is_reverse:
+            strand_dir = "-"
+
+        sig_algn_dic['tag_name'] = args.tag_name + " " + ref_name + ":" + str(ref_start) + "-" + str(ref_end) + " (" + strand_dir + ")"
 
         moves_string = sam_record.get_tag("ss")
         moves_string = re.sub('D', 'D,', moves_string)
@@ -399,5 +420,6 @@ else:
         # print(fasta_seq)
         sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
+        fasta_t = (fasta_seq, sam_record.query_sequence, sam_record.cigartuples)
+        plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
 s5.close()

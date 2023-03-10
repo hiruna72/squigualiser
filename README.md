@@ -22,20 +22,88 @@ conda activate idealg
 pip install -r requirements.txt
 ````
 
+## Method 1 - Read to signal visualization
+1. Run basecaller
+```
+guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
 
-## STEPS
-1. Create a signal-base alignment PAF file using `sigb_formater` tool in [poregen](https://github.com/hiruna72/poregen)
-2. Visualize the signal to sequence alignment
+slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
+
+buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all"
+
+```
+2. Merge passed BAM files to create a single BAM file
+```
+samtools merge pass/*.bam -o pass_bam.bam
+```
+3. Reformat move table 
+```
+REFORMAT_PAF=reform_output.paf
+python src/reform.py --sig_move_offset 1 --kmer_length 1 -c --bam pass_bam.bam -o ${REFORMAT_PAF}
+python src/reform.py --sig_move_offset 1 --kmer_length 1 --bam pass_bam.bam -o reform_output.tsv
+
+*visualizing only works with the paf output
+```
+`sig_move_offset` is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
+
+4. Visualize the signal to sequence alignment
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.slow5
-ALIGN_FILE=read_signal_alignment.paf
 OUTPUT_HTML=output.html
 
-python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output ${OUTPUT_HTML}
 
 *use samtools fasta command to create .fasta file from SAM/BAM file
 ````
+## Method 2 - Reference to signal visualization
+(first 3 steps are same as Method 1)
+1. Run basecaller
+2. Merge passed BAM files to create a single BAM file
+3. Reformat move table
+4. Align reads to reference genome
+```
+REFERENCE=genome.fa
+MAPP_SAM=map_output.sam
+minimap2 -ax map-ont ${REFERENCE} -t32 --secondary=no pass.fastq -o ${MAP_SAM}
+
+```
+5. Realign move array to reference
+```
+REALIGN_BAM=realign_output.bam
+python src/realign.py --bam map_output.bam --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
+
+```
+
+6. Visualize the signal to sequence alignment
+````
+SIGNAL_FILE=read.slow5
+OUTPUT_DIR=output_sqp
+REGION=chr1:1-1000
+
+python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --tag_name "sqp_fun" --region ${REGION}
+
+*use samtools fasta command to create .fasta file from SAM/BAM file
+````
+
+## Move table explanation (unconfirmed)
+Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
+1. read_id
+2. basecalled fastq sequence length
+3. basecalled fastq sequence
+4. stride used in the neural network (down sampling factor)
+5. raw signal length
+6. raw signal trim offset
+7. move table
+
+An example move array looks like the following,
+```
+110100010101000101011010101111…
+```
+The number of ones (1) in the move array equals to the fastq sequence length. 
+According to the above example the first move corresponds with `1 x stride` signal points. 
+The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
+
 
 ## Example
 ````
