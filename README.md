@@ -3,6 +3,7 @@ Visualize nanopore raw signal-base alignment
 
 ![image](test/igv.png)
 ![image](test/pileup_plot.png)
+[pileup_plot.html](test/pileup_plot.html)
 
 ## INSTALLATION
 
