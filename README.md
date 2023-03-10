@@ -1,7 +1,8 @@
 # ideal-goggles
 Visualize nanopore raw signal-base alignment
 
-![image](test/plot.png)
+![image](test/igv.png)
+![image](test/pileup_plot.png)
 
 ## INSTALLATION
 
@@ -57,7 +58,7 @@ python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REF
 *use samtools fasta command to create .fasta file from SAM/BAM file
 ````
 ## Method 2 - Reference to signal visualization
-(first 3 steps are same as Method 1)
+The first 3 steps are same as Method 1.
 1. Run basecaller
 2. Merge passed BAM files to create a single BAM file
 3. Reformat move table
@@ -71,7 +72,7 @@ minimap2 -ax map-ont ${REFERENCE} -t32 --secondary=no pass.fastq -o ${MAP_SAM}
 5. Realign move array to reference
 ```
 REALIGN_BAM=realign_output.bam
-python src/realign.py --bam map_output.bam --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
+python src/realign.py --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
 
 ```
 
@@ -79,7 +80,7 @@ python src/realign.py --bam map_output.bam --paf ${REFORMAT_PAF} -o ${REALIGN_BA
 ````
 SIGNAL_FILE=read.slow5
 OUTPUT_DIR=output_sqp
-REGION=chr1:1-1000
+REGION=chr1:6811404-6811443
 
 python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --tag_name "sqp_fun" --region ${REGION}
 
