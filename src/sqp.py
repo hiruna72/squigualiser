@@ -56,8 +56,9 @@ parser.add_argument('-r', '--read_id', required=False, help="read id")
 parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-parser.add_argument('--region', required=False, type=str, default="", help="[start-end] region to load from SAM/BAM to plot (eg: chrX:start-end)")
+parser.add_argument('--region', required=False, type=str, default="", help="[start-end] region to load from SAM/BAM to plot (eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467)")
 parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
+parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
 parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
 
@@ -313,6 +314,8 @@ else:
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue
+        if sam_record.is_reverse and args.no_reverse:
+            continue
         # if sam_record.query_name != "76ec70fd-6731-45ab-a820-a3a26e29a035":
         #     continue
         cigar_t = sam_record.cigartuples
@@ -332,13 +335,15 @@ else:
         ref_start = 0
         ref_end = 0
         if args.region != "":
+            args_region = re.sub(',', '', args.region)
+            print(args_region)
             pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            if not pattern.match(args.region):
+            if not pattern.match(args_region):
                 print("Error: region provided is not in correct format")
                 exit(1)
-            ref_name = args.region.split(":")[0]
-            ref_start = int(args.region.split(":")[1].split("-")[0])
-            ref_end = int(args.region.split(":")[1].split("-")[1])
+            ref_name = args_region.split(":")[0]
+            ref_start = int(args_region.split(":")[1].split("-")[0])
+            ref_end = int(args_region.split(":")[1].split("-")[1])
 
             if ref_name != sam_record.reference_name:
                 print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")

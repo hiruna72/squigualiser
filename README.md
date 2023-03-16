@@ -97,6 +97,10 @@ python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REAL
 *use samtools fasta command to create .fasta file from SAM/BAM file
 ````
 
+### Note
+1. Use `scripts/cat_plots.sh` to concatenate multiple .html plots in a directory.
+2. Use `--no_reverse` flag to skip generating plots for reverse mapped reads.
+ 
 ## Move table explanation (unconfirmed)
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
 1. read_id
