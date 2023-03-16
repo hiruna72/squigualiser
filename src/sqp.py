@@ -309,7 +309,7 @@ if use_paf == 1:
 else:
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
-
+    num_plots = 0
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue
@@ -422,4 +422,8 @@ else:
 
         fasta_t = (fasta_seq, sam_record.query_sequence, sam_record.cigartuples)
         plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
+        num_plots += 1
+
+print("Number of plots: {}".format(num_plots))
+
 s5.close()

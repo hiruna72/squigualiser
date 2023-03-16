@@ -3,7 +3,12 @@ Visualize nanopore raw signal-base alignment
 
 ![image](test/igv.png)
 ![image](test/pileup_plot.png)
-[pileup_plot.html](test/pileup_plot.html)
+
+1. In this figure an IGV plot shows the region chr1:6,811,403-6,811,433. 
+2. The first read has deletions and the corresponding gaps appear in the signal plot [pileup_plot_0.html](test/pileup_plot_0.html).
+3. The last read has an insertion and hence an insertion appears in the last signal plot. 
+4. The second read is a reverse mapping and hence its shape is different from the rest.
+5. Another example plot [pileup_plot_1.html](test/pileup_plot_1.html)
 
 ## INSTALLATION
 
@@ -25,15 +30,19 @@ pip install -r requirements.txt
 ````
 
 ## Method 1 - Read to signal visualization
-1. Run basecaller
+1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel))
 ```
+(tested with v6.3.7)
 guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
 
+(tested with v0.2.1)
 slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
 
+(tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all"
 
 ```
+
 2. Merge passed BAM files to create a single BAM file
 ```
 samtools merge pass/*.bam -o pass_bam.bam
