@@ -61,7 +61,7 @@ The output format is explained [here](https://hasindu2008.github.io/f5c/docs/out
 
 Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header.
 Hence, `reform.py` script might error out with `NotImplementedError: can not iterate over samfile without header`.
-Add a fake `@SQ` header line as follows,
+Add a fake `@SQ` header line with a zero length reference as follows,
 
 ```
 echo -e fake_reference'\t'0 > fake_reference.fa.fai
