@@ -72,7 +72,7 @@ samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.blow5
-OUTPUT_HTML=output.html
+OUTPUT_HTML=output_dir
 
 # use samtools fasta command to create .fasta file from SAM/BAM file
 samtools fasta out.sam > ${FASTA_FILE}
@@ -99,7 +99,7 @@ python src/realign.py --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
 6. Visualise the signal to sequence alignment
 ````
 SIGNAL_FILE=read.slow5
-OUTPUT_DIR=output_sqp
+OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
 
 python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --tag_name "sqp_fun" --region ${REGION}
