@@ -30,25 +30,21 @@ pip install -r requirements.txt
 ````
 
 ## Method 1 - Read to signal visualization
-1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel))
+1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 ```
-(tested with v6.3.7)
-guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
+# buttery-eel (tested with v0.2.2)
+buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
+e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out 
 
-(tested with v0.2.1)
+# slow5-dorado (tested with v0.2.1)
 slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
 e.g. slow5-dorado basecaller dna_r10.4.1_e8.2_400bps_sup@v4.0.0 input_reads.blow5 --emit-moves > out.sam
 
-(tested with v0.2.2)
-buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
-e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
-
+# ont-guppy (tested with v6.3.7)
+guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
+samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-2. Merge (optional) passed BAM files to create a single BAM file
-```
-samtools merge pass/*.bam -o pass_bam.bam (only necessary when mulitple SAM/BAM files are created)
-```
 3. Reformat move table 
 ```
 REFORMAT_PAF=reform_output.paf
