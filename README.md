@@ -1,5 +1,6 @@
 # ideal-goggles
-Visualize nanopore raw signal-base alignment
+
+A simple tool to Visualise nanopore raw signal-base alignment
 
 ![image](test/igv.png)
 ![image](test/pileup_plot.png)
@@ -18,6 +19,7 @@ git clone https://github.com/hiruna72/ideal-goggles.git
 cd ideal-goggles
 python3 -m venv idealg
 source idealg/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ````
 ### using conda environment
@@ -29,7 +31,7 @@ conda activate idealg
 pip install -r requirements.txt
 ````
 
-## Method 1 - Read to signal visualization
+## Method 1 - Read to signal visualisation
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 ```
 # buttery-eel (tested with v0.2.2)
@@ -47,15 +49,17 @@ samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a s
 
 3. Reformat move table 
 ```
+# PAF output for plotting
 REFORMAT_PAF=reform_output.paf
-python src/reform.py --sig_move_offset 1 --kmer_length 1 -c --bam pass_bam.bam -o ${REFORMAT_PAF}
-python src/reform.py --sig_move_offset 1 --kmer_length 1 --bam pass_bam.bam -o reform_output.tsv
+python src/reform.py --sig_move_offset 1 --kmer_length 1 -c --bam out.sam -o ${REFORMAT_PAF}
 
-*visualizing only works with the paf output
+# For human readability you may prefer the tsv output (not supported for plitting)
+python src/reform.py --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform_output.tsv
 ```
-`sig_move_offset` is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
 
-4. Visualize the signal to sequence alignment
+The output format is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). `sig_move_offset` in commands above is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
+
+4. Visualise the signal to sequence alignment
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.slow5
@@ -64,13 +68,13 @@ OUTPUT_HTML=output.html
 python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output ${OUTPUT_HTML}
 
 *use samtools fasta command to create .fasta file from SAM/BAM file
+
 ````
-## Method 2 - Reference to signal visualization
+## Method 2 - Reference to signal visualisation
 The first 3 steps are same as Method 1.
 1. Run basecaller
-2. Merge passed BAM files to create a single BAM file
-3. Reformat move table
-4. Align reads to reference genome
+2. Reformat move table
+3. Align reads to reference genome
 ```
 REFERENCE=genome.fa
 MAPP_SAM=map_output.sam
@@ -84,7 +88,7 @@ python src/realign.py --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
 
 ```
 
-6. Visualize the signal to sequence alignment
+6. Visualise the signal to sequence alignment
 ````
 SIGNAL_FILE=read.slow5
 OUTPUT_DIR=output_sqp
