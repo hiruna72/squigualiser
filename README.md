@@ -72,12 +72,12 @@ samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.blow5
-OUTPUT_HTML=output_dir
+OUTPUT_DIR=output_dir
 
 # use samtools fasta command to create .fasta file from SAM/BAM file
 samtools fasta out.sam > ${FASTA_FILE}
 # plot it
-python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output_dir ${OUTPUT_DIR
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output_dir ${OUTPUT_DIR}
 ````
 ## Method 2 - Reference to signal visualisation
 The first 3 steps are same as Method 1.
