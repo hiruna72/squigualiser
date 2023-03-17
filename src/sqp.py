@@ -264,6 +264,7 @@ if not os.path.exists(args.output_dir):
 
 # open signal file
 s5 = pyslow5.Open(args.slow5, 'r')
+num_plots = 0
 
 if use_paf == 1:
     with open(args.alignment, "r") as handle:
@@ -310,7 +311,6 @@ if use_paf == 1:
 else:
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
     fasta_reads = Fasta(args.fasta)
-    num_plots = 0
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue

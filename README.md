@@ -75,7 +75,7 @@ FASTA_FILE=read.fasta
 SIGNAL_FILE=read.slow5
 OUTPUT_HTML=output.html
 
-python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output ${OUTPUT_HTML}
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output_dir ${OUTPUT_DIR}
 
 *use samtools fasta command to create .fasta file from SAM/BAM file
 samtools fasta out.sam > read.fasta
