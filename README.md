@@ -47,7 +47,7 @@ guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OU
 samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-3. Reformat move table 
+2. Reformat move table 
 ```
 # PAF output for plotting
 REFORMAT_PAF=reform_output.paf
@@ -59,7 +59,17 @@ python src/reform.py --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform
 
 The output format is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). `sig_move_offset` in commands above is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
 
-4. Visualise the signal to sequence alignment
+Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header.
+Hence, `reform.py` script might error out with `NotImplementedError: can not iterate over samfile without header`.
+Add a fake `@SQ` header line as follows,
+
+```
+echo -e fake_reference'\t'0 > fake_reference.fa.fai
+samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
+```
+
+
+3. Visualise the signal to sequence alignment
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.slow5
@@ -68,6 +78,7 @@ OUTPUT_HTML=output.html
 python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output ${OUTPUT_HTML}
 
 *use samtools fasta command to create .fasta file from SAM/BAM file
+samtools fasta out.sam > read.fasta
 
 ````
 ## Method 2 - Reference to signal visualisation
@@ -96,13 +107,12 @@ REGION=chr1:6811404-6811443
 
 python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --tag_name "sqp_fun" --region ${REGION}
 
-*use samtools fasta command to create .fasta file from SAM/BAM file
 ````
 
 ### Note
-1. Use `scripts/cat_plots.sh` to concatenate multiple .html plots in a directory.
-2. Use `--no_reverse` flag to skip generating plots for reverse mapped reads.
- 
+1. To get a pileup view, use `scripts/cat_plots.sh` to concatenate multiple `.html` plots in a directory.
+2. To skip generating plots for reads mapped in reverse, use `--no_reverse` flag.
+
 ## Move table explanation (unconfirmed)
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
 1. read_id
