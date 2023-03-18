@@ -80,14 +80,14 @@ samtools fasta out.sam > ${FASTA_FILE}
 python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output_dir ${OUTPUT_DIR}
 ````
 ## Method 2 - Reference to signal visualisation
-The first 3 steps are same as Method 1.
-1. Run basecaller
-2. Reformat move table
+The first 2 steps are same as Method 1.
+1. Run basecaller (creates out.sam)
+2. Reformat move table (creates reform_output.paf)
 3. Align reads to reference genome
 ```
 REFERENCE=genome.fa
 MAPP_SAM=map_output.sam
-minimap2 -ax map-ont ${REFERENCE} -t32 --secondary=no pass.fastq -o ${MAP_SAM}
+samtools fastq out.sam | minimap2 -ax map-ont ${REFERENCE} -t8 --secondary=no -o ${MAPP_SAM} -
 
 ```
 5. Realign move array to reference
