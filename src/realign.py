@@ -60,6 +60,9 @@ for sam_record in samfile:
     # print("sam_read.pos: " + str(sam_read.pos+1))
     # print(sam_read.cigarstring)
     cigar_t = sam_record.cigartuples
+    if cigar_t is None:
+        print("cigartuples for sam record {} is an empty object".format(sam_read_id))
+        exit(1)
     # print(cigar_t)
 
     moves_string = paf_dic[sam_read_id].tags['ss'][2].rstrip(',').split(',')
