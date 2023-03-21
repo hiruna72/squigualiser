@@ -15,6 +15,7 @@ import logging
 from readpaf import parse_paf
 from sys import stdin
 from pyfaidx import Fasta
+from pyfastx import Fastq
 import os
 import pysam
 
@@ -51,8 +52,8 @@ base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange'}
 
 parser = argparse.ArgumentParser()
    
-parser.add_argument('-f', '--fasta', required=True, help="fasta file")
-parser.add_argument('-r', '--read_id', required=False, help="read id")
+parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz sequence file")
+# parser.add_argument('-r', '--read_id', required=False, help="read id")
 parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
@@ -60,6 +61,7 @@ parser.add_argument('--region', required=False, type=str, default="", help="[sta
 parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
 parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
 parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
+parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
 
 def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
@@ -239,13 +241,16 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
 args = parser.parse_args()
 
-if args.fasta:
-    print(f'fasta file: {args.fasta}')
-
-if args.base_limit:
-    BASE_LIMIT = args.base_limit
-
-print(f'signal file: {args.slow5}')
+use_fasta = 0
+if args.file:
+    print(f'sequence file: {args.file}')
+    if args.file[-6:] == ".fastq" or args.file[-6:] == ".fq.gz" or args.file[-3:] == ".fq":
+        use_fasta = 0
+    elif args.file[-6:] == ".fasta" or args.file[-3:] == ".fa":
+        use_fasta = 1
+    else:
+        print("error please provide the sequence file with correct extension")
+        exit()
 
 use_paf = 0
 if args.alignment:
@@ -259,6 +264,14 @@ if args.alignment:
         print("error please provide the alignment file with correct extension")
         exit()
 
+if use_paf == 0 and use_fasta == 0:
+    print("please provide a .fasta or .fa file when using SAM/BAM")
+
+if args.base_limit:
+    BASE_LIMIT = args.base_limit
+
+print(f'signal file: {args.slow5}')
+
 if not os.path.exists(args.output_dir):
     os.mkdir(args.output_dir)
 
@@ -268,11 +281,18 @@ num_plots = 0
 
 if use_paf == 1:
     with open(args.alignment, "r") as handle:
-        fasta_reads = Fasta(args.fasta)
+        if use_fasta:
+            sequence_reads = Fasta(args.file)
+        else:
+            sequence_reads = Fastq(args.file)
         for paf_record in parse_paf(handle):
             read_id = paf_record.query_name
-            fasta_seq = fasta_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
-            output_file_name = args.output_dir+"/"+read_id+".html"
+            fasta_seq = ""
+            if use_fasta:
+                fasta_seq = sequence_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
+            else:
+                fasta_seq = sequence_reads[read_id].seq
+            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
             print(f'output file: {output_file_name}')
             print(f'read_id: {read_id}')
 
@@ -308,9 +328,12 @@ if use_paf == 1:
 
             fasta_t = (fasta_seq, fasta_seq, fasta_seq)
             plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
+            num_plots += 1
+            if num_plots == args.plot_limit:
+                break
 else:
     samfile = pysam.AlignmentFile(args.alignment, mode='r')
-    fasta_reads = Fasta(args.fasta)
+    fasta_reads = Fasta(args.file)
     for sam_record in samfile.fetch():
         if sam_record.is_supplementary:
             continue
@@ -374,7 +397,7 @@ else:
         print("plot region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, sam_record.query_name))
         read_id = sam_record.query_name
         fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-        output_file_name = args.output_dir+"/"+read_id+".html"
+        output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
         print(f'output file: {output_file_name}')
 
         x = []
@@ -428,6 +451,9 @@ else:
         fasta_t = (fasta_seq, sam_record.query_sequence, sam_record.cigartuples)
         plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
         num_plots += 1
+        if num_plots == args.plot_limit:
+            break
+
 
 print("Number of plots: {}".format(num_plots))
 
