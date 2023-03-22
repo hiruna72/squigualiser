@@ -108,6 +108,7 @@ python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REAL
 ### Note
 1. To get a pileup view, use `scripts/cat_plots.sh` to concatenate multiple `.html` plots in a directory.
 2. To skip generating plots for reads mapped in reverse, use `--no_reverse` flag.
+3. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
 
 ## Move table explanation (unconfirmed)
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
