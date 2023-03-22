@@ -196,6 +196,44 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region
 
 cat ${OUTPUT}/*.html >> ${OUTPUT_DIR}/pileup2.html
 
+TESTCASE=3.1
+info "testcase:$TESTCASE - resquiggle read-signal plot"
+FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
+SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
+ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
+REGION=""
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+TESTCASE=3.2
+info "testcase:$TESTCASE - resquiggle read-signal plot"
+FASTA="${RAW_DIR}/resquiggle_dna/t0/read.fastq"
+SIGNAL="${RAW_DIR}/resquiggle_dna/t0/read.blow5"
+ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
+REGION=""
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+TESTCASE=3.3
+info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
+FASTA="${RAW_DIR}/resquiggle_rna/t0/sequin_reads.fasta"
+SIGNAL="${RAW_DIR}/resquiggle_rna/t0/sequin_reads.blow5"
+ALIGNMENT="${RAW_DIR}/resquiggle_rna/t0/resquiggle_move.paf"
+REGION=""
+READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+
+TESTCASE=3.4
+info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
+FASTA="${RAW_DIR}/resquiggle_rna/t0/sequin_reads.fasta"
+SIGNAL="${RAW_DIR}/resquiggle_rna/t0/sequin_reads.blow5"
+ALIGNMENT="${RAW_DIR}/resquiggle_rna/t0/resquiggle_move.paf"
+REGION="1300-1563"
+READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

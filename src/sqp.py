@@ -317,10 +317,8 @@ if use_paf == 1:
                 ref_start = int(args.region.split("-")[0])
                 ref_end = int(args.region.split("-")[1])
 
-                print("ref_start: " + str(ref_start))
-                print("ref_end: " + str(ref_end))
-                # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
-                # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
+                # print("ref_start: " + str(ref_start))
+                # print("ref_end: " + str(ref_end))
                 if ref_start < 0:
                     print("Error: region start coordinate ({}) must be non negative")
                     exit(1)
