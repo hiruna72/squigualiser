@@ -29,15 +29,15 @@ GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38
 RAW_DIR="${REL_PATH}/data/raw/sqp"
 EXP_DIR="${REL_PATH}/data/exp/sqp"
 
-TESTCASE=01
+TESTCASE=0.1
 info "testcase:$TESTCASE - help"
 python src/sqp.py && die "testcase:$TESTCASE failed"
 
-TESTCASE=02
+TESTCASE=0.2
 info "testcase:$TESTCASE - help"
 python src/sqp.py --help || die "testcase:$TESTCASE failed"
 
-TESTCASE=03
+TESTCASE=1.1
 info "testcase:$TESTCASE - read-signal plot"
 FASTA="${RAW_DIR}/one_read/read.fasta"
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -46,7 +46,7 @@ REGION=""
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=04
+TESTCASE=2.1
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -55,7 +55,7 @@ REGION=""
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=05
+TESTCASE=2.2
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -64,7 +64,7 @@ REGION="chr1:92780309-92780570"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=06
+TESTCASE=2.3
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -73,7 +73,7 @@ REGION="chr1:92780311-92780570"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=07
+TESTCASE=2.4
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -82,7 +82,7 @@ REGION="chr1:92780309-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=08
+TESTCASE=2.5
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -91,7 +91,7 @@ REGION="chr1:92780311-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=09
+TESTCASE=2.6
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -100,7 +100,7 @@ REGION="chr1:92780301-92780308"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=10
+TESTCASE=2.7
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -109,7 +109,7 @@ REGION="chr1:92780571-92780579"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=11
+TESTCASE=2.8
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -118,7 +118,7 @@ REGION="chr1:92780565-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=12
+TESTCASE=2.9
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -127,7 +127,7 @@ REGION="chr1:92780308-92780570"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=13
+TESTCASE=2.9
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -136,7 +136,7 @@ REGION="chr1:92780308-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=14
+TESTCASE=2.10
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -145,7 +145,7 @@ REGION="chr1:92780311-92780571"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=15
+TESTCASE=2.11
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -156,7 +156,7 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region
 
 cat ${OUTPUT_DIR}/*/*.html > ${OUTPUT_DIR}/pileup.html
 
-TESTCASE=16
+TESTCASE=2.12
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA="${RAW_DIR}/simulate_reads/sim.fasta"
 SIGNAL="${RAW_DIR}/simulate_reads/sim.slow5"
@@ -166,7 +166,7 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_na
 
 cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
 
-TESTCASE=17
+TESTCASE=2.12
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/reverse_read/reads.slow5"
@@ -177,6 +177,6 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region
 
 cat ${OUTPUT}/*.html >> ${OUTPUT_DIR}/pileup2.html
 
-info "all $TESTCASE testcases passed"
+info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

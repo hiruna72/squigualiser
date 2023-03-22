@@ -57,19 +57,19 @@ parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz
 parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
 parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
 parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-parser.add_argument('--region', required=False, type=str, default="", help="[start-end] region to load from SAM/BAM to plot (eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467)")
+parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
 parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
 parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
 parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
 parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
 
-def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
-    ref_region_start_diff = int(sam_record.reference_start) + 1 - region_tuple[0]
-    ref_region_end_diff = int(sam_record.reference_start) + ref_seq_len - region_tuple[1]
+def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
+    ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
+    ref_region_end_diff = region_tuple[2] + ref_seq_len - region_tuple[1]
     # print("ref_region_start_diff: " + str(ref_region_start_diff))
     if ref_region_end_diff == 0 and ref_region_start_diff == 0:
-        return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
+        return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
     moves = sig_algn_dic['ss']
     if ref_region_start_diff < 0:
@@ -102,7 +102,7 @@ def adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, 
 
         sig_algn_dic['ss'] = moves
 
-    return sam_record, signal_tuple, region_tuple, sig_algn_data, fasta_seq
+    return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
 def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_tuple, base_limit):
     x = signal_tuple[0]
@@ -287,11 +287,49 @@ if use_paf == 1:
             sequence_reads = Fastq(args.file)
         for paf_record in parse_paf(handle):
             read_id = paf_record.query_name
+            if read_id not in set(sequence_reads.keys()):
+                print("Error: read_id {} is not found in {}".format(read_id, args.file))
+                exit(1)
+
             fasta_seq = ""
             if use_fasta:
                 fasta_seq = sequence_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
             else:
                 fasta_seq = sequence_reads[read_id].seq
+                if len(fasta_seq) < paf_record.target_length:
+                    print("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                    exit(1)
+
+            ref_start = 0
+            ref_end = 0
+            seq_len = len(fasta_seq)
+            if args.region != "":
+                pattern = re.compile("^[0-9]+\-[0-9]+")
+                if not pattern.match(args.region):
+                    print("Error: region provided is not in correct format")
+                    exit(1)
+                ref_start = int(args.region.split("-")[0])
+                ref_end = int(args.region.split("-")[1])
+
+                print("ref_start: " + str(ref_start))
+                print("ref_end: " + str(ref_end))
+                # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
+                # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
+                if ref_start < 0:
+                    print("Error: region start coordinate ({}) must be non negative")
+                    exit(1)
+                if ref_end > seq_len:
+                    print("Warning: region end coordinate ({}) is larger than the sequence length ({})".format(ref_end, seq_len))
+                    ref_end = seq_len
+
+                if (ref_end - ref_start + 1) < BASE_LIMIT:
+                    base_limit = ref_end - ref_start + 1
+            else:
+                ref_start = 1
+                ref_end = seq_len
+
+            print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
+
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
             print(f'output file: {output_file_name}')
             print(f'read_id: {read_id}')
@@ -311,6 +349,7 @@ if use_paf == 1:
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
             signal_tuple = (x, x_real, y)
+            region_tuple = (ref_start, ref_end, 0)
 
             sig_algn_dic = {}
             sig_algn_dic['query_name'] = paf_record.query_name
@@ -325,6 +364,8 @@ if use_paf == 1:
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
             sig_algn_dic['ss'] = moves
+
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
             fasta_t = (fasta_seq, fasta_seq, fasta_seq)
             plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
@@ -422,7 +463,7 @@ else:
             y = np.flip(y)
 
         signal_tuple = (x, x_real, y)
-        region_tuple = (ref_start, ref_end)
+        region_tuple = (ref_start, ref_end, int(sam_record.reference_start))
 
         sig_algn_dic = {}
         sig_algn_dic['query_name'] = sam_record.query_name
@@ -446,7 +487,7 @@ else:
 
         # print(len(fasta_seq))
         # print(fasta_seq)
-        sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, sam_record, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+        signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
         fasta_t = (fasta_seq, sam_record.query_sequence, sam_record.cigartuples)
         plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_tuple=fasta_t, base_limit=base_limit)
