@@ -2,13 +2,14 @@
 
 A simple tool to Visualise nanopore raw signal-base alignment
 
-![image](docs/figures/testcase-1.1.png)
-![image](docs/figures/testcase-3.1.png)
-![image](docs/figures/testcase-3.4.png)
+![image](figures/igv.png)
+![image](figures/pileup_plot.png)
 
-1. The first read is the signal to base alignment using guppy_v.3.6.7 move table annotation.
-2. The second read is the signal to base alignment using f5c resquiggle output.
-3. The third read (RNA) is the signal to base alignment using f5c resquiggle output.
+1. In this figure an IGV plot shows the region chr1:6,811,403-6,811,433. 
+2. The first read has deletions and the corresponding gaps appear in the signal plot [pileup_plot_0.html](test/pileup_plot_0.html).
+3. The last read has an insertion and hence an insertion appears in the last signal plot. 
+4. The second read is a reverse mapping and hence its shape is different from the rest.
+5. Another example plot [pileup_plot_1.html](test/pileup_plot_1.html)
 
 ## INSTALLATION
 
@@ -30,8 +31,7 @@ conda activate idealg
 pip install -r requirements.txt
 ````
 
-## Read to signal visualisation
-### Method 1 - Using move table genearted by the basecaller
+## Method 1 - Read to signal visualisation
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 ```
 # buttery-eel (tested with v0.2.2)
@@ -68,7 +68,7 @@ echo -e fake_reference'\t'0 > fake_reference.fa.fai
 samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
 
-3. Visualise the signal to base alignment
+3. Visualise the signal to sequence alignment
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.blow5
@@ -79,37 +79,36 @@ samtools fasta out.sam > ${FASTA_FILE}
 # plot it
 python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${REFORMAT_PAF} --output_dir ${OUTPUT_DIR}
 ````
-
-### Method 2 - Using f5c resquiggle signal-base alignment
-1. Build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instruction listed in the [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md)
-
-2. Run f5c resquiggle
+## Method 2 - Reference to signal visualisation
+The first 2 steps are same as Method 1.
+1. Run basecaller (creates out.sam)
+2. Reformat move table (creates reform_output.paf)
+3. Align reads to reference genome
 ```
-FASTQ=reads.fastq
-SIGNAL_FILE=reads.blow5
-ALIGNMENT=move.paf
+REFERENCE=genome.fa
+MAPP_SAM=map_output.sam
+samtools fastq out.sam | minimap2 -ax map-ont ${REFERENCE} -t8 --secondary=no -o ${MAPP_SAM} -
 
-f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
-
-KMER_MODEL is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
-
-ideal-goggles supports RNA visualization. For RNA reads use the following command.
-f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 ```
-3. Visualise the signal to base alignment
+5. Realign move array to reference
+```
+REALIGN_BAM=realign_output.bam
+python src/realign.py --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
+```
+
+6. Visualise the signal to sequence alignment
 ````
+SIGNAL_FILE=read.slow5
 OUTPUT_DIR=output_dir
+REGION=chr1:6811404-6811443
 
-# plot it
-python src/sqp.py --fasta ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+python src/sqp.py --fasta ${REFERENCE} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --tag_name "sqp_fun" --region ${REGION}
 ````
-
 
 ### Note
 1. To get a pileup view, use `scripts/cat_plots.sh` to concatenate multiple `.html` plots in a directory.
-2. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-3. To plot RNA use `f5c resquiggle --rna` as specified in [Method 2](method-2---using-f5c-resquiggle-read---signal-alignment). For r10.4.1 RNA reads a kmer model is still not available.
-
+2. To skip generating plots for reads mapped in reverse, use `--no_reverse` flag.
+3. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
 
 ## Move table explanation (unconfirmed)
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
@@ -131,4 +130,13 @@ The second move corresponds with `2 x stride` signal points. The third with `4 x
 
 
 ## Example
-The figures on the top of the document were generated using some testcases in the [test_sqp.sh](test/test_sqp.sh).
+````
+EXAMPLE_DIR=test/data/sqp/sigb_formater
+FASTA_FILE=${EXAMPLE_DIR}/read.fasta
+SIGNAL_FILE=${EXAMPLE_DIR}/read.slow5
+ALIGN_FILE=${EXAMPLE_DIR}/r1k1m1.paf
+OUTPUT_HTML=output.html
+
+python src/sqp.py --fasta ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGN_FILE} --output ${OUTPUT_HTML}
+
+````
