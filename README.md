@@ -6,9 +6,9 @@ A simple tool to Visualise nanopore raw signal-base alignment
 ![image](docs/figures/testcase-3.1.png)
 ![image](docs/figures/testcase-3.4.png)
 
-1. The first read is the signal to base alignment using guppy_v.3.6.7 move table annotation.
-2. The second read is the signal to base alignment using f5c resquiggle output.
-3. The third read (RNA) is the signal to base alignment using f5c resquiggle output.
+1. The first read is the signal-base alignment using guppy_v.3.6.7 move table annotation.
+2. The second read is the signal-base alignment using f5c resquiggle output.
+3. The third read (RNA) is the signal-base alignment using f5c resquiggle output.
 
 ## INSTALLATION
 
@@ -68,7 +68,7 @@ echo -e fake_reference'\t'0 > fake_reference.fa.fai
 samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
 
-3. Visualise the signal to base alignment
+3. Visualise the signal-base alignment
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.blow5
@@ -96,7 +96,7 @@ KMER_MODEL is optional. For r10.4.1 dna reads use [this](https://github.com/hasi
 ideal-goggles supports RNA visualization. For RNA reads use the following command.
 f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 ```
-3. Visualise the signal to base alignment
+3. Visualise the signal-base alignment
 ````
 OUTPUT_DIR=output_dir
 
