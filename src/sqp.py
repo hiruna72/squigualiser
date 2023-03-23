@@ -109,7 +109,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    plot_title = f'{sig_algn_dic["tag_name"]} {read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{sig_algn_data["start_raw"]}]  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
+    plot_title = f'{sig_algn_dic["tag_name"]} {read_id}  signal alignment [start-end]:{x_real[0]}-{x_real[-1]}  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
     p = figure(title=plot_title,
                x_axis_label='signal index',
@@ -181,7 +181,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
         else:
             n_samples = int(i)
-            location_plot = location_plot + n_samples
+            location_plot += n_samples
 
             base = fasta_sequence[base_count]
             base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, fill_color=base_color_map[base])
@@ -229,7 +229,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover.tooltips = [("x", "@x_real"), ("y", "$y")]
     hover.mode = 'mouse'
 
-    plot_title = f'{sig_algn_dic["tag_name"]} dels:{num_Ds}b ins:{num_Is}samples {read_id}  [signal_start_index,signal_end_index,signal_alignment_start_index:{start_index},{end_index},{sig_algn_data["start_raw"]}]  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
+    plot_title = f'{sig_algn_dic["tag_name"]} dels:{num_Ds}b ins:{num_Is}samples read_id:{read_id} signal alignment [start-end]:{x_real[0]}-{x_real[location_plot-1]}  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
     p.title = plot_title
 
     output_file(output_file_name, title=read_id)
@@ -356,7 +356,6 @@ if use_paf == 1:
 
             sig_algn_dic = {}
             sig_algn_dic['query_name'] = paf_record.query_name
-            sig_algn_dic['start_raw'] = paf_record.query_start
             sig_algn_dic['len_kmer'] = paf_record.target_length
             sig_algn_dic['start_kmer'] = paf_record.target_start
             sig_algn_dic['end_kmer'] = paf_record.target_end
@@ -476,7 +475,6 @@ else:
 
         sig_algn_dic = {}
         sig_algn_dic['query_name'] = sam_record.query_name
-        sig_algn_dic['start_raw'] = rq_paf[START_RAW]
         sig_algn_dic['len_kmer'] = base_limit
         sig_algn_dic['start_kmer'] = rq_paf[START_KMER]
         sig_algn_dic['end_kmer'] = base_limit

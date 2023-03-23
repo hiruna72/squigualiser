@@ -147,11 +147,11 @@ for sam_record in samfile:
         fout.write("{}\t".format(l_end_raw)) #4 Raw signal end index (0-based; BED-like; open)
         fout.write("{}\t".format("+")) #5 Relative strand: “+” or “-“
         fout.write("{}\t".format(sam_record.query_name)) #6 Same as column 1
-        fout.write("{}\t".format(len_seq + args.kmer_length - 1)) #7 base-called sequence length (no. of k-mers)
+        fout.write("{}\t".format(len_seq)) #7 base-called sequence length (no. of k-mers)
         fout.write("{}\t".format(kmer_idx)) #8 k-mer start index on basecalled sequence (0-based)
         fout.write("{}\t".format(len_seq)) #9 k-mer end index on basecalled sequence (0-based)
         fout.write("{}\t".format(len_seq - kmer_idx)) #10 Number of k-mers matched on basecalled sequence
-        fout.write("{}\t".format(len_seq + args.kmer_length - 1)) #11 Same as column 7
+        fout.write("{}\t".format(len_seq)) #11 Same as column 7
         fout.write("{}\t".format("255")) #12 Mapping quality (0-255; 255 for missing)
         fout.write("{}".format("ss:Z:")) #12 Mapping quality (0-255; 255 for missing)
 
