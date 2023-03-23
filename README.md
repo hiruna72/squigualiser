@@ -91,7 +91,7 @@ ALIGNMENT=move.paf
 
 f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 
-KMER_MODEL is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
+KMER_MODEL argugment is optional. For r10.4.1 DNA reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
 
 ideal-goggles supports RNA visualization. For RNA reads use the following command.
 f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
@@ -108,7 +108,7 @@ python src/sqp.py --fasta ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMEN
 ### Note
 1. To get a pileup view, use `scripts/cat_plots.sh` to concatenate multiple `.html` plots in a directory.
 2. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-3. To plot RNA use `f5c resquiggle --rna` as specified in [Method 2](method-2---using-f5c-resquiggle-read---signal-alignment). For r10.4.1 RNA reads a kmer model is still not available.
+3. To plot RNA use `f5c resquiggle --rna` as specified in [Method 2](#method-2---using-f5c-resquiggle-signal-base-alignment). For r10.4.1 RNA reads a kmer model is still not available.
 
 
 ## Move table explanation (unconfirmed)
