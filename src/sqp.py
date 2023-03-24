@@ -19,6 +19,11 @@ from pyfastx import Fastq
 import os
 import pysam
 
+# ref_start is always 1based closed
+# ref_end is always 1based closed
+# start_kmer is always 0based closed
+# end_kmer is always 0based open
+
 BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
@@ -34,7 +39,6 @@ BAM_CEQUAL = 7
 BAM_CDIFF = 8
 BAM_CBACK = 9
 
-
 READ_ID = 0
 LEN_RAW_SIGNAL = 1
 START_RAW = 2
@@ -49,6 +53,7 @@ LEN_KMER = 10
 MAPQ = 11
 
 base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red'}
+indt = "\t\t\t\t\t\t\t\t"
 
 parser = argparse.ArgumentParser()
    
@@ -64,7 +69,7 @@ parser.add_argument('--point_size', required=False, type=int, default=5, help="s
 parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
 parser.add_argument('-o', '--output_dir', required=True, help="output dir")
 
-def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq, modify_fasta_seq=False):
+def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
     ref_region_end_diff = region_tuple[2] + ref_seq_len - region_tuple[1]
     # print("ref_region_start_diff: " + str(ref_region_start_diff))
@@ -97,8 +102,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         x_real = signal_tuple[1][eat_signal:]
         y = signal_tuple[2][eat_signal:]
         signal_tuple = (x, x_real, y)
-        if modify_fasta_seq:
-            fasta_seq = fasta_seq[count_bases:]
 
         sig_algn_dic['ss'] = moves
 
@@ -109,10 +112,8 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    plot_title = f'{sig_algn_dic["tag_name"]} {read_id}  signal alignment [start-end]:{x_real[0]}-{x_real[-1]}  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
-    p = figure(title=plot_title,
-               x_axis_label='signal index',
+    p = figure(x_axis_label='signal index',
                y_axis_label='signal value',
                sizing_mode="stretch_width",
                height=300,
@@ -134,32 +135,30 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     moves = sig_algn_data["ss"]
 
     vlines = []
-    base_count = int(sig_algn_data["start_kmer"])
-    query_base_count = 0
+    base_index = sig_algn_data["start_kmer"]
 
     num_Is = 0
     num_Ds = 0
 
     for i in moves:
         previous_location = location_plot
-        n_samples = 0
         if 'D' in i:
             i = re.sub('D', '', i)
             n_samples = int(i)
             prev_loc = previous_location
             for j in range(0, n_samples):
-                base = fasta_sequence[base_count]
+                base = fasta_sequence[base_index]
                 base_box = BoxAnnotation(left=prev_loc, right=prev_loc+DEFAULT_STRIDE, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
                 base_y.append(115)
-                label = str(base) + "\t" + str(base_count + 1)
+                label = str(base) + "\t" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('red')
 
                 prev_loc += DEFAULT_STRIDE
-                base_count += 1
+                base_index += 1
                 num_Ds += 1
 
             location_plot = prev_loc
@@ -183,7 +182,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             n_samples = int(i)
             location_plot += n_samples
 
-            base = fasta_sequence[base_count]
+            base = fasta_sequence[base_index]
             base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, fill_color=base_color_map[base])
             p.add_layout(base_box)
 
@@ -192,12 +191,12 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
             base_x.append(previous_location)
             base_y.append(115)
-            label = str(base) + "\t" + str(base_count + 1)
+            label = str(base) + "\t" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
-            base_count += 1
+            base_index += 1
 
-        if base_count == base_limit:
+        if base_index - sig_algn_data["start_kmer"] == base_limit:
             break
         if location_plot - initial_location > SIG_PLOT_LENGTH:
             break
@@ -229,7 +228,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover.tooltips = [("x", "@x_real"), ("y", "$y")]
     hover.mode = 'mouse'
 
-    plot_title = f'{sig_algn_dic["tag_name"]} dels:{num_Ds}b ins:{num_Is}samples read_id:{read_id} signal alignment [start-end]:{x_real[0]}-{x_real[location_plot-1]}  [seq_length,kmer_start_index,kmer_end_index:{sig_algn_data["len_kmer"]},{sig_algn_data["start_kmer"]},{sig_algn_data["end_kmer"]}]'
+    plot_title = f'{sig_algn_dic["tag_name"]}{indt}signal: [{x_real[0]}-{x_real[location_plot-1]}] dels: {num_Ds}b ins: {num_Is}samples{indt}{read_id}'
     p.title = plot_title
 
     output_file(output_file_name, title=read_id)
@@ -301,8 +300,20 @@ if use_paf == 1:
                     print("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
                     exit(1)
 
-            ref_start = 0
-            ref_end = 0
+            data_is_rna = False
+            if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
+                data_is_rna = True
+                print("Info: data is detected as RNA")
+                fasta_seq = fasta_seq[::-1]
+
+            ref_start = -1
+            ref_end = -1
+            if data_is_rna:
+                ref_start = paf_record.target_end + 1
+                ref_end = paf_record.target_start
+            else:
+                ref_start = paf_record.target_start + 1
+                ref_end = paf_record.target_end
             seq_len = len(fasta_seq)
             if seq_len < BASE_LIMIT:
                 base_limit = seq_len
@@ -317,20 +328,24 @@ if use_paf == 1:
                 ref_start = int(args.region.split("-")[0])
                 ref_end = int(args.region.split("-")[1])
 
+                if ref_start < 1:
+                    print("Error: region start coordinate ({}) must be positive")
+                    exit(1)
+
+                if ref_end < 1:
+                    print("Error: region end coordinate ({}) must be positive")
+                    exit(1)
+
+                if data_is_rna and paf_record.target_start < ref_end:
+                    ref_end = paf_record.target_start
+                elif not data_is_rna and paf_record.target_end < ref_end:
+                    ref_end = paf_record.target_end
+
                 # print("ref_start: " + str(ref_start))
                 # print("ref_end: " + str(ref_end))
-                if ref_start < 0:
-                    print("Error: region start coordinate ({}) must be non negative")
-                    exit(1)
-                if ref_end > seq_len:
-                    print("Warning: region end coordinate ({}) is larger than the sequence length ({})".format(ref_end, seq_len))
-                    ref_end = seq_len
 
                 if (ref_end - ref_start + 1) < BASE_LIMIT:
                     base_limit = ref_end - ref_start + 1
-            else:
-                ref_start = 1
-                ref_end = seq_len
 
             print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
 
@@ -342,12 +357,10 @@ if use_paf == 1:
             x_real = []
             y = []
             sig_plot_length = SIG_PLOT_LENGTH
-
             read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
             if read is not None:
                 start_index = paf_record.query_start
                 end_index = read['len_raw_signal']
-
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
@@ -357,16 +370,9 @@ if use_paf == 1:
             sig_algn_dic = {}
             sig_algn_dic['query_name'] = paf_record.query_name
             sig_algn_dic['len_kmer'] = paf_record.target_length
-            sig_algn_dic['start_kmer'] = paf_record.target_start
-            sig_algn_dic['end_kmer'] = paf_record.target_end
-            sig_algn_dic['tag_name'] = args.tag_name + " " + str(ref_start) + "-" + str(ref_end)
-
-            data_is_rna = 0
-            if paf_record.target_start > paf_record.target_end: #if RNA start_kmer>end_kmer in paf
-                data_is_rna = 1
-                sig_algn_dic['start_kmer'] = paf_record.target_end #if RNA, start k-kmer index is end_kmer column in paf and end k-kmer index is start_kmer column in paf
-                sig_algn_dic['end_kmer'] = paf_record.target_start
-                fasta_seq = fasta_seq[::-1]
+            sig_algn_dic['start_kmer'] = ref_start - 1
+            sig_algn_dic['end_kmer'] = ref_end + 1
+            sig_algn_dic['tag_name'] = args.tag_name + indt + "region: [" + str(ref_start) + "-" + str(ref_end) + "]"
 
             moves_string = paf_record.tags['ss'][2]
             moves_string = re.sub('D', 'D,', moves_string)
@@ -374,7 +380,7 @@ if use_paf == 1:
             moves = re.split(r',+', moves_string)
             sig_algn_dic['ss'] = moves
 
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, modify_fasta_seq=True)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
             plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit)
             num_plots += 1
@@ -476,15 +482,14 @@ else:
         sig_algn_dic = {}
         sig_algn_dic['query_name'] = sam_record.query_name
         sig_algn_dic['len_kmer'] = base_limit
-        sig_algn_dic['start_kmer'] = rq_paf[START_KMER]
+        sig_algn_dic['start_kmer'] = 0
         sig_algn_dic['end_kmer'] = base_limit
 
         strand_dir = "+"
         if sam_record.is_reverse:
             strand_dir = "-"
 
-        sig_algn_dic['tag_name'] = args.tag_name + " " + ref_name + ":" + str(ref_start) + "-" + str(ref_end) + " (" + strand_dir + ")"
-
+        sig_algn_dic['tag_name'] = args.tag_name + indt + "region: " + ref_name + ":" + str(ref_start) + "-" + str(ref_end) + " (" + strand_dir + ")"
         moves_string = sam_record.get_tag("ss")
         moves_string = re.sub('D', 'D,', moves_string)
         moves_string = re.sub('I', 'I,', moves_string).rstrip(',')

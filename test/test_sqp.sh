@@ -64,7 +64,52 @@ REGION="10-40"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
+TESTCASE=1.4
+info "testcase:$TESTCASE - read-signal plot region specified"
+FASTA="${RAW_DIR}/one_read/read.fasta"
+SIGNAL="${RAW_DIR}/one_read/read.slow5"
+ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m1.paf"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
+TESTCASE=1.5
+info "testcase:$TESTCASE - read-signal plot region specified"
+FASTA="${RAW_DIR}/one_read/read.fasta"
+SIGNAL="${RAW_DIR}/one_read/read.slow5"
+ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m1.paf"
+REGION="10-268"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+TESTCASE=1.6
+info "testcase:$TESTCASE - read-signal plot region specified"
+FASTA="${RAW_DIR}/one_read/read.fasta"
+SIGNAL="${RAW_DIR}/one_read/read.slow5"
+ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m2.paf"
+REGION="10-268"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+TESTCASE=1.7
+info "testcase:$TESTCASE - read-signal plot region specified"
+FASTA="${RAW_DIR}/one_read/read.fasta"
+SIGNAL="${RAW_DIR}/one_read/read.slow5"
+ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m7.paf"
+REGION="10-268"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+TESTCASE=1.9
+info "testcase:$TESTCASE - read-signal plot region specified"
+FASTA="${RAW_DIR}/one_read/read.fasta"
+SIGNAL="${RAW_DIR}/one_read/read.slow5"
+ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m9.paf"
+REGION="10-268"
+OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+
+exit
 TESTCASE=2.1
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
