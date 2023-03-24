@@ -108,8 +108,6 @@ REGION="10-268"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-
-exit
 TESTCASE=2.1
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
@@ -191,7 +189,7 @@ REGION="chr1:92780308-92780570"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=2.9
+TESTCASE=2.10
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -200,7 +198,7 @@ REGION="chr1:92780308-92780569"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=2.10
+TESTCASE=2.11
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -209,7 +207,7 @@ REGION="chr1:92780311-92780571"
 OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
 python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-TESTCASE=2.11
+TESTCASE=2.12
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/one_read/read.slow5"
@@ -220,7 +218,7 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region
 
 cat ${OUTPUT_DIR}/*/*.html > ${OUTPUT_DIR}/pileup.html
 
-TESTCASE=2.12
+TESTCASE=2.13
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA="${RAW_DIR}/simulate_reads/sim.fasta"
 SIGNAL="${RAW_DIR}/simulate_reads/sim.slow5"
@@ -230,7 +228,7 @@ python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_na
 
 cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
 
-TESTCASE=2.12
+TESTCASE=2.14
 info "testcase:$TESTCASE - reference-signal plot"
 FASTA=${GENOME}
 SIGNAL="${RAW_DIR}/reverse_read/reads.slow5"

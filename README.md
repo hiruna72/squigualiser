@@ -148,4 +148,4 @@ The second move corresponds with `2 x stride` signal points. The third with `4 x
 
 
 ## Example
-The figures on the top of the document were generated using testcases - `testcase-1.1, 2.12, 3.1, 3.4` in the [test_sqp.sh](test/test_sqp.sh).
+The figures on the top of the document were generated using testcases - `1.1, 2.13, 3.1, 3.4` in [test_sqp.sh](test/test_sqp.sh).
