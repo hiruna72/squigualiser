@@ -405,7 +405,6 @@ def main():
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
                 plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 num_plots += 1
                 if num_plots == args.plot_limit:
@@ -522,7 +521,6 @@ def main():
             # print(len(fasta_seq))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
             plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             num_plots += 1
             if num_plots == args.plot_limit:

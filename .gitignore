@@ -1,5 +1,5 @@
 .idea
 output
 .idx
-.fai
-.fxi
+*.fai
+*.fxi

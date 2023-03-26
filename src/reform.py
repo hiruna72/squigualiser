@@ -5,7 +5,8 @@ import pysam
 
 DEFAULT_KMER_SIZE = 9
 DEFAULT_SIG_MOVE_OFFSET = 1
-EXPECTED_STRIDE=5
+DNA_STRIDE = 5
+RNA_STRIDE = 10
 
 parser = argparse.ArgumentParser()
 
@@ -14,6 +15,8 @@ parser.add_argument('-m', '--sig_move_offset', required=False, default=DEFAULT_S
 parser.add_argument('-c', action='store_true', help="write move table in paf format")
 parser.add_argument('-b', '--bam', required=True, help="input SAM/BAM file produced by the basecaller")
 parser.add_argument('-o', '--output', required=True, help="output .tsv/.paf file")
+parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+
 args = parser.parse_args()
 
 if args.kmer_length < 1:
@@ -58,6 +61,13 @@ for sam_record in samfile:
         print("tag '{}' is not found. Please check your input SAM/BAM file.".format("mv"))
         exit(1)
 
+    if args.rna:
+        stride = RNA_STRIDE
+        print("Info: Using a stride of {} for RNA".format(stride))
+    else:
+        stride = DNA_STRIDE
+        print("Info: Using a stride of {} for DNA".format(stride))
+
     ns = int(sam_record.get_tag("ns"))
     ts = int(sam_record.get_tag("ts"))
     mv = sam_record.get_tag("mv")
@@ -71,8 +81,8 @@ for sam_record in samfile:
         print("mv array length is 0.")
         exit(1)
 
-    if mv[0] != EXPECTED_STRIDE:
-        print("expected stride of {} is missing.".format(EXPECTED_STRIDE))
+    if mv[0] != stride:
+        print("expected stride of {} is missing.".format(stride))
         exit(1)
     if not args.c:
         move_count = 0
@@ -82,9 +92,11 @@ for sam_record in samfile:
             if value == 1:
                 move_count += 1
             i += 1
-        end_idx = ts + (i - 1) * EXPECTED_STRIDE;
-        start_idx = end_idx - EXPECTED_STRIDE;
+        end_idx = ts + (i - 1) * stride;
+        start_idx = end_idx - stride;
         kmer_idx = 0
+        if args.rna:
+            kmer_idx = len_seq - 1
 
         while i < len_mv:
             value = mv[i]
@@ -94,7 +106,11 @@ for sam_record in samfile:
                 fout.write("{}\t".format(start_idx))
                 fout.write("{}\n".format(end_idx))
                 start_idx = end_idx
-                kmer_idx += 1
+                if args.rna:
+                    kmer_idx -= 1
+                else:
+                    kmer_idx += 1
+
                 len_seq -= 1
             if len_seq > 0 and i == len_mv-1:
                 fout.write("{}\t".format(sam_record.query_name))
@@ -102,10 +118,13 @@ for sam_record in samfile:
                 fout.write("{}\t".format(start_idx))
                 fout.write("{}\n".format(ns))
                 start_idx = ns
-                kmer_idx += 1
+                if args.rna:
+                    kmer_idx -= 1
+                else:
+                    kmer_idx += 1
                 len_seq -= 1
 
-            end_idx = end_idx + EXPECTED_STRIDE
+            end_idx = end_idx + stride
             i += 1
         if len_seq != 0:
             print("Error in the implementation. Please report the command with minimal reproducible data. Read_id: {}".format(sam_record.query_name));
@@ -127,7 +146,7 @@ for sam_record in samfile:
                 start_idx = i
             i += 1
 
-        fout.write("{}\t".format(ts + (i - 2) * EXPECTED_STRIDE)) #3 Raw signal start index (0-based; BED-like; closed)
+        fout.write("{}\t".format(ts + (i - 2) * stride)) #3 Raw signal start index (0-based; BED-like; closed)
 
         j = 1
         l_end_raw = 0
@@ -142,14 +161,19 @@ for sam_record in samfile:
         if len_seq_1 > 0 and j == len_mv:
             l_end_raw = ns
         else:
-            l_end_raw = ts+(end_idx-1) * EXPECTED_STRIDE
+            l_end_raw = ts + (end_idx-1) * stride
 
         fout.write("{}\t".format(l_end_raw)) #4 Raw signal end index (0-based; BED-like; open)
         fout.write("{}\t".format("+")) #5 Relative strand: “+” or “-“
         fout.write("{}\t".format(sam_record.query_name)) #6 Same as column 1
         fout.write("{}\t".format(len_seq)) #7 base-called sequence length (no. of k-mers)
-        fout.write("{}\t".format(kmer_idx)) #8 k-mer start index on basecalled sequence (0-based)
-        fout.write("{}\t".format(len_seq)) #9 k-mer end index on basecalled sequence (0-based)
+
+        if args.rna:
+            fout.write("{}\t".format(len_seq))  # 8 k-mer start index on basecalled sequence (0-based)
+            fout.write("{}\t".format(kmer_idx))  # 9 k-mer end index on basecalled sequence (0-based)
+        else:
+            fout.write("{}\t".format(kmer_idx))  # 8 k-mer start index on basecalled sequence (0-based)
+            fout.write("{}\t".format(len_seq))  # 9 k-mer end index on basecalled sequence (0-based)
         fout.write("{}\t".format(len_seq - kmer_idx)) #10 Number of k-mers matched on basecalled sequence
         fout.write("{}\t".format(len_seq)) #11 Same as column 7
         fout.write("{}\t".format("255")) #12 Mapping quality (0-255; 255 for missing)
@@ -159,15 +183,15 @@ for sam_record in samfile:
             value = mv[i]
             # print("{}\t{}".format(i, value))
             if len_seq > 0 and value == 1:
-                fout.write("{},".format((i-start_idx)*EXPECTED_STRIDE))  # ss
+                fout.write("{},".format((i-start_idx) * stride))  # ss
                 start_idx = i
                 len_seq -= 1
             if len_seq > 0 and i == len_mv-1:
-                if (ns - ((i-1)*EXPECTED_STRIDE + ts)) < 0:
+                if (ns - ((i-1) * stride + ts)) < 0:
                     print("Error in calcuation. (ns - ((i-1)*EXPECTED_STRIDE + ts)) > 0 is not valid")
                     exit(1)
                 len_seq -= 1
-                l_duration = ((i-start_idx)*EXPECTED_STRIDE) + (ns - ((i-1)*EXPECTED_STRIDE + ts))
+                l_duration = ((i-start_idx) * stride) + (ns - ((i - 1) * stride + ts))
                 fout.write("{},".format(l_duration))  # ss
             i += 1
 
