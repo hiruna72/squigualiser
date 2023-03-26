@@ -69,7 +69,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
 
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
     p = figure(x_axis_label='signal index',
-               y_axis_label='signal value',
+               y_axis_label='signal value (pA)',
                sizing_mode="stretch_width",
                height=300,
                output_backend="webgl",
@@ -122,7 +122,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["stride"]))
             y_add = np.concatenate((y[:previous_location], [0] * n_samples * draw_data["stride"]), axis=0)
             y = np.concatenate((y_add, y[previous_location:]), axis=0)
-            x_add = np.concatenate((x_real[:previous_location], [0] * n_samples * draw_data["stride"]), axis=0)
+            x_add = np.concatenate((x_real[:previous_location], [x_real[previous_location]] * n_samples * draw_data["stride"]), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
 
         elif 'I' in i:
@@ -185,7 +185,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
-    plot_title = f'{sig_algn_data["tag_name"]}{indt}signal: [{x_real[0]}-{x_real[location_plot-1]}] dels: {num_Ds}b ins: {num_Is}samples{indt}{read_id}'
+    plot_title = f'{sig_algn_data["tag_name"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     output_file(output_file_name, title=read_id)
@@ -319,15 +319,14 @@ def main():
                 ref_end = -1
                 if data_is_rna:
                     ref_start = paf_record.target_end + 1
-                    ref_end = paf_record.target_start
                 else:
                     ref_start = paf_record.target_start + 1
-                    ref_end = paf_record.target_end
                 seq_len = len(fasta_seq)
                 if seq_len < BASE_LIMIT:
                     base_limit = seq_len
                 else:
                     base_limit = BASE_LIMIT
+                ref_end = base_limit
 
                 if args.region != "":
                     pattern = re.compile("^[0-9]+\-[0-9]+")
@@ -353,7 +352,7 @@ def main():
                     # print("ref_start: " + str(ref_start))
                     # print("ref_end: " + str(ref_end))
 
-                    if (ref_end - ref_start + 1) < BASE_LIMIT:
+                    if (ref_end - ref_start + 1) < base_limit:
                         base_limit = ref_end - ref_start + 1
 
                 print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
@@ -381,7 +380,7 @@ def main():
                 sig_algn_dic['len_kmer'] = paf_record.target_length
                 sig_algn_dic['start_kmer'] = ref_start - 1
                 sig_algn_dic['end_kmer'] = ref_end + 1
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "region: [" + str(ref_start) + "-" + str(ref_end) + "]"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "region: [" + str(ref_start)
 
                 moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)
@@ -498,7 +497,7 @@ def main():
             if sam_record.is_reverse:
                 strand_dir = "-"
 
-            sig_algn_dic['tag_name'] = args.tag_name + indt + "region: " + ref_name + ":" + str(ref_start) + "-" + str(ref_end) + " (" + strand_dir + ")"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + " (" + strand_dir + ")" + "region: " + ref_name + ":" + str(ref_start)
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
