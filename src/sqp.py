@@ -68,8 +68,16 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     y = signal_tuple[2]
 
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+
+    y_axis_label = "signal value (raw)"
+    if sig_algn_data["pa"]:
+        y_axis_label = "signal value (pA)"
+
+    # label_position = np.median(y)
+    label_position = np.percentile(y, 75)  # Q3
+
     p = figure(x_axis_label='signal index',
-               y_axis_label='signal value (pA)',
+               y_axis_label=y_axis_label,
                sizing_mode="stretch_width",
                height=300,
                output_backend="webgl",
@@ -108,7 +116,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
-                base_y.append(115)
+                base_y.append(label_position)
                 label = str(base) + "\t" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('red')
@@ -146,7 +154,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             vlines.append(vline)
 
             base_x.append(previous_location)
-            base_y.append(115)
+            base_y.append(label_position)
             label = str(base) + "\t" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
@@ -185,7 +193,10 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
-    plot_title = f'{sig_algn_data["tag_name"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+    if sig_algn_data["use_paf"]:
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+    else:
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"]+base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     output_file(output_file_name, title=read_id)
@@ -233,6 +244,7 @@ def main():
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+    parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
@@ -369,7 +381,7 @@ def main():
                 x_real = []
                 y = []
                 sig_plot_length = SIG_PLOT_LENGTH
-                read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
+                read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
                 if read is not None:
                     start_index = paf_record.query_start
                     end_index = read['len_raw_signal']
@@ -380,11 +392,11 @@ def main():
                 region_tuple = (ref_start, ref_end, 0)
 
                 sig_algn_dic = {}
-                sig_algn_dic['query_name'] = paf_record.query_name
-                sig_algn_dic['len_kmer'] = paf_record.target_length
                 sig_algn_dic['start_kmer'] = ref_start - 1
-                sig_algn_dic['end_kmer'] = ref_end + 1
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "region: [" + str(ref_start)
+                sig_algn_dic['ref_start'] = ref_start
+                sig_algn_dic['pa'] = args.no_pa
+                sig_algn_dic['use_paf'] = use_paf
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "region: "
 
                 moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)
@@ -473,7 +485,7 @@ def main():
             sig_plot_length = SIG_PLOT_LENGTH
             rq_paf = sam_record.get_tag("rq").split(',')
 
-            read = s5.get_read(read_id, pA=True, aux=["read_number", "start_mux"])
+            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
             if read is not None:
                 # print("read_id:", read['read_id'])
                 # print("len_raw_signal:", read['len_raw_signal'])
@@ -484,24 +496,22 @@ def main():
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
 
+            strand_dir = "+"
             if sam_record.is_reverse:
                 x_real.reverse()
                 y = np.flip(y)
+                strand_dir = "-"
 
             signal_tuple = (x, x_real, y)
             region_tuple = (ref_start, ref_end, int(sam_record.reference_start))
 
             sig_algn_dic = {}
-            sig_algn_dic['query_name'] = sam_record.query_name
-            sig_algn_dic['len_kmer'] = base_limit
             sig_algn_dic['start_kmer'] = 0
-            sig_algn_dic['end_kmer'] = base_limit
+            sig_algn_dic['ref_start'] = ref_start
+            sig_algn_dic['pa'] = args.no_pa
+            sig_algn_dic['use_paf'] = use_paf
+            sig_algn_dic['tag_name'] = args.tag_name + indt + " (" + strand_dir + ") " + "region: " + ref_name + ":"
 
-            strand_dir = "+"
-            if sam_record.is_reverse:
-                strand_dir = "-"
-
-            sig_algn_dic['tag_name'] = args.tag_name + indt + " (" + strand_dir + ")" + "region: " + ref_name + ":" + str(ref_start)
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
