@@ -12,9 +12,9 @@ A simple tool to Visualise nanopore raw signal-base alignment
 3. The third read is the signal-read alignment using the squigulator's simulated output.
 4. The fourth read (RNA) is the signal-read alignment using f5c resquiggle output.
 
-## INSTALLATION
+## Installation
 
-### using python environment
+### using python environment (tested with python 3.6, should work with anything higher as well)
 ````
 git clone https://github.com/hiruna72/ideal-goggles.git
 cd ideal-goggles
@@ -145,7 +145,6 @@ An example move array looks like the following,
 The number of ones (1) in the move array equals to the fastq sequence length. 
 According to the above example the first move corresponds with `1 x stride` signal points. 
 The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
-
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 3.1, 2.12,` and `4.2` respectively in [test_sqp.sh](test/test_sqp.sh).
