@@ -232,6 +232,7 @@ def main():
                         help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
+    parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
@@ -313,6 +314,9 @@ def main():
                 if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
                     data_is_rna = True
                     print("Info: data is detected as RNA")
+                    if not args.rna:
+                        print("Error: data is not specified as RNA. Please provide the argument --rna ")
+                        exit(1)
                     fasta_seq = fasta_seq[::-1]
 
                 ref_start = -1
