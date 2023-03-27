@@ -1,4 +1,4 @@
-# Squigualiser
+# squigualiser
 
 A simple tool to Visualise nanopore raw signal-base alignment
 
@@ -16,10 +16,10 @@ A simple tool to Visualise nanopore raw signal-base alignment
 
 ### using python environment (tested with python 3.7, should work with anything higher as well)
 ````
-git clone https://github.com/hiruna72/ideal-goggles.git
-cd ideal-goggles
-python3 -m venv idealg_v
-source idealg_v/bin/activate
+git clone https://github.com/hiruna72/squigualiser.git
+cd squigualiser
+python3 -m venv venv3
+source venv3/bin/activate
 pip install --upgrade pip
 pip install --upgrade setuptools wheel
 
@@ -29,10 +29,10 @@ python setup.py install
 ````
 ### using conda environment
 ````
-git clone https://github.com/hiruna72/ideal-goggles.git
-cd ideal-goggles
-conda create -n idealg_c python=3.7 -y
-conda activate idealg_c
+git clone https://github.com/hiruna72/squigualiser.git
+cd squigualiser
+conda create -n venv3 python=3.7 -y
+conda activate venv3
 
 export PYSLOW5_ZSTD=1 # if your slow5 file uses zstd compression and you have zstd installed, set
 

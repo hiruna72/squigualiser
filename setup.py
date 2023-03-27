@@ -33,7 +33,7 @@ setuptools.setup(
     setup_requires=["numpy"],
     entry_points={
         "console_scripts": [
-            "ideal_goggles={}.__init__:main".format(MOD_NAME),
+            "squigualiser={}.__init__:main".format(MOD_NAME),
         ],
     },
     classifiers=[

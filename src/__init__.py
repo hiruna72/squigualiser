@@ -3,11 +3,11 @@ from src import plot, reform
 from ._version import __version__
 
 modules = ['plot', 'reform']
-version = "ideal-goggles     {}".format(__version__)
+version = "squigualiser     {}".format(__version__)
 
 def main():
     parser = ArgumentParser(
-        'ideal-goggles',
+        'squigualiser',
         formatter_class=ArgumentDefaultsHelpFormatter
     )
 
