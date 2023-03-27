@@ -3,3 +3,8 @@ output
 .idx
 *.fai
 *.fxi
+*egg*
+dist
+__pycache__
+idealg_v
+build

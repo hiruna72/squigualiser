@@ -20,23 +20,23 @@ fi
 
 REL_PATH="$(dirname $0)/"
 #...directories files tools arguments commands clean
-OUTPUT_DIR="${REL_PATH}/data/out/sqp"
+OUTPUT_DIR="${REL_PATH}/data/out/plot"
 test -d "$OUTPUT_DIR" && rm -r "$OUTPUT_DIR"
 mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 
 GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
 
-RAW_DIR="${REL_PATH}/data/raw/sqp"
-EXP_DIR="${REL_PATH}/data/exp/sqp"
+RAW_DIR="${REL_PATH}/data/raw/plot"
+EXP_DIR="${REL_PATH}/data/exp/plot"
 
 testcase_0s() {
   TESTCASE=0.1
   info "testcase:$TESTCASE - help"
-  python src/sqp.py && die "testcase:$TESTCASE failed"
+  python src/plot.py && die "testcase:$TESTCASE failed"
 
   TESTCASE=0.2
   info "testcase:$TESTCASE - help"
-  python src/sqp.py --help && die "testcase:$TESTCASE failed"
+  python src/plot.py --help && die "testcase:$TESTCASE failed"
 }
 testcase_1s() {
   TESTCASE=1.1
@@ -46,7 +46,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.2
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -55,7 +55,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
   REGION="1-20"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.3
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -64,7 +64,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
   REGION="10-40"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.4
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -72,7 +72,7 @@ testcase_1s() {
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m1.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.5
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -81,7 +81,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m1.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.6
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -90,7 +90,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m2.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.7
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -99,7 +99,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m7.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.9
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -108,7 +108,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m9.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.10
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -117,7 +117,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m9.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 }
 testcase_2s() {
   TESTCASE=2.1
@@ -127,7 +127,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.2
   info "testcase:$TESTCASE - reference-signal plot"
@@ -136,7 +136,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780309-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.3
   info "testcase:$TESTCASE - reference-signal plot"
@@ -145,7 +145,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780311-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.4
   info "testcase:$TESTCASE - reference-signal plot"
@@ -154,7 +154,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780309-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.5
   info "testcase:$TESTCASE - reference-signal plot"
@@ -163,7 +163,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780311-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.6
   info "testcase:$TESTCASE - reference-signal plot"
@@ -172,7 +172,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780301-92780308"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.7
   info "testcase:$TESTCASE - reference-signal plot"
@@ -181,7 +181,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780571-92780579"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.8
   info "testcase:$TESTCASE - reference-signal plot"
@@ -190,7 +190,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780565-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.9
   info "testcase:$TESTCASE - reference-signal plot"
@@ -199,7 +199,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780308-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.10
   info "testcase:$TESTCASE - reference-signal plot"
@@ -208,7 +208,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780308-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.11
   info "testcase:$TESTCASE - reference-signal plot"
@@ -217,7 +217,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780311-92780571"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.12
   info "testcase:$TESTCASE - reference-signal plot"
@@ -226,7 +226,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
   REGION="chr1:92780311-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   cat ${OUTPUT_DIR}/*/*.html > ${OUTPUT_DIR}/pileup.html
 
@@ -236,7 +236,7 @@ testcase_2s() {
   SIGNAL="${RAW_DIR}/simulate_reads/sim.slow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/sim.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   cat ${OUTPUT}/*.html > ${OUTPUT_DIR}/pileup2.html
 
@@ -247,7 +247,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/reverse_read/realign.sam"
   REGION="chr1:6811011-6811050"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   cat ${OUTPUT}/*.html >> ${OUTPUT_DIR}/pileup2.html
 }
@@ -259,7 +259,7 @@ testcase_3s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=3.2
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -268,7 +268,7 @@ testcase_3s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=3.3
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -277,7 +277,7 @@ testcase_3s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION="900-1495"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=3.4
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -286,7 +286,7 @@ testcase_3s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION="1483-1495"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 }
 testcase_4s() {
   RAW_DIR="${RAW_DIR}/rna/t0"
@@ -298,7 +298,7 @@ testcase_4s() {
   REGION=""
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=4.2
   info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
@@ -308,7 +308,7 @@ testcase_4s() {
   REGION="1300-1563"
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=4.3
   info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
@@ -318,7 +318,7 @@ testcase_4s() {
   REGION="1300-1563"
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/sqp.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 }
 
 testcase_0s #basic
@@ -328,5 +328,5 @@ testcase_3s #resquiggle
 testcase_4s #RNA
 
 info "all testcases passed"
-#rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
+rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

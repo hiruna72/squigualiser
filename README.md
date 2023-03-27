@@ -79,7 +79,7 @@ OUTPUT_DIR=output_dir
 # use samtools fasta command to create .fasta file from SAM/BAM file
 samtools fasta out.sam > ${FASTA_FILE}
 # plot
-python src/sqp.py --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+python src/plot.py --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ### Option 2 - Using F5c resquiggle signal-read alignment
@@ -99,7 +99,7 @@ f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNME
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-python src/sqp.py --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+python src/plot.py --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ### Option 3 - Using the signal simulation software - Squigulator
@@ -119,7 +119,7 @@ squigulator --seed 1 --full-contigs --ideal-time --amp-noise 0.4 -x dna-r10-prom
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-python src/sqp.py --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+python src/plot.py --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ## Note
@@ -127,7 +127,7 @@ python src/sqp.py --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT
 2. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
 3. The argument `KMER_MODEL` is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
 4. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
-5. The input alignment format accepted by `sqp.py` script is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
+5. The input alignment format accepted by `plot.py` script is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 6. The argument `sig_move_offset` is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
 7. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `reform.py` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
 ```
@@ -154,4 +154,4 @@ According to the above example the first move corresponds with `1 x stride` sign
 The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
 
 ## Example
-The figures on the top of the document were generated using the testcases - `1.1, 3.1, 2.12,` and `4.2` respectively in [test_sqp.sh](test/test_sqp.sh).
+The figures on the top of the document were generated using the testcases - `1.1, 3.1, 2.12,` and `4.2` respectively in [test_plot.sh](test/test_plot.sh).

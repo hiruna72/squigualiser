@@ -1,5 +1,5 @@
 """
-Signal to seQuence alignment Plot - sqp
+Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """
@@ -240,8 +240,9 @@ def run(args):
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
     if args.base_limit:
-        BASE_LIMIT = args.base_limit
-
+        base_limit = args.base_limit
+    else:
+        base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
     if not os.path.exists(args.output_dir):
@@ -294,11 +295,10 @@ def run(args):
                     ref_start = paf_record.target_end + 1
                 else:
                     ref_start = paf_record.target_start + 1
+
                 seq_len = len(fasta_seq)
-                if seq_len < BASE_LIMIT:
+                if seq_len < base_limit:
                     base_limit = seq_len
-                else:
-                    base_limit = BASE_LIMIT
                 ref_end = base_limit
 
                 if args.region != "":

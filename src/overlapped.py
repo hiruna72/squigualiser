@@ -1,5 +1,5 @@
 """
-Signal to seQuence alignment Plot - sqp
+Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """

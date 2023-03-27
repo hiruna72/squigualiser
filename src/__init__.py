@@ -1,8 +1,8 @@
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
-from src import sqp, reform
+from src import plot, reform
 from ._version import __version__
 
-modules = ['sqp', 'reform']
+modules = ['plot', 'reform']
 version = "ideal-goggles     {}".format(__version__)
 
 def main():
