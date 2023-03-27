@@ -101,23 +101,22 @@ squigualiser plot --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT
 ````
 
 ### Option 3 - Using the signal simulation software - Squigulator
-1. For r10 data, build [Squigulator r10 branch](https://github.com/hasindu2008/squigulator/tree/r10) by following the instructions listed in [Squigulator README](https://github.com/hasindu2008/squigulator/blob/r10/README.md). For r9 data, the [squigulator master branch](https://github.com/hasindu2008/squigulator) suffice.
+1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
 
-2. Simulate a signal
+2. Simulate a signal (remeber to provide -q and -c options)
 ```
-FASTA=read.fasta (the read to simulate)
-KMER_MODEL=path/to/kmer-model
+REF=ref.fasta #reference
+READ=sim.fasta
 ALIGNMENT=sim.paf
-SIGNAL_FILE=sim.slow5
+SIGNAL_FILE=sim.blow5
 
-squigulator --seed 1 --full-contigs --ideal-time --amp-noise 0.4 -x dna-r10-prom --kmer-model ${KMER_MODEL} ${FASTA} -c ${ALIGNMENT} -o ${SIGNAL_FILE}
+squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT}
 ```
-* Refer [Note(3)](#note) for more information about `KMER_MODEL`.
 
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-squigualiser plot --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 ````
 
 ## Note
