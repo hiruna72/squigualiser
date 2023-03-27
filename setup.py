@@ -2,7 +2,7 @@ import setuptools
 from os import path
 import re
 
-PKG_NAME = "ideal-goggles"
+PKG_NAME = "squigualiser"
 MOD_NAME = "src"
 
 # add readme to long description as that's what pypi sees
@@ -21,7 +21,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), "requirements.txt")) a
 setuptools.setup(
     name=PKG_NAME,
     version=__version__,
-    url="https://github.com/hiruna72/ideal-goggles",
+    url="https://github.com/hiruna72/squigualiser",
     author="Hiruna Samarakoon",
     author_email="h.samarakoon@garvan.org.au",
     description="Visualise ONT raw signals ",
