@@ -118,6 +118,14 @@ testcase_1s() {
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+  TESTCASE=1.11
+  info "testcase:$TESTCASE - read-signal plot region specified"
+  FASTA="${RAW_DIR}/simulate_reads/r1/sim.fasta"
+  SIGNAL="${RAW_DIR}/simulate_reads/r1/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r1/sim.paf"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 }
 testcase_2s() {
   TESTCASE=2.1

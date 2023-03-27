@@ -353,7 +353,10 @@ def run(args):
                 sig_algn_dic['ref_start'] = ref_start
                 sig_algn_dic['pa'] = args.no_pa
                 sig_algn_dic['use_paf'] = use_paf
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "region: "
+                if data_is_rna:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "(RNA)  region: "
+                else:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "region: "
 
                 moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)

@@ -2,10 +2,7 @@
 
 A simple tool to Visualise nanopore raw signal-base alignment
 
-![image](docs/figures/testcase-1.1.png)
-![image](docs/figures/testcase-3.1.png)
-![image](docs/figures/testcase-2.12.png)
-![image](docs/figures/testcase-4.2.png)
+![image](docs/figures/preview.png)
 
 1. The first read is the signal-read alignment using guppy_v.3.6.7 move table annotation.
 2. The second read is the signal-read alignment using f5c resquiggle output.
@@ -157,4 +154,4 @@ According to the above example the first move corresponds with `1 x stride` sign
 The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
 
 ## Example
-The figures on the top of the document were generated using the testcases - `1.1, 3.1, 2.12,` and `4.2` respectively in [test_plot.sh](test/test_plot.sh).
+The figures on the top of the document were generated using the testcases - `1.1, 3.1, 1.11,` and `4.2` respectively in [test_plot.sh](test/test_plot.sh).
