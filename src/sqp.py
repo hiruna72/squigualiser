@@ -24,6 +24,12 @@ import pysam
 # start_kmer is always 0based closed
 # end_kmer is always 0based open
 
+BASE_LIMIT = 1000
+SIG_PLOT_LENGTH = 20000
+DEFAULT_STRIDE = 5
+BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
+READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, READ_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
+
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
     ref_region_end_diff = region_tuple[2] + ref_seq_len - region_tuple[1]
@@ -202,56 +208,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     output_file(output_file_name, title=read_id)
     save(p)
 
-def main():
-    BASE_LIMIT = 1000
-    SIG_PLOT_LENGTH = 20000
-    DEFAULT_STRIDE = 5
-
-    BAM_CMATCH = 0
-    BAM_CINS = 1
-    BAM_CDEL = 2
-    BAM_CREF_SKIP = 3
-    BAM_CSOFT_CLIP = 4
-    BAM_CHARD_CLIP = 5
-    BAM_CPAD = 6
-    BAM_CEQUAL = 7
-    BAM_CDIFF = 8
-    BAM_CBACK = 9
-
-    READ_ID = 0
-    LEN_RAW_SIGNAL = 1
-    START_RAW = 2
-    END_RAW = 3
-    STRAND = 4
-    READ_ID = 5
-    LEN_KMER = 6
-    START_KMER = 7
-    END_KMER = 8
-    MATCHES = 9
-    LEN_KMER = 10
-    MAPQ = 11
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz sequence file")
-    parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
-    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=True,
-                        help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-    parser.add_argument('--region', required=False, type=str, default="",
-                        help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
-    parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
-    parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
-    parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
-    parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
-    parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
-    parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
-    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
-    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
-
-    args = parser.parse_args()
+def run(args):
 
     if args.read_id != "":
         args.plot_limit = 1
@@ -531,5 +488,39 @@ def main():
 
     s5.close()
 
+def argparser():
+    # parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        add_help=False
+    )
+
+    parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz sequence file")
+    parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
+    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
+    parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
+    parser.add_argument('-a', '--alignment', required=True,
+                        help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('--region', required=False, type=str, default="",
+                        help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
+    parser.add_argument('--tag_name', required=False, type=str, default="",
+                        help="a tag name to easily identify the plot")
+    parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
+    parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+    parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
+    parser.add_argument('--plot_limit', required=False, type=int, default=1000,
+                        help="limit the number of plots generated")
+    parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH,
+                        help="maximum number of signal samples to plot")
+    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE,
+                        help="stride used in basecalling network")
+    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+    return parser
+
 if __name__ == "__main__":
-    main()
+    parser = argparser()
+    args = parser.parse_args()
+    run(args)
+
+

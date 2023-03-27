@@ -36,7 +36,7 @@ testcase_0s() {
 
   TESTCASE=0.2
   info "testcase:$TESTCASE - help"
-  python src/sqp.py --help || die "testcase:$TESTCASE failed"
+  python src/sqp.py --help && die "testcase:$TESTCASE failed"
 }
 testcase_1s() {
   TESTCASE=1.1
