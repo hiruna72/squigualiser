@@ -25,7 +25,7 @@ pip install --upgrade setuptools wheel
 
 export PYSLOW5_ZSTD=1 # if your slow5 file uses zstd compression and you have zstd installed, set
 python setup.py install
-
+squigualiser --help
 ````
 ### using conda environment
 ````
@@ -37,6 +37,7 @@ conda activate venv3
 export PYSLOW5_ZSTD=1 # if your slow5 file uses zstd compression and you have zstd installed, set
 
 python setup.py install
+squigualiser --help
 ````
 
 ## Signal to read visualisation
@@ -60,10 +61,10 @@ samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a s
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
-python src/reform.py --sig_move_offset 1 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
+squigualiser reform --sig_move_offset 1 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
 
 # For human readability you may prefer the tsv output (not supported for plotting)
-python src/reform.py --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform_output.tsv
+squigualiser reform --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform_output.tsv
 
 ```
 * Refer [Note(5)](#note) for more information on the paf output.
@@ -79,7 +80,7 @@ OUTPUT_DIR=output_dir
 # use samtools fasta command to create .fasta file from SAM/BAM file
 samtools fasta out.sam > ${FASTA_FILE}
 # plot
-python src/plot.py --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ### Option 2 - Using F5c resquiggle signal-read alignment
@@ -99,7 +100,7 @@ f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNME
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-python src/plot.py --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+squigualiser plot --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ### Option 3 - Using the signal simulation software - Squigulator
@@ -119,7 +120,7 @@ squigulator --seed 1 --full-contigs --ideal-time --amp-noise 0.4 -x dna-r10-prom
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-python src/plot.py --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+squigualiser plot --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
 ## Note
@@ -127,9 +128,9 @@ python src/plot.py --file ${FASTA} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMEN
 2. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
 3. The argument `KMER_MODEL` is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
 4. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
-5. The input alignment format accepted by `plot.py` script is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
+5. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 6. The argument `sig_move_offset` is the number of moves `n` to skip in the signal (`n x stride`) to correct the start of the alignment. This will not skip bases in the fastq sequence.
-7. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `reform.py` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
+7. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
 ```
 echo -e fake_reference'\t'0 > fake_reference.fa.fai
 samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
