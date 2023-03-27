@@ -80,8 +80,8 @@ samtools fasta out.sam > ${FASTA_FILE}
 squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
 ````
 
-### Option 2 - Using F5c resquiggle signal-read alignment
-1. For r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start)
+### Option 2 - Using f5c resquiggle signal-read alignment
+1. For r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start) are sufficient.
 
 2. Run f5c resquiggle
 ```
@@ -97,13 +97,13 @@ f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNME
 3. Plot signal to read alignment
 ````
 OUTPUT_DIR=output_dir
-squigualiser plot --file ${FASTQ} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} # to plot a selected read ID, you can provide -r 'READ_ID'.
 ````
 
 ### Option 3 - Using the signal simulation software - Squigulator
 1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
 
-2. Simulate a signal (remeber to provide -q and -c options)
+2. Simulate a signal (remeber to provide -q and -c options).
 ```
 REF=ref.fasta #reference
 READ=sim.fasta
@@ -113,10 +113,10 @@ SIGNAL_FILE=sim.blow5
 squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT}
 ```
 
-3. Plot signal to read alignment
+3. Plot signal to read alignment.
 ````
 OUTPUT_DIR=output_dir
-squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
+squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} # to plot a selected read ID, you can provide -r 'READ_ID'.
 ````
 
 ## Note
