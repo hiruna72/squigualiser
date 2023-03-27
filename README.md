@@ -86,7 +86,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 ````
 
 ### Option 2 - Using F5c resquiggle signal-read alignment
-1. for r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start)
+1. For r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start)
 
 2. Run f5c resquiggle
 ```
