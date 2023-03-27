@@ -12,6 +12,8 @@ A simple tool to Visualise nanopore raw signal-base alignment
 3. The third read is the signal-read alignment using the squigulator's simulated output.
 4. The fourth read (RNA) is the signal-read alignment using f5c resquiggle output.
 
+check this [preview](https://hiruna72.github.io/squigualiser/docs/figures/preview.html)
+
 ## Installation
 
 * using python environment (tested with python 3.7, should work with anything higher as well)
