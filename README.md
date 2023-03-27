@@ -1,4 +1,4 @@
-# ideal-goggles
+# Squigualiser
 
 A simple tool to Visualise nanopore raw signal-base alignment
 
