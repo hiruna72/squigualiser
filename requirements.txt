@@ -1,7 +1,6 @@
-bokeh
+bokeh==2.3.3
 numpy
 pyslow5
-scikit-learn
 readpaf
 pyfaidx
 pyfastx
