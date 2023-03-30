@@ -369,10 +369,36 @@ def run(args):
                 num_plots += 1
                 if num_plots == args.plot_limit:
                     break
-    else:
-        samfile = pysam.AlignmentFile(args.alignment, mode='r')
+    else: # using sam/bam
+
         fasta_reads = Fasta(args.file)
-        for sam_record in samfile.fetch():
+
+        if args.region != "":
+            # check if there exists a .bam.bai
+            index_file = args.alignment + ".bai"
+            if not os.path.exists(index_file):
+                print("Error: please provide a bam file that is sorted and indexed to extract the regions")
+                exit(1)
+
+            args_region = re.sub(',', '', args.region)
+            print(args_region)
+            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
+            if not pattern.match(args_region):
+                print("Error: region provided is not in correct format")
+                exit(1)
+            ref_name = args_region.split(":")[0]
+            ref_start = int(args_region.split(":")[1].split("-")[0])
+            ref_end = int(args_region.split(":")[1].split("-")[1])
+
+            samfile = pysam.AlignmentFile(args.alignment, mode='rb')
+        else:
+            ref_name = None
+            ref_start = None
+            ref_end = None
+            samfile = pysam.AlignmentFile(args.alignment, mode='r')
+
+        for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
             if sam_record.is_supplementary:
                 continue
             if sam_record.is_reverse and args.no_reverse:
@@ -392,20 +418,8 @@ def run(args):
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
-            ref_name = ""
-            ref_start = 0
-            ref_end = 0
-            if args.region != "":
-                args_region = re.sub(',', '', args.region)
-                print(args_region)
-                pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-                if not pattern.match(args_region):
-                    print("Error: region provided is not in correct format")
-                    exit(1)
-                ref_name = args_region.split(":")[0]
-                ref_start = int(args_region.split(":")[1].split("-")[0])
-                ref_end = int(args_region.split(":")[1].split("-")[1])
 
+            if args.region != "":
                 if ref_name != sam_record.reference_name:
                     print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
                     continue

@@ -35,20 +35,38 @@ testcase_5s() {
   SIGNAL="${RAW_DIR}/simulate_reads/r2/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/r2/sim.sam"
   REGION=""
-  PLOT_LIMIT=10
+  PLOT_LIMIT=1
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
-#  TESTCASE=2.2
-#  info "testcase:$TESTCASE - reference-signal plot"
-#  FASTA=${GENOME}
-#  SIGNAL="${RAW_DIR}/one_read/read.slow5"
-#  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.sam"
-#  REGION="chr1:92780309-92780570"
-#  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-#  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
-#
-#  cat ${OUTPUT}/*.html >> ${OUTPUT_DIR}/pileup2.html
+  TESTCASE=5.2
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r2/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r2/sim.sam"
+  REGION="MN908947.3:1-10000"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+
+  TESTCASE=5.3
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r2/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r2/sim.bam"
+  REGION="MN908947.3:1-10000"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+
+  TESTCASE=5.4
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r2/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r2/sorted_sim.bam"
+  REGION="MN908947.3:14,843-14,914"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 }
 
 testcase_5s #signal-reference squigulator
