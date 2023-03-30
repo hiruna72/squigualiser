@@ -132,7 +132,7 @@ echo -e fake_reference'\t'0 > fake_reference.fa.fai
 samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
 
-## Guppy move table explanation (unconfirmed)
+## Guppy move table explanation
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
 1. read_id
 2. basecalled fastq sequence length
@@ -142,11 +142,13 @@ Nanopore basecallers output move arrays in SAM/BAM format. The important fields 
 6. raw signal trim offset
 7. move table
 
-An example move array looks like the following,
+An example move table looks like the following,
 ```
-110100010101000101011010101111…
+How the auxiliary field is stored in SAM format -> mv:B:c:5,1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
+Stride (always the first integer) -> 5
+The actual move array (the rest) -> 1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
 ```
-The number of ones (1) in the move array equals to the fastq sequence length. 
+The number of ones (1) in the actual move array equals to the fastq sequence length. 
 According to the above example the first move corresponds with `1 x stride` signal points. 
 The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
 
