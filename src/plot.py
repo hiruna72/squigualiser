@@ -29,6 +29,7 @@ SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, READ_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
+SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
 
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
@@ -209,7 +210,6 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     save(p)
 
 def run(args):
-
     if args.read_id != "":
         args.plot_limit = 1
 
@@ -442,13 +442,22 @@ def run(args):
             x_real = []
             y = []
             sig_plot_length = SIG_PLOT_LENGTH
-            rq_paf = sam_record.get_tag("rq").split(',')
+            start_index = -1
+            if sam_record.has_tag("rq"):
+                rq_tag = sam_record.get_tag("rq").split(',')
+                start_index = int(rq_tag[START_RAW])
+            if sam_record.has_tag("si"):
+                si_tag = sam_record.get_tag("si").split(',')
+                start_index = int(si_tag[SI_START_RAW])
+            if start_index == -1:
+                print("Error: sam record does have neither 'rq' nor 'si' tags.")
+                exit(1)
 
             read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
             if read is not None:
                 # print("read_id:", read['read_id'])
                 # print("len_raw_signal:", read['len_raw_signal'])
-                start_index = int(rq_paf[START_RAW])
+
                 end_index = read['len_raw_signal']
 
                 x = list(range(1, end_index - start_index + 1))
