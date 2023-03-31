@@ -331,7 +331,7 @@ def run(args):
                 print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
 
                 output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-                print(f'output file: {output_file_name}')
+                print(f'output file: {os.path.abspath(output_file_name)}')
                 print(f'read_id: {read_id}')
 
                 x = []
@@ -381,7 +381,7 @@ def run(args):
                 exit(1)
 
             args_region = re.sub(',', '', args.region)
-            print(args_region)
+            # print(args_region)
             # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
             pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
             if not pattern.match(args_region):
@@ -402,6 +402,8 @@ def run(args):
             if sam_record.is_supplementary:
                 continue
             if sam_record.is_reverse and args.no_reverse:
+                continue
+            if not sam_record.is_reverse and args.reverse_only:
                 continue
             if args.read_id != "" and sam_record.query_name != args.read_id:
                 continue
@@ -450,7 +452,7 @@ def run(args):
             read_id = sam_record.query_name
             fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-            print(f'output file: {output_file_name}')
+            print(f'output file: {os.path.abspath(output_file_name)}')
 
             x = []
             x_real = []
@@ -478,11 +480,17 @@ def run(args):
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
 
+            moves_string = sam_record.get_tag("ss")
+            moves_string = re.sub('D', 'D,', moves_string)
+            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+            moves = re.split(r',+', moves_string)
+
             strand_dir = "+"
             if sam_record.is_reverse:
                 x_real.reverse()
                 y = np.flip(y)
                 strand_dir = "-"
+                moves.reverse()
 
             signal_tuple = (x, x_real, y)
             region_tuple = (ref_start, ref_end, int(sam_record.reference_start))
@@ -493,12 +501,6 @@ def run(args):
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['use_paf'] = use_paf
             sig_algn_dic['tag_name'] = args.tag_name + indt + " (" + strand_dir + ") " + "region: " + ref_name + ":"
-
-            moves_string = sam_record.get_tag("ss")
-            moves_string = re.sub('D', 'D,', moves_string)
-            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-            moves = re.split(r',+', moves_string)
-
             sig_algn_dic['ss'] = moves
 
             # print(len(fasta_seq))
@@ -532,6 +534,7 @@ def argparser():
     parser.add_argument('--tag_name', required=False, type=str, default="",
                         help="a tag name to easily identify the plot")
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
+    parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
