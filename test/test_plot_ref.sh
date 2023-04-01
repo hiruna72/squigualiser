@@ -24,11 +24,12 @@ OUTPUT_DIR="${REL_PATH}/data/out/plot"
 test -d "$OUTPUT_DIR" && rm -r "$OUTPUT_DIR"
 mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 
-GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
 RAW_DIR="${REL_PATH}/data/raw/plot"
 EXP_DIR="${REL_PATH}/data/exp/plot"
 
 testcase_5s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
+
   TESTCASE=5.1
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
@@ -134,6 +135,8 @@ testcase_5s() {
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only || die "testcase:$TESTCASE failed"
 }
 testcase_6s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
+
   TESTCASE=6.1
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
@@ -165,13 +168,24 @@ testcase_6s() {
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 }
 testcase_7s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
+
   TESTCASE=7.1
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/simulate_reads/r4/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/r4/sorted_sim.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+
+  TESTCASE=7.2
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r4/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r4/sorted_sim.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --rna || die "testcase:$TESTCASE failed"
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
 }
