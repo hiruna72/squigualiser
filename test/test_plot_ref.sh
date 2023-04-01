@@ -170,16 +170,15 @@ testcase_7s() {
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/simulate_reads/r4/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/r4/sorted_sim.bam"
-  REGION="MN908947.3:14,843-14,914"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
 }
 
-testcase_5s #signal-reference squigulator ideal signals
-testcase_6s #signal-reference squigulator
-#testcase_7s #signal-reference squigulator RNA
+#testcase_5s #signal-reference squigulator ideal signals
+#testcase_6s #signal-reference squigulator
+testcase_7s #signal-reference squigulator RNA
 
 info "all testcases passed"
 rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

@@ -414,14 +414,26 @@ def run(args):
                 if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
                     ref_seq_len = ref_seq_len + cig_count
 
+            data_is_rna = False
+
+
             start_index = -1
             if sam_record.has_tag("rq"):
-                rq_tag = sam_record.get_tag("rq").split(',')
-                start_index = int(rq_tag[START_RAW])
+                print("Error: this tag is not valid anymore. Run realign.py again to create a SAM/BAM file with the new tag 'si'")
+                exit(1)
             if sam_record.has_tag("si"):
                 si_tag = sam_record.get_tag("si").split(',')
                 start_index = int(si_tag[SI_START_RAW])
                 ref_seq_len = int(si_tag[SI_END_KMER])
+
+                if int(si_tag[SI_START_KMER]) > int(si_tag[SI_END_KMER]):  # if RNA start_kmer>end_kmer in paf
+                    data_is_rna = True
+                    print("Info: data is detected as RNA")
+                    if not args.rna:
+                        print("Error: data is not specified as RNA. Please provide the argument --rna ")
+                        exit(1)
+                    ref_seq_len = int(si_tag[SI_START_KMER])
+
             if start_index == -1:
                 print("Error: sam record does have neither 'rq' nor 'si' tags.")
                 exit(1)
@@ -482,6 +494,12 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             strand_dir = "+"
+
+            if data_is_rna:
+                x_real.reverse()
+                y = np.flip(y)
+                moves.reverse()
+
             if sam_record.is_reverse:
                 x_real.reverse()
                 y = np.flip(y)

@@ -1,9 +1,10 @@
 .idea
 output
-.idx
+*.idx
 *.fai
 *.fxi
 *egg*
+*.bam.bai
 dist
 __pycache__
 idealg_v
