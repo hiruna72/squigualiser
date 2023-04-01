@@ -203,7 +203,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     if sig_algn_data["use_paf"]:
         plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"]+base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"]+base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     output_file(output_file_name, title=read_id)
@@ -337,7 +337,6 @@ def run(args):
                 x = []
                 x_real = []
                 y = []
-                sig_plot_length = SIG_PLOT_LENGTH
                 read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
                 if read is not None:
                     start_index = paf_record.query_start
@@ -415,6 +414,18 @@ def run(args):
                 if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
                     ref_seq_len = ref_seq_len + cig_count
 
+            start_index = -1
+            if sam_record.has_tag("rq"):
+                rq_tag = sam_record.get_tag("rq").split(',')
+                start_index = int(rq_tag[START_RAW])
+            if sam_record.has_tag("si"):
+                si_tag = sam_record.get_tag("si").split(',')
+                start_index = int(si_tag[SI_START_RAW])
+                ref_seq_len = int(si_tag[SI_END_KMER])
+            if start_index == -1:
+                print("Error: sam record does have neither 'rq' nor 'si' tags.")
+                exit(1)
+
             # print("ref_seq_len: " + str(ref_seq_len))
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
@@ -428,14 +439,10 @@ def run(args):
                 # print("ref_start: " + str(ref_start))
                 # print("ref_end: " + str(ref_end))
                 # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
+                # print("ref_seq_len: " + str(ref_seq_len))
                 # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
-                if ref_start >= (int(sam_record.reference_start) + ref_seq_len):
-                    print("Warning: sam record's region and the region specified do not overlap")
+                if ref_start > int(sam_record.reference_start) + ref_seq_len:
                     continue
-                elif ref_end <= int(sam_record.reference_start) + 1:
-                    print("Warning: sam record's region and the region specified do not overlap")
-                    continue
-
                 if ref_end > (int(sam_record.reference_start) + ref_seq_len):
                     ref_end = int(sam_record.reference_start) + ref_seq_len
                 if ref_start < (int(sam_record.reference_start) + 1):
@@ -457,17 +464,6 @@ def run(args):
             x = []
             x_real = []
             y = []
-            sig_plot_length = SIG_PLOT_LENGTH
-            start_index = -1
-            if sam_record.has_tag("rq"):
-                rq_tag = sam_record.get_tag("rq").split(',')
-                start_index = int(rq_tag[START_RAW])
-            if sam_record.has_tag("si"):
-                si_tag = sam_record.get_tag("si").split(',')
-                start_index = int(si_tag[SI_START_RAW])
-            if start_index == -1:
-                print("Error: sam record does have neither 'rq' nor 'si' tags.")
-                exit(1)
 
             read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
             if read is not None:
