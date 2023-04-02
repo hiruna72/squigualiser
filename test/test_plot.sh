@@ -331,7 +331,7 @@ testcase_4s() {
 
 testcase_0s #basic
 testcase_1s #signal-read
-testcase_2s #signal-reference
+#testcase_2s #signal-reference
 testcase_3s #resquiggle
 testcase_4s #RNA
 

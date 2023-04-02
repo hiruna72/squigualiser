@@ -200,6 +200,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
+
     if sig_algn_data["use_paf"]:
         plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot-1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
@@ -271,15 +272,6 @@ def run(args):
                     print("Error: read_id {} is not found in {}".format(read_id, args.file))
                     exit(1)
 
-                fasta_seq = ""
-                if use_fasta:
-                    fasta_seq = sequence_reads.get_seq(name=read_id, start=1, end=int(paf_record.target_length)).seq
-                else:
-                    fasta_seq = sequence_reads[read_id].seq
-                    if len(fasta_seq) < paf_record.target_length:
-                        print("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
-                        exit(1)
-
                 data_is_rna = False
                 if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
                     data_is_rna = True
@@ -287,7 +279,22 @@ def run(args):
                     if not args.rna:
                         print("Error: data is not specified as RNA. Please provide the argument --rna ")
                         exit(1)
-                    fasta_seq = fasta_seq[::-1]
+
+                fasta_seq = ""
+                if use_fasta:
+                    fasta_seq = sequence_reads[read_id][:].seq
+                else:
+                    fasta_seq = sequence_reads[read_id].seq
+                    if len(fasta_seq) < paf_record.target_length:
+                        print(
+                            "Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(
+                                args.file))
+                        exit(1)
+
+                if data_is_rna:
+                    fasta_seq = fasta_seq[len(fasta_seq)-paf_record.target_length:]
+                else:
+                    fasta_seq = fasta_seq[paf_record.target_start:]
 
                 ref_start = -1
                 ref_end = -1
@@ -344,6 +351,18 @@ def run(args):
                     x = list(range(1, end_index - start_index + 1))
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
+
+                strand_dir = "(DNA 5'->3')"
+                if data_is_rna and args.reverse_signal:
+                    x_real.reverse()
+                    y = np.flip(y)
+                    moves.reverse()
+                    strand_dir = "(RNA 5'->3')"
+
+                if data_is_rna and not args.reverse_signal:
+                    fasta_seq = fasta_seq[::-1]
+                    strand_dir = "(RNA 3'->5')"
+
                 signal_tuple = (x, x_real, y)
                 region_tuple = (ref_start, ref_end, 0)
 
@@ -352,10 +371,7 @@ def run(args):
                 sig_algn_dic['ref_start'] = ref_start
                 sig_algn_dic['pa'] = args.no_pa
                 sig_algn_dic['use_paf'] = use_paf
-                if data_is_rna:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "(RNA)  region: "
-                else:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "region: "
+                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: "
 
                 moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)
@@ -407,16 +423,16 @@ def run(args):
             if args.read_id != "" and sam_record.query_name != args.read_id:
                 continue
             cigar_t = sam_record.cigartuples
-            ref_seq_len = 0
+            ref_seq_true_len = 0
             for a in cigar_t:
                 cig_op = a[0]
                 cig_count = a[1]
                 if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
-                    ref_seq_len = ref_seq_len + cig_count
+                    ref_seq_true_len = ref_seq_true_len + cig_count
 
             data_is_rna = False
 
-
+            ref_seq_len = 0
             start_index = -1
             if sam_record.has_tag("rq"):
                 print("Error: this tag is not valid anymore. Run realign.py again to create a SAM/BAM file with the new tag 'si'")
@@ -434,6 +450,7 @@ def run(args):
                         exit(1)
                     ref_seq_len = int(si_tag[SI_START_KMER])
 
+            base_diff = ref_seq_true_len - ref_seq_len
             if start_index == -1:
                 print("Error: sam record does have neither 'rq' nor 'si' tags.")
                 exit(1)
@@ -469,7 +486,10 @@ def run(args):
 
             print("plot region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, sam_record.query_name))
             read_id = sam_record.query_name
-            fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+            if data_is_rna:
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start+base_diff, end=ref_end+base_diff).seq
+            else:
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
             print(f'output file: {os.path.abspath(output_file_name)}')
 
@@ -493,17 +513,29 @@ def run(args):
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
 
-            strand_dir = "+"
+            if not data_is_rna and args.reverse_signal:
+                print("Error: the signal will be reversed only in RNA plots")
+                exit(1)
 
-            if data_is_rna:
+            if sam_record.is_reverse and data_is_rna:
+                print("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
+                exit(1)
+
+            strand_dir = "(DNA +)"
+            if data_is_rna and args.reverse_signal:
                 x_real.reverse()
                 y = np.flip(y)
                 moves.reverse()
+                strand_dir = "(RNA 5'->3')"
+
+            if data_is_rna and not args.reverse_signal:
+                fasta_seq = fasta_seq[::-1]
+                strand_dir = "(RNA 3'->5')"
 
             if sam_record.is_reverse:
                 x_real.reverse()
                 y = np.flip(y)
-                strand_dir = "-"
+                strand_dir = "(DNA -)"
                 moves.reverse()
 
             signal_tuple = (x, x_real, y)
@@ -514,7 +546,7 @@ def run(args):
             sig_algn_dic['ref_start'] = ref_start
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['use_paf'] = use_paf
-            sig_algn_dic['tag_name'] = args.tag_name + indt + " (" + strand_dir + ") " + "region: " + ref_name + ":"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
 
             # print(len(fasta_seq))
@@ -550,6 +582,7 @@ def argparser():
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+    parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000,
