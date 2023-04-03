@@ -292,7 +292,7 @@ def run(args):
                         exit(1)
 
                 if data_is_rna:
-                    fasta_seq = fasta_seq[len(fasta_seq)-paf_record.target_length:]
+                    fasta_seq = fasta_seq[paf_record.target_end:]
                 else:
                     fasta_seq = fasta_seq[paf_record.target_start:]
 
@@ -422,21 +422,10 @@ def run(args):
                 continue
             if args.read_id != "" and sam_record.query_name != args.read_id:
                 continue
-            cigar_t = sam_record.cigartuples
-            ref_seq_true_len = 0
-            for a in cigar_t:
-                cig_op = a[0]
-                cig_count = a[1]
-                if cig_op == BAM_CMATCH or cig_op == BAM_CDEL or cig_op == BAM_CREF_SKIP or cig_op == BAM_CEQUAL or cig_op == BAM_CDIFF:
-                    ref_seq_true_len = ref_seq_true_len + cig_count
 
             data_is_rna = False
-
             ref_seq_len = 0
             start_index = -1
-            if sam_record.has_tag("rq"):
-                print("Error: this tag is not valid anymore. Run realign.py again to create a SAM/BAM file with the new tag 'si'")
-                exit(1)
             if sam_record.has_tag("si"):
                 si_tag = sam_record.get_tag("si").split(',')
                 start_index = int(si_tag[SI_START_RAW])
@@ -449,10 +438,8 @@ def run(args):
                         print("Error: data is not specified as RNA. Please provide the argument --rna ")
                         exit(1)
                     ref_seq_len = int(si_tag[SI_START_KMER])
-
-            base_diff = ref_seq_true_len - ref_seq_len
-            if start_index == -1:
-                print("Error: sam record does have neither 'rq' nor 'si' tags.")
+            else:
+                print("Error: sam record does not have a 'si' tag.")
                 exit(1)
 
             # print("ref_seq_len: " + str(ref_seq_len))
@@ -487,7 +474,7 @@ def run(args):
             print("plot region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, sam_record.query_name))
             read_id = sam_record.query_name
             if data_is_rna:
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start+base_diff, end=ref_end+base_diff).seq
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"

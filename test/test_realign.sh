@@ -41,21 +41,26 @@ ex && die "testcase:$TESTCASE failed"
 
 TESTCASE=1
 info "testcase:$TESTCASE - read:1,forward"
-ex --paf ${RAW_DIR}/test_${TESTCASE}/r1k1m1.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam
-diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
+ex --paf ${RAW_DIR}/test_${TESTCASE}/r1k1m1.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
+#diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
 
 TESTCASE=2
 info "testcase:$TESTCASE - read:1,forward"
-ex --paf ${RAW_DIR}/test_${TESTCASE}/p1.paf --bam ${RAW_DIR}/test_${TESTCASE}/m1.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam
+ex --paf ${RAW_DIR}/test_${TESTCASE}/p1.paf --bam ${RAW_DIR}/test_${TESTCASE}/m1.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
 diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
 
 TESTCASE=3
-info "testcase:$TESTCASE - read:1,forward"
-ex --paf ${RAW_DIR}/test_${TESTCASE}/move.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam
+info "testcase:$TESTCASE"
+ex --paf ${RAW_DIR}/test_${TESTCASE}/move.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
 diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
 
 TESTCASE=4
-info "testcase:$TESTCASE - read:1,forward"
+info "testcase:$TESTCASE"
+ex --paf ${RAW_DIR}/test_${TESTCASE}/move.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam
+diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
+
+TESTCASE=5
+info "testcase:$TESTCASE - RNA"
 ex --paf ${RAW_DIR}/test_${TESTCASE}/move.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam
 diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
 

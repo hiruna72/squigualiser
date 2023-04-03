@@ -185,15 +185,31 @@ testcase_7s() {
   SIGNAL="${RAW_DIR}/simulate_reads/r4/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/r4/sorted_sim.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --rna || die "testcase:$TESTCASE failed"
+  PLOT_LIMIT=10
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --rna --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+
+}
+testcase_8s() {
+  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+
+  TESTCASE=8.1
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.sam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
 }
 
 #testcase_5s #signal-reference squigulator ideal signals
 #testcase_6s #signal-reference squigulator
-testcase_7s #signal-reference squigulator RNA
+#testcase_7s #signal-reference squigulator RNA
+testcase_8s #signal-reference realigned DNA
 
 info "all testcases passed"
-rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
+#rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

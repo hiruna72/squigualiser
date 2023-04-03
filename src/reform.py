@@ -32,9 +32,13 @@ def run(args):
         print("output format: " + "tsv")
     print("output file: " + args.output)
 
+    stride = DNA_STRIDE
+    if args.rna:
+        stride = RNA_STRIDE
 
     samfile = pysam.AlignmentFile(args.bam, mode='r', check_sq=False)
     fout = open(args.output, "w")
+    processed_sam_record_count = 0
 
     for sam_record in samfile:
 
@@ -50,13 +54,6 @@ def run(args):
             print("tag '{}' is not found. Please check your input SAM/BAM file.".format("mv"))
             exit(1)
 
-        if args.rna:
-            stride = RNA_STRIDE
-            print("Info: Using a stride of {} for RNA".format(stride))
-        else:
-            stride = DNA_STRIDE
-            print("Info: Using a stride of {} for DNA".format(stride))
-
         ns = int(sam_record.get_tag("ns"))
         ts = int(sam_record.get_tag("ts"))
         mv = sam_record.get_tag("mv")
@@ -71,6 +68,10 @@ def run(args):
             exit(1)
 
         if mv[0] != stride:
+            if args.rna:
+                print("Info: Using a stride of {} for RNA".format(stride))
+            else:
+                print("Info: Using a stride of {} for DNA".format(stride))
             print("expected stride of {} is missing.".format(stride))
             exit(1)
         if not args.c:
@@ -81,8 +82,8 @@ def run(args):
                 if value == 1:
                     move_count += 1
                 i += 1
-            end_idx = ts + (i - 1) * stride;
-            start_idx = end_idx - stride;
+            end_idx = ts + (i - 1) * stride
+            start_idx = end_idx - stride
             kmer_idx = 0
             if args.rna:
                 kmer_idx = len_seq - 1
@@ -189,9 +190,12 @@ def run(args):
                 exit(1)
 
             fout.write("{}".format("\n"))  # newline
+        processed_sam_record_count += 1
 
     samfile.close()
     fout.close()
+    print("processed_sam_record_count: " + str(processed_sam_record_count))
+
 
 def argparser():
     parser = argparse.ArgumentParser(
