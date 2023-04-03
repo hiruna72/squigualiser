@@ -429,7 +429,7 @@ def run(args):
             if sam_record.has_tag("si"):
                 si_tag = sam_record.get_tag("si").split(',')
                 start_index = int(si_tag[SI_START_RAW])
-                ref_seq_len = int(si_tag[SI_END_KMER])
+                ref_seq_len = int(si_tag[SI_END_KMER]) - int(si_tag[SI_START_KMER])
 
                 if int(si_tag[SI_START_KMER]) > int(si_tag[SI_END_KMER]):  # if RNA start_kmer>end_kmer in paf
                     data_is_rna = True
@@ -437,7 +437,7 @@ def run(args):
                     if not args.rna:
                         print("Error: data is not specified as RNA. Please provide the argument --rna ")
                         exit(1)
-                    ref_seq_len = int(si_tag[SI_START_KMER])
+                    ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
             else:
                 print("Error: sam record does not have a 'si' tag.")
                 exit(1)
@@ -470,7 +470,9 @@ def run(args):
                 ref_name = sam_record.reference_name
                 ref_start = int(sam_record.reference_start) + 1
                 ref_end = int(sam_record.reference_start) + ref_seq_len
-
+            print("ref_start: " + str(ref_start))
+            print("ref_end: " + str(ref_end))
+            print("ref_seq_len: " + str(ref_seq_len))
             print("plot region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, sam_record.query_name))
             read_id = sam_record.query_name
             if data_is_rna:
@@ -535,7 +537,6 @@ def run(args):
             sig_algn_dic['use_paf'] = use_paf
             sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
-
             # print(len(fasta_seq))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)

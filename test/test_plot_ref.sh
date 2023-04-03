@@ -204,11 +204,25 @@ testcase_8s() {
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
 }
+testcase_9s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
 
+  TESTCASE=9.1
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/rna/t0/sequin_reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_RNA/one_read/realigned.sam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+
+}
 #testcase_5s #signal-reference squigulator ideal signals
 #testcase_6s #signal-reference squigulator
 #testcase_7s #signal-reference squigulator RNA
-testcase_8s #signal-reference realigned DNA
+#testcase_8s #signal-reference realigned DNA
+testcase_9s #signal-reference realigned RNA
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

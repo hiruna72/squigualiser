@@ -75,6 +75,9 @@ def run(args):
         if sam_record.is_reverse:
             cigar_t.reverse()
             strand_dir = "-"
+        if data_is_rna:
+            cigar_t.reverse()
+            strand_dir = "RNA"
 
         idx = 0
         ss_string = ""
@@ -89,6 +92,7 @@ def run(args):
         for a in cigar_t:
             cig_op = a[0]
             cig_count = a[1]
+            print(cig_count)
             if cig_op == BAM_CMATCH:
                 for i in range(0, cig_count):
                     ss_string = ss_string + moves_string[idx] + ","
