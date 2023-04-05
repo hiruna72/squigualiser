@@ -9,3 +9,4 @@ __pycache__
 idealg_v
 build
 venv3
+test/data/outplot

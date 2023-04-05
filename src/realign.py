@@ -31,9 +31,9 @@ def run(args):
 
     processed_sam_record_count = 0
     for sam_record in samfile:
-        if sam_record.is_supplementary:
+        if sam_record.is_unmapped or sam_record.is_supplementary or sam_record.is_secondary:
             continue
-        # if sam_record.query_name != "63d4a555-4706-4295-b6aa-172b71b9c18f":
+        # if sam_record.query_name != "80922061-df02-48ad-bd67-65e5adcc78f5" and sam_record.query_name != "a0d0047d-64d1-4cfd-9792-8c27ad9a8c06":
         #     continue
         sam_read_id = sam_record.query_name
         if sam_read_id not in paf_dic:
@@ -46,8 +46,8 @@ def run(args):
         data_is_rna = False
         if paf_dic[sam_read_id].target_start > paf_dic[sam_read_id].target_end:  # if RNA start_kmer>end_kmer in paf
             data_is_rna = True
-            print("Info: data is detected as RNA")
             if not args.rna:
+                print("Info: data is detected as RNA")
                 print("Error: data is not specified as RNA. Please provide the argument --rna ")
                 exit(1)
 
@@ -63,14 +63,9 @@ def run(args):
         moves_string = paf_dic[sam_read_id].tags['ss'][2].rstrip(',').split(',')
         raw_start = paf_dic[sam_read_id].query_start
         raw_end = paf_dic[sam_read_id].query_end
-        if data_is_rna:
-            kmer_end = paf_dic[sam_read_id].target_start
-            kmer_start = paf_dic[sam_read_id].target_end
-        else:
-            kmer_start = paf_dic[sam_read_id].target_start
-            kmer_end = paf_dic[sam_read_id].target_end
         # print("{}\t{}\t{}\t{}\t{}\t{}".format(raw_start, raw_end, kmer_start, kmer_end, len(sam_record.seq), abs(kmer_end-kmer_start)))
-
+        # print(sam_record.cigarstring)
+        # print(sam_record.pos+1)
         strand_dir = "+"
         if sam_record.is_reverse:
             cigar_t.reverse()
@@ -92,7 +87,6 @@ def run(args):
         for a in cigar_t:
             cig_op = a[0]
             cig_count = a[1]
-            print(cig_count)
             if cig_op == BAM_CMATCH:
                 for i in range(0, cig_count):
                     ss_string = ss_string + moves_string[idx] + ","
@@ -120,17 +114,13 @@ def run(args):
                 if sam_record.is_reverse:
                     if op_count == 0:
                         raw_end -= signal_skip
-                        kmer_end -= cig_count
                     else:
                         raw_start += signal_skip
-                        kmer_start += cig_count
                 else:
                     if op_count == 0:
                         raw_start += signal_skip
-                        kmer_start += cig_count
                     else:
                         raw_end -= signal_skip
-                        kmer_end -= cig_count
                 # ss_string = ss_string + str(signal_skip) + "I"
                 # print(str(signal_skip) + " I BAM_CSOFT_CLIP " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CHARD_CLIP:
@@ -139,17 +129,13 @@ def run(args):
                 print("error: cigar operation [" + str(cig_op) + "]is not handled yet")
             op_count += 1
 
-
         sam_record.set_tag("ss", ss_string, "Z")
-
+        kmer_start = 0
+        kmer_end = count_bases
         #start_raw, end_raw, start_kmer and end_kmer,
         if data_is_rna:
-            if not (raw_start < raw_end and kmer_start < kmer_end):
-                print("Error: in implementation. Please report on github issues")
             si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_end) + "," + str(kmer_start)
         else:
-            if not (raw_start < raw_end and kmer_start < kmer_end):
-                print("Error: in implementation. Please report on github issues")
             si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_start) + "," + str(kmer_end)
 
         # print("{}\t{}\t{}\t{}\t{}\t{}".format(strand_dir, sam_read_id, si_string, count_bases, count_bases_seq, abs(kmer_end-kmer_start)))
