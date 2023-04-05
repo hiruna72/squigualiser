@@ -201,5 +201,5 @@ testcase_2s #resquiggle
 testcase_3s #RNA
 
 info "all testcases passed"
-rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
+#rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

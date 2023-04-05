@@ -138,7 +138,7 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             location_plot = prev_loc
 
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["stride"]))
-            y_add = np.concatenate((y[:previous_location], [0] * n_samples * draw_data["stride"]), axis=0)
+            y_add = np.concatenate((y[:previous_location], [np.nan] * n_samples * draw_data["stride"]), axis=0)
             y = np.concatenate((y_add, y[previous_location:]), axis=0)
             x_add = np.concatenate((x_real[:previous_location], [x_real[previous_location]] * n_samples * draw_data["stride"]), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
@@ -278,6 +278,9 @@ def run(args):
             else:
                 sequence_reads = Fastq(args.file)
             for paf_record in parse_paf(handle):
+                if paf_record.query_name != paf_record.target_name:
+                    print("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
+                    exit(1)
                 read_id = paf_record.query_name
                 if args.read_id != "" and read_id != args.read_id:
                     continue
