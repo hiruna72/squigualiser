@@ -334,7 +334,17 @@ testcase_8s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
-  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup_${TESTCASE}.html
+
+  TESTCASE=8.2
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  python src/plot.py --fixed_width -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup_${TESTCASE}.html
 
 }
 testcase_9s() {
@@ -367,6 +377,16 @@ testcase_9s() {
   REGION="R2_6_1:472-511"
   READ_ID="dac12fd6-4c9d-4da7-9014-91a2e21e109d"
   python src/plot.py --rna --read_id ${READ_ID} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --region ${REGION}|| die "testcase:$TESTCASE failed"
+
+  TESTCASE=9.4
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/rna/t0/sequin_reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_RNA/all/test_6.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  REGION="R2_6_1:472-511"
+  READ_ID="dac12fd6-4c9d-4da7-9014-91a2e21e109d"
+  python src/plot.py --fixed_width --rna --read_id ${READ_ID} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --region ${REGION}|| die "testcase:$TESTCASE failed"
 
 }
 testcase_4s #basic
