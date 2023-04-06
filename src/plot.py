@@ -6,6 +6,7 @@ hiruna@unsw.edu.au
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import Span, BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, CustomJS
+from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -29,6 +30,8 @@ FIXED_INSERTION_WIDTH = 10
 BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
+PLOT_X_RANGE = 750
+PLOT_HEIGHT = 300
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, READ_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
@@ -75,7 +78,7 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
 
-def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
@@ -92,9 +95,9 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
     p = figure(x_axis_label='signal index',
                y_axis_label=y_axis_label,
                sizing_mode="stretch_width",
-               height=300,
+               height=PLOT_HEIGHT,
                output_backend="webgl",
-               x_range=(0, 750),
+               x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
 
@@ -220,11 +223,10 @@ def plot_function(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_
             plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    output_file(output_file_name, title=read_id)
-    save(p)
+    return p
 
 
-def plot_function_fixed_width(read_id, output_file_name, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
@@ -241,9 +243,9 @@ def plot_function_fixed_width(read_id, output_file_name, signal_tuple, sig_algn_
     p = figure(x_axis_label='signal index',
                y_axis_label=y_axis_label,
                sizing_mode="stretch_width",
-               height=300,
+               height=PLOT_HEIGHT,
                output_backend="webgl",
-               x_range=(0, 750),
+               x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
 
@@ -388,8 +390,7 @@ def plot_function_fixed_width(read_id, output_file_name, signal_tuple, sig_algn_
             plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    output_file(output_file_name, title=read_id)
-    save(p)
+    return p
 
 
 def run(args):
@@ -443,6 +444,8 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
+
+    pileup = []
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         with open(args.alignment, "r") as handle:
@@ -524,8 +527,6 @@ def run(args):
                 print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
 
                 output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-                print(f'output file: {os.path.abspath(output_file_name)}')
-                print(f'read_id: {read_id}')
 
                 x = []
                 x_real = []
@@ -573,9 +574,19 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 if args.fixed_width:
-                    plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
-                    plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                
+                if args.pileup:
+                    if num_plots > 0:
+                        p.x_range = pileup[0].x_range
+                    pileup.append(p)
+                else:
+                    output_file(output_file_name, title=read_id)
+                    save(p)
+                    print(f'output file: {os.path.abspath(output_file_name)}')
+
                 num_plots += 1
                 if num_plots == args.plot_limit:
                     break
@@ -684,7 +695,6 @@ def run(args):
                     print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-            print(f'output file: {os.path.abspath(output_file_name)}')
 
             x = []
             x_real = []
@@ -743,7 +753,7 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + args.base_width + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
@@ -753,10 +763,20 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+
+            if args.pileup:
+                if num_plots > 0:
+                    p.x_range = pileup[0].x_range
+                pileup.append(p)
+            else:
+                output_file(output_file_name, title=read_id)
+                save(p)
+                print(f'output file: {os.path.abspath(output_file_name)}')
+                        
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
@@ -766,6 +786,13 @@ def run(args):
     else:
         print("Error: You should not have ended up here. Please check your arguments")
         exit(1)
+
+    if args.pileup:
+        pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
+        pileup_fig = column(pileup, sizing_mode='stretch_both')
+        output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+        save(pileup_fig)
+        print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
     print("Number of plots: {}".format(num_plots))
 
@@ -793,6 +820,7 @@ def argparser():
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
+    parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
