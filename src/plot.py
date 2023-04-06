@@ -561,7 +561,7 @@ def run(args):
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 if args.fixed_width:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + args.base_width + indt + strand_dir + indt + "region: "
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
                 else:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: "
 
@@ -580,9 +580,7 @@ def run(args):
                 if num_plots == args.plot_limit:
                     break
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
-
         fasta_reads = Fasta(args.file)
-
         if args.region != "":
             # check if there exists a .bam.bai
             index_file = args.alignment + ".bai"
@@ -743,7 +741,7 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + args.base_width + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
