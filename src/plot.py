@@ -877,7 +877,6 @@ def run(args):
                                                                                      read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-            print(f'output file: {os.path.abspath(output_file_name)}')
 
             x = []
             x_real = []
@@ -939,13 +938,23 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                p = plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
                                           sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                p = plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
                               sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                               draw_data=draw_data)
+                
+            if args.pileup:
+                if num_plots > 0:
+                    p.x_range = pileup[0].x_range
+                pileup.append(p)
+            else:
+                output_file(output_file_name, title=read_id)
+                save(p)
+                print(f'output file: {os.path.abspath(output_file_name)}')
+
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
