@@ -220,7 +220,6 @@ testcase_5s() {
   REGION="MN908947.3:14,843-14,914"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only|| die "testcase:$TESTCASE failed"
-
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
   TESTCASE=5.7
@@ -271,35 +270,35 @@ testcase_5s() {
 testcase_6s() {
   GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
 
-#  TESTCASE=6.1
-#  info "testcase:$TESTCASE - reference-signal plot"
-#  FASTA=${GENOME}
-#  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
-#  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
-#  REGION="MN908947.3:14,843-14,914"
-#  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-#  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
-#  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
-#
-#  TESTCASE=6.2
-#  info "testcase:$TESTCASE - reference-signal plot"
-#  FASTA=${GENOME}
-#  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
-#  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
-#  REGION="MN908947.3:14,843-14,914"
-#  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-#  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --no_reverse|| die "testcase:$TESTCASE failed"
-#  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
-#
-#  TESTCASE=6.3
-#  info "testcase:$TESTCASE - reference-signal plot"
-#  FASTA=${GENOME}
-#  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
-#  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
-#  REGION="MN908947.3:14,843-14,914"
-#  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-#  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only|| die "testcase:$TESTCASE failed"
-#  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+  TESTCASE=6.1
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
+  REGION="MN908947.3:14,843-14,914"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+
+  TESTCASE=6.2
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
+  REGION="MN908947.3:14,843-14,914"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --no_reverse|| die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
+
+  TESTCASE=6.3
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/r3/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/r3/sorted_sim.bam"
+  REGION="MN908947.3:14,843-14,914"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only|| die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup2.html
 
   TESTCASE=6.4
   info "testcase:$TESTCASE - squigulator sam output"
@@ -310,7 +309,7 @@ testcase_6s() {
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
   TESTCASE=6.5
-  info "testcase:$TESTCASE - squigulator sam output"
+  info "testcase:$TESTCASE - squigulator paf output"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/one/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/one/sim.paf"
@@ -318,12 +317,40 @@ testcase_6s() {
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
 
   TESTCASE=6.6
-  info "testcase:$TESTCASE - squigulator sam output"
+  info "testcase:$TESTCASE - squigulator paf output"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/one/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/one/sim.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_ref && die "testcase:$TESTCASE failed"
+
+  TESTCASE=6.7
+  info "testcase:$TESTCASE - squigulator paf output"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/one/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/one/sorted_sim.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_ref || die "testcase:$TESTCASE failed"
+
+  TESTCASE=6.8
+  info "testcase:$TESTCASE - squigulator sam output"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/ten/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/ten/sim.sam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=4
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/${TESTCASE}.html
+
+  TESTCASE=6.9
+  info "testcase:$TESTCASE - squigulator paf output"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/ten/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/ten/sorted_sim.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=4
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_ref --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  cat ${OUTPUT}/*.html >> ${OUTPUT}/${TESTCASE}.html
 
 }
 testcase_7s() {
@@ -414,12 +441,12 @@ testcase_9s() {
   python src/plot.py --fixed_width --rna --read_id ${READ_ID} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --region ${REGION}|| die "testcase:$TESTCASE failed"
 
 }
-#testcase_4s #basic
-#testcase_5s #signal-reference squigulator ideal signals
+testcase_4s #basic
+testcase_5s #signal-reference squigulator ideal signals
 testcase_6s #signal-reference squigulator
-#testcase_7s #signal-reference squigulator RNA
-#testcase_8s #signal-reference realigned DNA
-#testcase_9s #signal-reference realigned RNA
+testcase_7s #signal-reference squigulator RNA
+testcase_8s #signal-reference realigned DNA
+testcase_9s #signal-reference realigned RNA
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

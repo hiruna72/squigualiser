@@ -30,7 +30,7 @@ BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
-READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, READ_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
+READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
 
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
@@ -419,6 +419,16 @@ def run(args):
             plot_sig_ref_flag = 1
         elif alignment_extension == ".paf":
             use_paf = 1
+            if args.sig_ref:
+                print("Error: For signal to reference alignment the paf file must be bgzip compressed and tabix indexed")
+                exit(1)
+        elif args.alignment[-7:] == ".paf.gz":
+            use_paf = 1
+            plot_sig_ref_flag = 1
+            index_file = args.alignment + ".tbi"
+            if not os.path.exists(index_file):
+                print("Error: please provide a bgzip compressed and tabix indexed paf file to extract the regions")
+                exit(1)
         else:
             print("error please provide the alignment file with correct extension")
             exit()
@@ -759,8 +769,166 @@ def run(args):
             if num_plots == args.plot_limit:
                 break
     elif use_paf == 1 and plot_sig_ref_flag == 1:
-        print("Error: Plot for signal to reference map is not implemented yet")
-        exit(1)
+        fasta_reads = Fasta(args.file)
+        tbxfile = pysam.TabixFile(args.alignment)
+        if args.region != "":
+            args_region = re.sub(',', '', args.region)
+            # print(args_region)
+            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
+            if not pattern.match(args_region):
+                print("Error: region provided is not in correct format")
+                exit(1)
+            ref_name = args_region.split(":")[0]
+            ref_start = int(args_region.split(":")[1].split("-")[0])
+            ref_end = int(args_region.split(":")[1].split("-")[1])
+        else:
+            ref_name = None
+            ref_start = None
+            ref_end = None
+
+        for paf_record in tbxfile.fetch(ref_name, ref_start, ref_end, parser=pysam.asTuple()):
+            if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
+                print("Error: this paf file is a signal to read mapping.")
+                exit(1)
+            read_id = paf_record[READ_ID]
+            if args.read_id != "" and read_id != args.read_id:
+                continue
+
+            data_is_rna = 0
+            start_index = int(paf_record[START_RAW])
+            end_index = int(paf_record[END_RAW])
+            ref_seq_len = int(paf_record[END_KMER]) - int(paf_record[START_KMER])
+            reference_start = int(paf_record[START_KMER])
+            if int(paf_record[START_KMER]) > int(paf_record[END_KMER]):  # if RNA start_kmer>end_kmer in paf
+                data_is_rna = 1
+                if not args.rna:
+                    print("Info: data is detected as RNA")
+                    print("Error: data is not specified as RNA. Please provide the argument --rna ")
+                    exit(1)
+                ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
+                reference_start = int(paf_record[END_KMER])
+            # print("ref_seq_len: " + str(ref_seq_len))
+            if ref_seq_len < BASE_LIMIT:
+                base_limit = ref_seq_len
+            else:
+                base_limit = BASE_LIMIT
+
+            if args.region != "":
+                if ref_name != paf_record[SEQUENCE_ID]:
+                    print(
+                        "Warning: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
+                    continue
+
+                if ref_start > reference_start + ref_seq_len:
+                    continue
+                if ref_end > reference_start + ref_seq_len:
+                    ref_end = reference_start + ref_seq_len
+                if ref_start < reference_start + 1:
+                    ref_start = reference_start + 1
+
+                if (ref_end - ref_start + 1) < BASE_LIMIT:
+                    base_limit = ref_end - ref_start + 1
+            else:
+                ref_name = paf_record[SEQUENCE_ID]
+                ref_start = reference_start + 1
+                ref_end = reference_start + ref_seq_len
+
+            # print("ref_start: {}".format(ref_start))
+            # print("ref_end: {}".format(ref_end))
+            # print("ref_seq_len: {}".format(ref_seq_len))
+            # print("base_limit: {}".format(base_limit))
+
+            record_is_reverse = 0
+            if paf_record[STRAND] == "-":
+                record_is_reverse = 1
+            if record_is_reverse and data_is_rna == 1:
+                print("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
+                exit(1)
+            if data_is_rna == 1:
+                print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+            else:
+                if record_is_reverse:
+                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
+                                                                                     read_id))
+                else:
+                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
+                                                                                     read_id))
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
+            print(f'output file: {os.path.abspath(output_file_name)}')
+
+            x = []
+            x_real = []
+            y = []
+
+            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
+            if read is not None:
+                # print("read_id:", read['read_id'])
+                # print("len_raw_signal:", read['len_raw_signal'])
+                # end_index = read['len_raw_signal']
+                x = list(range(1, end_index - start_index + 1))
+                x_real = list(range(start_index + 1, end_index + 1))  # 1based
+                y = read['signal'][start_index:end_index]
+
+            for i in range(12, len(paf_record)):
+                tag = paf_record[i][:2]
+                if tag == "ss":
+                    moves_string = paf_record[i][5:]
+            if moves_string == "":
+                print("Error: ss tag was not found")
+                exit(1)
+            moves_string = re.sub('D', 'D,', moves_string)
+            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+            moves = re.split(r',+', moves_string)
+
+            if data_is_rna == 0:
+                strand_dir = "(DNA +)"
+                if record_is_reverse:
+                    strand_dir = "(DNA -)"
+                    x_real.reverse()
+                    y = np.flip(y)
+                    moves.reverse()
+
+            if data_is_rna == 1:
+                strand_dir = "(RNA 5'->3')"
+                fasta_seq = fasta_seq[::-1]
+
+            signal_tuple = (x, x_real, y)
+            region_tuple = (ref_start, ref_end, reference_start, reference_start + ref_seq_len)
+
+            sig_algn_dic = {}
+            sig_algn_dic['start_kmer'] = 0
+            sig_algn_dic['ref_start'] = ref_start
+            sig_algn_dic['ref_end'] = ref_end
+            sig_algn_dic['pa'] = args.no_pa
+            sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
+            sig_algn_dic['data_is_rna'] = data_is_rna
+            if args.fixed_width:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(
+                    args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            else:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
+            sig_algn_dic['ss'] = moves
+            # print(len(moves))
+            # print(fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple,
+                                                                                         region_tuple, sig_algn_dic,
+                                                                                         fasta_seq)
+            # print(len(sig_algn_dic['ss']))
+
+            if args.fixed_width:
+                plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                                          draw_data=draw_data)
+            else:
+                plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                              draw_data=draw_data)
+            num_plots += 1
+            if num_plots == args.plot_limit:
+                break
     else:
         print("Error: You should not have ended up here. Please check your arguments")
         exit(1)
