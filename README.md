@@ -238,7 +238,7 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 
 ## Pileup view
 ![image](docs/figures/igv.png)
-![image](docs/figures/pileup_plot.png)
+![image](docs/figures/pileup_plot_fixed_width.png)
 
 Similar to IGV pileup view now you can view the signal pileup view. To create a pileup view the following conditions should be met.
 1. The plot is a signal to reference visualisation, not a signal to read.

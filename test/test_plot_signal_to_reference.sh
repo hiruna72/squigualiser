@@ -436,6 +436,16 @@ testcase_8s() {
   REGION="chr1:6,811,010-6,811,198"
   python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
+  TESTCASE=8.7
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6811404-6811443"
+  python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+
 }
 testcase_9s() {
   GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
