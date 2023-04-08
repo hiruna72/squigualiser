@@ -243,7 +243,7 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 Similar to IGV pileup view now you can view the signal pileup view. To create a pileup view the following conditions should be met.
 1. The plot is a signal to reference visualisation, not a signal to read.
 2. A genomic region should be specified using the argument `--region`
-3. The plot should be visualised with fixed length bases. For that pass the argument `--fixed_width` to the `plot` command.
+3. The plot should be specified using the argument `--fixed_width`.
 
 ````
 REGION=chr1:6811404-6811443
