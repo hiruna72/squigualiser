@@ -433,7 +433,7 @@ testcase_8s() {
   ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
-  REGION="chr1:6,811,009-6,811,198"
+  REGION="chr1:6,811,010-6,811,198"
   python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
 }
