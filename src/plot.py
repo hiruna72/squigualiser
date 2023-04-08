@@ -437,6 +437,14 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
+    if args.pileup:
+        if not args.fixed_width:
+            print("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
+            exit(1)
+        if args.region == "":
+            print("Error: pileup requires to a region to be specified with the argument --region")
+            exit(1)
+
     if args.base_limit:
         base_limit = args.base_limit
     else:
@@ -961,6 +969,8 @@ def run(args):
     else:
         print("Error: You should not have ended up here. Please check your arguments")
         exit(1)
+
+
 
     if args.pileup:
         pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"

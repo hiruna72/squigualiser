@@ -398,6 +398,44 @@ testcase_8s() {
   python src/plot.py --fixed_width -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
   cat ${OUTPUT}/*.html >> ${OUTPUT}/pileup_${TESTCASE}.html
 
+  TESTCASE=8.3
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  python src/plot.py --pileup -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} && die "testcase:$TESTCASE failed"
+
+  TESTCASE=8.4
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  python src/plot.py --pileup --fixed_width -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} && die "testcase:$TESTCASE failed"
+
+  TESTCASE=8.5
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,009-6,811,198"
+  python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=8.6
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/realigned.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,009-6,811,198"
+  python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+
 }
 testcase_9s() {
   GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
