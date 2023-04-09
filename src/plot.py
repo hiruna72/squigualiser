@@ -466,6 +466,7 @@ def run(args):
     pileup = []
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
+        print("Info: Signal to read method using PAF ...")
         with open(args.alignment, "r") as handle:
             if use_fasta:
                 sequence_reads = Fasta(args.file)
@@ -609,6 +610,7 @@ def run(args):
                 if num_plots == args.plot_limit:
                     break
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
+        print("Info: Signal to reference method using SAM/BAM ...")
         fasta_reads = Fasta(args.file)
         if args.region != "":
             # check if there exists a .bam.bai
@@ -797,6 +799,7 @@ def run(args):
             if num_plots == args.plot_limit:
                 break
     elif use_paf == 1 and plot_sig_ref_flag == 1:
+        print("Info: Signal to reference method using PAF ...")
         fasta_reads = Fasta(args.file)
         tbxfile = pysam.TabixFile(args.alignment)
         if args.region != "":
@@ -821,6 +824,10 @@ def run(args):
                 exit(1)
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
+                continue
+            if paf_record[STRAND] == "-" and args.no_reverse:
+                continue
+            if paf_record[STRAND] == "+" and args.reverse_only:
                 continue
 
             data_is_rna = 0
@@ -946,11 +953,11 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
                                           sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                p = plot_function(read_id=read_id, output_file_name=output_file_name, signal_tuple=signal_tuple,
+                p = plot_function(read_id=read_id, signal_tuple=signal_tuple,
                               sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                               draw_data=draw_data)
                 
