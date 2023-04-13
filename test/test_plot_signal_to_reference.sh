@@ -499,7 +499,7 @@ testcase_10s() {
   ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
-  REGION="chr1:6,811,010-6,811,198"
+  REGION="chr1:6,811,011-6,811,198"
   python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
   TESTCASE=10.2
