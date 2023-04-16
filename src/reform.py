@@ -4,19 +4,19 @@ from readpaf import parse_paf
 import pysam
 
 DEFAULT_KMER_SIZE = 9
-DEFAULT_SIG_MOVE_OFFSET = 1
+DEFAULT_SIG_MOVE_OFFSET = 0
 DNA_STRIDE = 5
 RNA_STRIDE = 10
 def run(args):
     if args.kmer_length < 1:
         print("kmer length must be a positive integer")
         exit(1)
-    if args.sig_move_offset < 1:
-        print("signal move offset must be a positive integer")
+    if args.sig_move_offset < 0:
+        print("signal move offset must not be less than zero")
         exit(1)
 
-    if args.kmer_length < args.sig_move_offset:
-        print("signal move offset value must not be larger than the kmer length.")
+    if args.kmer_length <= args.sig_move_offset:
+        print("signal move offset value must be smaller than the kmer length.")
         exit(1)
 
     if (args.c and args.output[-4:] != ".paf") or (not args.c and args.output[-4:] != ".tsv"):
@@ -77,7 +77,7 @@ def run(args):
         if not args.c:
             move_count = 0
             i = 1
-            while move_count < args.sig_move_offset:
+            while move_count < args.sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
@@ -129,7 +129,7 @@ def run(args):
             start_idx = 0
             kmer_idx = 0
 
-            while move_count < args.sig_move_offset:
+            while move_count < args.sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
@@ -140,7 +140,7 @@ def run(args):
 
             j = 1
             l_end_raw = 0
-            len_seq_1 = len_seq + args.sig_move_offset
+            len_seq_1 = len_seq + args.sig_move_offset + 1
             end_idx = j + 1
             while j < len_mv:
                 value = mv[j]

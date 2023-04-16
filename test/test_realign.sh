@@ -41,7 +41,7 @@ ex && die "testcase:$TESTCASE failed"
 
 TESTCASE=1
 info "testcase:$TESTCASE - read:1,forward"
-ex --paf ${RAW_DIR}/test_${TESTCASE}/r1k1m1.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
+ex --paf ${RAW_DIR}/test_${TESTCASE}/r1k1m0.paf --bam ${RAW_DIR}/test_${TESTCASE}/map.sam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
 diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
 
 TESTCASE=2
