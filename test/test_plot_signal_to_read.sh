@@ -124,6 +124,37 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/simulate_reads/r1/sim.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+  TESTCASE=1.12
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
+  REGION=""
+  SCALING="medmad"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=1.13
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
+  REGION=""
+  SCALING="znorm"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=1.14
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m1.paf"
+  REGION=""
+  SCALING="new_scaling"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
+
 }
 testcase_2s() {
   TESTCASE=2.1

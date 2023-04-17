@@ -584,8 +584,32 @@ def run(args):
                     x = list(range(1, end_index - start_index + 1))
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
+                if args.sig_scale == "medmad":
+                    arr = np.ma.array(y).compressed()
+                    read_median = np.median(arr)
+                    if read_median == np.nan:
+                        print("Error: calculated median is NaN")
+                        exit(1)
+                    mad = np.median(np.abs(arr - read_median))
+                    if mad == np.nan:
+                        print("Error: calculated mad is NaN")
+                        exit(1)
+                    read_mad = mad * 1.4826
+                    if read_mad < 1.0:
+                        read_mad = 1.0
+                    y = (y - read_mad) / read_mad
+                    args.tag_name += " scale:medmad"
+                elif args.sig_scale == "znorm":
+                    # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+                    # Calculate the z-score from scratch
+                    y = (y - np.mean(y)) / np.std(y)
+                    args.tag_name += " scale:znorm"
+                elif not args.sig_scale == "":
+                    print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+                    exit(1)
 
                 strand_dir = "(DNA 5'->3')"
+
                 # if data_is_rna == 1 and args.reverse_signal:
                 #     x_real.reverse()
                 #     y = np.flip(y)
@@ -623,7 +647,7 @@ def run(args):
                     p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
                     p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-                
+
                 if args.pileup:
                     if num_plots > 0:
                         p.x_range = pileup[0].x_range
@@ -753,6 +777,29 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
+            if args.sig_scale == "medmad":
+                arr = np.ma.array(y).compressed()
+                read_median = np.median(arr)
+                if read_median == np.nan:
+                    print("Error: calculated median is NaN")
+                    exit(1)
+                mad = np.median(np.abs(arr - read_median))
+                if mad == np.nan:
+                    print("Error: calculated mad is NaN")
+                    exit(1)
+                read_mad = mad * 1.4826
+                if read_mad < 1.0:
+                    read_mad = 1.0
+                y = (y - read_mad) / read_mad
+                args.tag_name += " scale:medmad"
+            elif args.sig_scale == "znorm":
+                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+                # Calculate the z-score from scratch
+                y = (y - np.mean(y)) / np.std(y)
+                args.tag_name += " scale:znorm"
+            elif not args.sig_scale == "":
+                print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+                exit(1)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -932,6 +979,29 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
+            if args.sig_scale == "medmad":
+                arr = np.ma.array(y).compressed()
+                read_median = np.median(arr)
+                if read_median == np.nan:
+                    print("Error: calculated median is NaN")
+                    exit(1)
+                mad = np.median(np.abs(arr - read_median))
+                if mad == np.nan:
+                    print("Error: calculated mad is NaN")
+                    exit(1)
+                read_mad = mad * 1.4826
+                if read_mad < 1.0:
+                    read_mad = 1.0
+                y = (y - read_mad) / read_mad
+                args.tag_name += " scale:medmad"
+            elif args.sig_scale == "znorm":
+                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+                # Calculate the z-score from scratch
+                y = (y - np.mean(y)) / np.std(y)
+                args.tag_name += " scale:znorm"
+            elif not args.sig_scale == "":
+                print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+                exit(1)
 
             for i in range(12, len(paf_record)):
                 tag = paf_record[i][:2]
@@ -1039,6 +1109,7 @@ def argparser():
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
+    parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
     parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
