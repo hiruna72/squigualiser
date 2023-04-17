@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import Span, BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, CustomJS
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -91,6 +91,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     # label_position = np.median(y)
     label_position = np.percentile(y, 75)  # Q3
+    y_min = np.amin(y)
+    y_max = np.amax(y)
 
     p = figure(x_axis_label='signal index',
                y_axis_label=y_axis_label,
@@ -114,10 +116,11 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     # draw moves
     moves = sig_algn_data["ss"]
 
-    vlines = []
     base_index = sig_algn_data["start_kmer"]
     num_Is = 0
     num_Ds = 0
+
+    line_segment_x = []
 
     for i in moves:
         previous_location = location_plot
@@ -128,7 +131,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             prev_loc = previous_location
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], fill_alpha=0.2, fill_color='white')
+                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min, top=y_max, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
@@ -154,21 +157,16 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             n_samples = int(i)
             num_Is += n_samples
             location_plot += n_samples
-
-            vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
-            vlines.append(vline)
+            line_segment_x.append(location_plot)
 
         else:
             n_samples = int(i)
             location_plot += n_samples
 
             base = fasta_sequence[base_index]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2,
-                                     fill_color=base_color_map[base])
+            base_box = BoxAnnotation(left=previous_location, right=location_plot, bottom=y_min, top=y_max, fill_alpha=0.2, fill_color=base_color_map[base])
             p.add_layout(base_box)
-
-            vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
-            vlines.append(vline)
+            line_segment_x.append(location_plot)
 
             base_x.append(previous_location)
             base_y.append(label_position)
@@ -182,7 +180,14 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         if location_plot - initial_location > draw_data["sig_plot_limit"]:
             break
 
-    p.renderers.extend(vlines)
+    line_segment_source = ColumnDataSource(dict(
+        x=line_segment_x,
+        x1=line_segment_x,
+        y=[y_min]*len(line_segment_x),
+        y1=[y_max]*len(line_segment_x),
+    ))
+    glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
+    p.add_glyph(line_segment_source, glyph)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x,
                                                  base_y=base_y,
@@ -202,7 +207,16 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color="red", alpha=0.5)
+    p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide')
+    p.legend.click_policy = "hide"
+    p.legend.location = 'bottom_right'
+    p.legend.label_text_font_size = '7pt'
+    p.legend.glyph_width = 10
+    p.legend.glyph_height = 10
+    p.legend.label_height = 5
+    p.legend.label_height = 5
+    p.legend.padding = 1
+    p.legend.background_fill_alpha = 0.5
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -239,6 +253,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     # label_position = np.median(y)
     label_position = np.percentile(y, 75)  # Q3
+    y_min = np.amin(y)
+    y_max = np.amax(y)
 
     p = figure(x_axis_label='signal index',
                y_axis_label=y_axis_label,
@@ -264,11 +280,11 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     # draw moves
     moves = sig_algn_data["ss"]
-    vlines = []
     base_index = sig_algn_data["start_kmer"]
     num_Is = 0
     num_Ds = 0
     fixed_width_x = [0.0]
+    line_segment_x = []
 
     for i in moves:
         previous_location = location_plot
@@ -281,7 +297,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], fill_alpha=0.2, fill_color='white')
+                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min, top=y_max, fill_alpha=0.2, fill_color='white')
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
@@ -314,9 +330,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             num_Is += n_samples
             location_plot += draw_data["fixed_base_width"]
             x_coordinate += n_samples
-
-            vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
-            vlines.append(vline)
+            line_segment_x.append(location_plot)
 
         else:
             n_samples = int(i)
@@ -329,12 +343,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             x_coordinate += n_samples
 
             base = fasta_sequence[base_index]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2,
-                                     fill_color=base_color_map[base])
+            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, bottom=y_min, top=y_max, fill_color=base_color_map[base])
             p.add_layout(base_box)
-
-            vline = Span(location=location_plot, dimension='height', line_color='red', line_width=1)
-            vlines.append(vline)
+            line_segment_x.append(location_plot)
 
             base_x.append(previous_location)
             base_y.append(label_position)
@@ -348,7 +359,14 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
 
-    p.renderers.extend(vlines)
+    line_segment_source = ColumnDataSource(dict(
+        x=line_segment_x,
+        x1=line_segment_x,
+        y=[y_min] * len(line_segment_x),
+        y1=[y_max] * len(line_segment_x),
+    ))
+    glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
+    p.add_glyph(line_segment_source, glyph)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x,
                                                  base_y=base_y,
@@ -369,7 +387,16 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color="red", alpha=0.5)
+    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide')
+    p.legend.click_policy = "hide"
+    p.legend.location = 'bottom_right'
+    p.legend.label_text_font_size = '7pt'
+    p.legend.glyph_width = 10
+    p.legend.glyph_height = 10
+    p.legend.label_height = 5
+    p.legend.label_height = 5
+    p.legend.padding = 1
+    p.legend.background_fill_alpha = 0.5
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
