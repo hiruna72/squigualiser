@@ -941,9 +941,6 @@ def run(args):
                 
             if args.pileup:
                 pass
-                # if num_plots > 0:
-                #     p.x_range = pileup[0].x_range
-                # pileup.append(p)
             else:
                 output_file(output_file_name, title=read_id)
                 save(p)
@@ -960,9 +957,7 @@ def run(args):
 
     if args.pileup:
         pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-        # pileup_fig = column(pileup, sizing_mode='stretch_both')
         output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
-        plot_title = f'{sig_algn_dic["tag_name"]}'
         if sig_algn_dic["plot_sig_ref_flag"] == 0:
             print("Error: please use plot.py")
             exit(1)
