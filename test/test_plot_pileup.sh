@@ -20,7 +20,7 @@ fi
 
 REL_PATH="$(dirname $0)/"
 #...directories files tools arguments commands clean
-OUTPUT_DIR="${REL_PATH}/data/out/plot_sig_ref"
+OUTPUT_DIR="${REL_PATH}/data/out/plot_sig_ref_pileup"
 test -d "$OUTPUT_DIR" && rm -r "$OUTPUT_DIR"
 mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 

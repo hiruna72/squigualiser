@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -33,6 +33,8 @@ DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
 # PLOT_HEIGHT = 900
 PLOT_Y_MARGIN = 0.5
+SUBPLOT_X = -100
+
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
@@ -86,6 +88,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     # label_position = np.median(y)
     label_position = np.percentile(y, 75)  # Q3
+    if num_plots == -1:
+        label_position = y_min
 
     base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red'}
     base_x = []
@@ -117,14 +121,19 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min+y_shift, top=y_max+y_shift, fill_alpha=0.2, fill_color='white')
+                if num_plots == -1:
+                    base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min+y_shift, top=y_max+y_shift, fill_alpha=0.2, fill_color=base_color_map[base])
+                    base_label_colors.append('black')
+                else:
+                    base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min+y_shift, top=y_max+y_shift, fill_alpha=0.2, fill_color='white')
+                    base_label_colors.append('red')
+
                 p.add_layout(base_box)
 
                 base_x.append(prev_loc)
                 base_y.append(label_position+y_shift)
                 label = str(base) + "\t" + str(base_index + 1)
                 base_label.append(label)
-                base_label_colors.append('red')
 
                 prev_loc += draw_data["fixed_base_width"]
                 prev_x_cord += draw_data["fixed_base_width"]
@@ -166,12 +175,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, bottom=y_min+y_shift, top=y_max+y_shift, fill_color=base_color_map[base])
             p.add_layout(base_box)
             line_segment_x.append(location_plot)
-
-            # base_x.append(previous_location)
-            # base_y.append(label_position+y_shift)
-            # label = str(base) + "\t" + str(base_index + 1)
-            # base_label.append(label)
-            # base_label_colors.append('black')
+            if num_plots == -1:
+                base_x.append(previous_location)
+                base_y.append(label_position+y_shift)
+                label = str(base) + "\t" + str(base_index + 1)
+                base_label.append(label)
+                base_label_colors.append('black')
             base_index += 1
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -206,37 +215,56 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         x_real=x_real[:x_coordinate],
         y_real=y[:x_coordinate]
     ))
+    p.line('x', 'y_real', line_width=2, source=source)
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
-    p.legend.click_policy = "hide"
-    p.legend.location = 'bottom_right'
-    p.legend.label_text_font_size = '7pt'
-    p.legend.glyph_width = 10
-    p.legend.glyph_height = 10
-    p.legend.label_height = 5
-    p.legend.label_height = 5
-    p.legend.padding = 1
-    p.legend.background_fill_alpha = 0.5
+    if num_plots != -1:
+        p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
+        p.legend.click_policy = "hide"
+        p.legend.location = 'bottom_right'
+        p.legend.label_text_font_size = '7pt'
+        p.legend.glyph_width = 10
+        p.legend.glyph_height = 10
+        p.legend.label_height = 5
+        p.legend.label_height = 5
+        p.legend.padding = 1
+        p.legend.background_fill_alpha = 0.5
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
     hover.tooltips = [("x", "@x_real"), ("y", "@y_real")]
     hover.mode = 'mouse'
 
-    indt = "\t\t\t\t\t\t\t\t"
+    signal_region = ""
+    indels = f'deletions(bases): {num_Ds} insertions(samples): {num_Is}'
 
     if sig_algn_data["plot_sig_ref_flag"] == 0:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{base_index}-{sig_algn_data["ref_start"]}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
     else:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index + 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
-    p.title = plot_title
+            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
+    arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_shift, x_end=-1, y_end=y_shift)
+    p.add_layout(arrow)
+    if num_plots != -1:
+        sub_plot_y_shift = (y_max - y_min)/6
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X],
+                                            y=[y_shift+sub_plot_y_shift*1, y_shift, y_shift-sub_plot_y_shift*1],
+                                            tags=[signal_region, indels, read_id]))
+        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
+                          x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
+        p.add_layout(subplot_labels)
+    else:
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X],
+                                            y=[y_shift],
+                                            tags=["overlap"]))
+        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
+                          x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
+        p.add_layout(subplot_labels)
 
     return p
 
@@ -314,19 +342,14 @@ def run(args):
     pileup = []
     prev_y_shift = 0
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
-    y_axis_label = "signal value (raw)"
-    if args.no_pa:
-        y_axis_label = "signal value (pA)"
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_both",
+    p = figure(sizing_mode="stretch_both",
                # sizing_mode="scale_width",
                # height=PLOT_HEIGHT,
                output_backend="webgl",
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
-
+    p.yaxis.visible = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
     previous_plot = p
 
@@ -889,11 +912,29 @@ def run(args):
             y_min = np.amin(y)
             y_max = np.amax(y)
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                if num_plots == 0:
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                    previous_plot = p
+                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                                  sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                                  base_limit=base_limit,
+                                                  draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                                  y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                    previous_plot = p
+                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                else:
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                                  sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                                  base_limit=base_limit,
+                                                  draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                                  y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                    previous_plot = p
+                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+
             else:
                 print("Error: use plot.py")
                 exit(1)
@@ -921,6 +962,18 @@ def run(args):
         pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
         # pileup_fig = column(pileup, sizing_mode='stretch_both')
         output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+        plot_title = f'{sig_algn_dic["tag_name"]}'
+        if sig_algn_dic["plot_sig_ref_flag"] == 0:
+            print("Error: please use plot.py")
+            exit(1)
+        else:
+            if sig_algn_dic["data_is_rna"] == 1:
+                plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
+            else:
+                plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
+
+        p.title = plot_title
+
         save(p)
         print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
