@@ -299,10 +299,10 @@ Nanopore basecallers output move arrays in SAM/BAM format. The important fields 
 1. read_id
 2. basecalled fastq sequence length
 3. basecalled fastq sequence
-4. stride used in the neural network (down sampling factor)
-5. raw signal length
-6. raw signal trim offset
-7. move table
+4. raw signal length in `ns` tag
+5. raw signal trim offset in `ts` tag
+6. move table in `mv` tag
+7. stride used in the neural network (down sampling factor) in `mv` tag
 
 An example move table looks like the following,
 ```
@@ -312,7 +312,9 @@ The actual move array (the rest) -> 1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,
 ```
 The number of ones (1) in the actual move array equals to the fastq sequence length. 
 According to the above example the first move corresponds with `1 x stride` signal points. 
-The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on.
+The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on (see illustration below).
+
+![image](docs/figures/move_table_annotation.png)
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
