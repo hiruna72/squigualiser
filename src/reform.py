@@ -4,19 +4,19 @@ from readpaf import parse_paf
 import pysam
 
 DEFAULT_KMER_SIZE = 9
-DEFAULT_SIG_MOVE_OFFSET = 1
+DEFAULT_SIG_MOVE_OFFSET = 0
 DNA_STRIDE = 5
 RNA_STRIDE = 10
 def run(args):
     if args.kmer_length < 1:
         print("kmer length must be a positive integer")
         exit(1)
-    if args.sig_move_offset < 1:
-        print("signal move offset must be a positive integer")
+    if args.sig_move_offset < 0:
+        print("signal move offset must not be less than zero")
         exit(1)
 
-    if args.kmer_length < args.sig_move_offset:
-        print("signal move offset value must not be larger than the kmer length.")
+    if args.kmer_length <= args.sig_move_offset:
+        print("signal move offset value must be smaller than the kmer length.")
         exit(1)
 
     if (args.c and args.output[-4:] != ".paf") or (not args.c and args.output[-4:] != ".tsv"):
@@ -32,9 +32,13 @@ def run(args):
         print("output format: " + "tsv")
     print("output file: " + args.output)
 
+    stride = DNA_STRIDE
+    if args.rna:
+        stride = RNA_STRIDE
 
     samfile = pysam.AlignmentFile(args.bam, mode='r', check_sq=False)
     fout = open(args.output, "w")
+    processed_sam_record_count = 0
 
     for sam_record in samfile:
 
@@ -50,13 +54,6 @@ def run(args):
             print("tag '{}' is not found. Please check your input SAM/BAM file.".format("mv"))
             exit(1)
 
-        if args.rna:
-            stride = RNA_STRIDE
-            print("Info: Using a stride of {} for RNA".format(stride))
-        else:
-            stride = DNA_STRIDE
-            print("Info: Using a stride of {} for DNA".format(stride))
-
         ns = int(sam_record.get_tag("ns"))
         ts = int(sam_record.get_tag("ts"))
         mv = sam_record.get_tag("mv")
@@ -71,18 +68,22 @@ def run(args):
             exit(1)
 
         if mv[0] != stride:
+            if args.rna:
+                print("Info: Using a stride of {} for RNA".format(stride))
+            else:
+                print("Info: Using a stride of {} for DNA".format(stride))
             print("expected stride of {} is missing.".format(stride))
             exit(1)
         if not args.c:
             move_count = 0
             i = 1
-            while move_count < args.sig_move_offset:
+            while move_count < args.sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
                 i += 1
-            end_idx = ts + (i - 1) * stride;
-            start_idx = end_idx - stride;
+            end_idx = ts + (i - 1) * stride
+            start_idx = end_idx - stride
             kmer_idx = 0
             if args.rna:
                 kmer_idx = len_seq - 1
@@ -128,7 +129,7 @@ def run(args):
             start_idx = 0
             kmer_idx = 0
 
-            while move_count < args.sig_move_offset:
+            while move_count < args.sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
@@ -139,7 +140,7 @@ def run(args):
 
             j = 1
             l_end_raw = 0
-            len_seq_1 = len_seq + args.sig_move_offset
+            len_seq_1 = len_seq + args.sig_move_offset + 1
             end_idx = j + 1
             while j < len_mv:
                 value = mv[j]
@@ -189,9 +190,12 @@ def run(args):
                 exit(1)
 
             fout.write("{}".format("\n"))  # newline
+        processed_sam_record_count += 1
 
     samfile.close()
     fout.close()
+    print("processed_sam_record_count: " + str(processed_sam_record_count))
+
 
 def argparser():
     parser = argparse.ArgumentParser(
