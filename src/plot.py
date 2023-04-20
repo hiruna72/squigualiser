@@ -32,6 +32,8 @@ SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
 PLOT_HEIGHT = 300
+PLOT_BASE_SHIFT = 0
+
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
@@ -105,13 +107,19 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
 
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red'}
+    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_x = []
     base_y = []
     base_label = []
     base_label_colors = []
     location_plot = 0
     initial_location = location_plot
+
+    base_shift_seq = 'N' * draw_data['base_shift']
+    if draw_data["base_shift"] > 0:
+        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
+    else:
+        fasta_sequence = fasta_sequence[-1*draw_data["base_shift"]:] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -227,14 +235,14 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     if sig_algn_data["plot_sig_ref_flag"] == 0:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{base_index}-{sig_algn_data["ref_start"]}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{base_index}-{sig_algn_data["ref_start"]}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index + 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index + 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     return p
@@ -277,6 +285,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
+
+    base_shift_seq = 'N' * draw_data['base_shift']
+    if draw_data["base_shift"] > 0:
+        fasta_sequence = base_shift_seq + fasta_sequence[:-1 * draw_data["base_shift"]]
+    else:
+        fasta_sequence = fasta_sequence[-1 * draw_data["base_shift"]:] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -407,14 +421,14 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     if sig_algn_data["plot_sig_ref_flag"] == 0:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{base_index}-{sig_algn_data["ref_start"]}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{base_index}-{sig_algn_data["ref_start"]}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{base_index}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
         if sig_algn_data["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index + 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index + 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
         else:
-            plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+            plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     return p
@@ -489,6 +503,7 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
+    draw_data["base_shift"] = args.base_shift
 
     pileup = []
 
@@ -1114,7 +1129,8 @@ def argparser():
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
-    parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="signal point size [5]")
+    parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
+    parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the ")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000,
                         help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH,

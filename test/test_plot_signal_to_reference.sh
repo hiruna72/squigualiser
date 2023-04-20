@@ -513,13 +513,33 @@ testcase_10s() {
   python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
 }
+testcase_11s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/simulate_reads/reference_paf/one/sim.blow5"
+  ALIGNMENT="${RAW_DIR}/simulate_reads/reference_paf/one/sorted_sim.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_11"
+
+  counter=0
+  num_base_shift=("-9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9")
+  for i in ${num_base_shift} ; do
+    TESTCASE=11.${counter}
+    BASE_SHIFT=${i}
+    info "testcase:$TESTCASE base_shift:${BASE_SHIFT}"
+    python src/plot.py --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_ref || die "testcase:$TESTCASE failed"
+    counter=$((counter+1))
+  done
+
+}
+
 testcase_4s #basic
 testcase_5s #signal-reference squigulator ideal signals
-testcase_6s #signal-reference squigulator
+testcase_6s #signal-reference squigulator DNA
 testcase_7s #signal-reference squigulator RNA
 testcase_8s #signal-reference realigned DNA
 testcase_9s #signal-reference realigned RNA
 testcase_10s #signal-reference f5c eventalign DNA
+testcase_11s #signal-reference base shift tests
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
