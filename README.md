@@ -23,7 +23,7 @@ A simple tool to Visualise nanopore raw signal-base alignment
 4. [Pileup view](#pileup-view)
 5. [Note](#note)
 6. [Guppy move table explanation](#guppy-move-table-explanation)
-7. [Base shift](#base_shift)
+7. [Base shift](#base-shift)
 8. [Example](#example)
 
 
@@ -266,21 +266,6 @@ OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
 squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "eventalgin"
 ````
-
-## Pileup view
-![image](docs/figures/igv.png)
-![image](docs/figures/pileup_plot_fixed_width.png)
-
-Similar to IGV pileup view now you can view the signal pileup view. To create a pileup view the following conditions should be met.
-1. The plot is a signal to reference visualisation, not a signal to read.
-2. A genomic region should be specified using the argument `--region`
-3. The plot should be specified using the argument `--fixed_width`.
-
-````
-REGION=chr1:6811404-6811443
-squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --fixed_width --tag_name "pileup"
-````
-[Here](https://hiruna72.github.io/squigualiser/docs/figures/fixed_with_region_specified_pileup.html) is an example pileup plot created using the [testcase 8.1](test/test_plot_signal_to_read.sh).
 
 ## Note
 1. To get a pileup view, use [scripts/cat_plots.sh](scripts/cat_plots.sh) to concatenate multiple `.html` plots in a directory.
