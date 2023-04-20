@@ -112,6 +112,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     base_y = []
     base_label = []
     base_label_colors = []
+    sample_label_colors = []
     location_plot = 0
     initial_location = location_plot
 
@@ -159,6 +160,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             y = np.concatenate((y_add, y[previous_location:]), axis=0)
             x_add = np.concatenate((x_real[:previous_location], [x_real[previous_location]] * n_samples * draw_data["fixed_base_width"]), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
+            for j in range(0, n_samples * draw_data["fixed_base_width"]):
+                sample_label_colors.append('white')
 
         elif 'I' in i:
             i = re.sub('I', '', i)
@@ -166,7 +169,14 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             num_Is += n_samples
             location_plot += n_samples
             line_segment_x.append(location_plot)
+            for j in range(0, n_samples):
+                sample_label_colors.append('purple')
 
+            base_x.append(previous_location)
+            base_y.append(label_position/2)
+            label = str(n_samples)
+            base_label.append(label)
+            base_label_colors.append('purple')
         else:
             n_samples = int(i)
             location_plot += n_samples
@@ -181,6 +191,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             label = str(base) + "\t" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
+            for j in range(0, n_samples):
+                sample_label_colors.append('red')
             base_index += 1
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -215,7 +227,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide')
+    p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5, legend_label='hide')
     p.legend.click_policy = "hide"
     p.legend.location = 'bottom_right'
     p.legend.label_text_font_size = '7pt'
@@ -280,6 +292,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     base_y = []
     base_label = []
     base_label_colors = []
+    sample_label_colors = []
     location_plot = 0
     initial_location = location_plot
 
@@ -299,6 +312,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     num_Ds = 0
     fixed_width_x = [0.0]
     line_segment_x = []
+
+    num_samples_in_insertion = 0
 
     for i in moves:
         previous_location = location_plot
@@ -334,20 +349,26 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             x_add = np.concatenate((x_real[:previous_x_coordinate], [x_real[previous_x_coordinate]] * n_samples * draw_data["fixed_base_width"]), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_x_coordinate:]), axis=0)
 
+            for j in range(0, n_samples * draw_data["fixed_base_width"]):
+                sample_label_colors.append('white')
+
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-            prev_x_value = fixed_width_x[-1]
-            for s in range(0, n_samples-1):
-                fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"]/n_samples)
-            fixed_width_x.append(prev_x_value + draw_data["fixed_base_width"])
+            # prev_x_value = fixed_width_x[-1]
+            # for s in range(0, n_samples-1):
+            #     fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"]/n_samples)
+            # fixed_width_x.append(prev_x_value + draw_data["fixed_base_width"])
+            num_samples_in_insertion = n_samples
             num_Is += n_samples
-            location_plot += draw_data["fixed_base_width"]
-            x_coordinate += n_samples
-            line_segment_x.append(location_plot)
+            # location_plot += draw_data["fixed_base_width"]
+            # x_coordinate += n_samples
+            # line_segment_x.append(location_plot)
+            for j in range(0, n_samples):
+                sample_label_colors.append('purple')
 
         else:
-            n_samples = int(i)
+            n_samples = int(i) + num_samples_in_insertion
             prev_x_value = fixed_width_x[-1]
             for s in range(0, n_samples - 1):
                 fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"] / n_samples)
@@ -361,12 +382,22 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             p.add_layout(base_box)
             line_segment_x.append(location_plot)
 
+            if num_samples_in_insertion > 0:
+                base_x.append(previous_location)
+                base_y.append(label_position/2)
+                label = str(num_samples_in_insertion)
+                base_label.append(label)
+                base_label_colors.append('purple')
+
             base_x.append(previous_location)
             base_y.append(label_position)
             label = str(base) + "\t" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
+            for j in range(0, n_samples - num_samples_in_insertion):
+                sample_label_colors.append('red')
             base_index += 1
+            num_samples_in_insertion = 0
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
             break
@@ -401,7 +432,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide')
+    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5, legend_label='hide')
     p.legend.click_policy = "hide"
     p.legend.location = 'bottom_right'
     p.legend.label_text_font_size = '7pt'
