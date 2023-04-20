@@ -23,7 +23,8 @@ A simple tool to Visualise nanopore raw signal-base alignment
 4. [Pileup view](#pileup-view)
 5. [Note](#note)
 6. [Guppy move table explanation](#guppy-move-table-explanation)
-7. [Example](#example)
+7. [Base shift](#base_shift)
+8. [Example](#example)
 
 
 ## Installation
@@ -293,6 +294,9 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 echo -e fake_reference'\t'0 > fake_reference.fa.fai
 samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
+
+## Base shift
+User can shift the base sequence to right or left by `n` number of bases by providing the argument `--base_shift n` to the `plot` command. This is helpful to correct the signal level to the base. A positive `n` value will shift the base sequence to the right. A negative `n` value will shift the base sequence to the left.
 
 ## Guppy move table explanation
 Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
