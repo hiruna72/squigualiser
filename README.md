@@ -268,6 +268,8 @@ OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
 squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "eventalgin"
 ````
+## Pileup view
+Work in progress...
 
 ## Note
 1. To get a pileup view, use [scripts/cat_plots.sh](scripts/cat_plots.sh) to concatenate multiple `.html` plots in a directory.
