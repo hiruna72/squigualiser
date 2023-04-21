@@ -4,10 +4,12 @@ A simple tool to Visualise nanopore raw signal-base alignment
 
 ![image](docs/figures/preview.png)
 
-1. The first read is the signal-read alignment using guppy_v.3.6.7 move table annotation.
-2. The second read is the signal-read alignment using f5c resquiggle output.
-3. The third read is the signal-read alignment using the squigulator's simulated output.
-4. The fourth read (RNA) is the signal-read alignment using f5c resquiggle output.
+1. The first read is a signal-read alignment using guppy_v.3.6.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
+2. The second read is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-2.1.html)).
+3. The third read is a signal-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
+4. The fourth read (RNA) is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
+
+For a signal-reference alignment refer [this](https://hiruna72.github.io/squigualiser/docs/figures/figures/sig_to_reference/testcase-8.1.html) aligns a signal to the region `chr1:4270161-4271160`.
 
 # Table of Contents
 1. [Installation](#installation)
