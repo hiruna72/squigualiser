@@ -116,11 +116,11 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     location_plot = 0
     initial_location = location_plot
 
-    base_shift_seq = 'N' * draw_data['base_shift']
+    base_shift_seq = 'N' * abs(draw_data['base_shift'])
     if draw_data["base_shift"] > 0:
         fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
     else:
-        fasta_sequence = fasta_sequence[-1*draw_data["base_shift"]:] + base_shift_seq
+        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
