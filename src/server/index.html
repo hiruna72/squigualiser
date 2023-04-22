@@ -1,0 +1,57 @@
+<html>
+
+<head>
+    <title>Squigualiser</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="plot-command-pane" id="plot_command_pane">
+        <div class="inputs-div">
+            <span>
+                <label for="file">Sequence File: </label>
+                <input id="file" type="text" name="file" autocomplete="on">
+            </span>
+
+            <span>
+                <label for="slow5">SLOW5 File: </label>
+                <input id="slow5" type="text" name="slow5">
+            </span>
+
+            <span>
+                <label for="alignment">Alignment File: </label>
+                <input id="alignment" type="text" name="alignment">
+            </span>
+
+            <span>
+                <label for="output_dir">Output Directory: </label>
+                <input id="output_dir" type="text" name="output_dir">
+            </span>
+        </div>
+        <div class="plot-btn-div">
+            <button class="plot-btn" onClick="generate_plots();">Plot</button>
+        </div>
+    </div>
+
+    <hr>
+
+    <div>
+        <div class="dir-listing-pane" id="dir_listing_pane">
+            <label for="dir_path">Directory Path: </label>
+            <input id="dir_path" type="text" name="dir_path">
+            <button id="list_files" onClick="change_dir();">List Files</button>
+
+            <iframe id="dir_listing" src="/dir_listing?dir_path=/"></iframe>
+        </div>
+
+        <div class="command-history-pane">
+            <b>Command History:</b>
+
+            <ul id="command_history"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

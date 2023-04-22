@@ -1,0 +1,67 @@
+.plot-command-pane {
+    text-align: center;
+    width: 80%;
+    display: flex;
+    margin: 5px auto;
+}
+
+.inputs-div {
+    display: block;
+    float: left;
+    width: 95%;
+}
+
+.plot-btn-div {
+    float: right;
+    width: 5%;
+    display: flex;
+    align-items: center;
+}
+
+.inputs-div span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.inputs-div label {
+    display: inline-block;
+    width: 20%;
+    text-align: left;
+}
+
+.inputs-div input {
+    display: inline-block;
+    width: 75%;
+}
+
+.plot-btn-div button {
+    padding: 2px 10px;
+    margin: 5px auto;
+}
+
+.dir-listing-pane,
+.command-history-pane {
+    display: block;
+    padding-top: 5px;
+    width: 50%;
+}
+
+.dir-listing-pane {
+    float: left;
+    text-align: center;
+}
+
+.dir-listing-pane input {
+    width: 50%;
+}
+
+.dir-listing-pane iframe {
+    height: 100%;
+    width: 100%;
+    border: none;
+    margin-top: 10px;
+}
+
+.command-history-pane {
+    float: right;
+}
