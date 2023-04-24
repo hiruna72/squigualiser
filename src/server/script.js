@@ -1,6 +1,6 @@
 function change_dir() {
     var dir_path_input = document.getElementById("dir_path");
-    document.getElementById("dir_listing").src = "dir_listing?dir_path=" + dir_path_input.value;
+    document.getElementById("dir_listing").src = dir_path_input.value;
 }
 
 function generate_plots() {

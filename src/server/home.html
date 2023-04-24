@@ -2,7 +2,7 @@
 
 <head>
     <title>Squigualiser</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/src/server/style.css">
 </head>
 
 <body>
@@ -43,7 +43,7 @@
             <input id="dir_path" type="text" name="dir_path">
             <button id="list_files" onClick="change_dir();">List Files</button>
 
-            <iframe id="dir_listing" src="/dir_listing?dir_path="></iframe>
+            <iframe id="dir_listing" src="/"></iframe>
         </div>
 
         <div class="command-history-pane">
@@ -53,7 +53,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="/src/server/script.js"></script>
 </body>
 
 </html>
