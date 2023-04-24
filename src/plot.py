@@ -5,8 +5,8 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment
-from bokeh.layouts import column
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle
+from bokeh.layouts import column, layout, row
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -221,6 +221,9 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     p.add_layout(base_annotation_labels)
 
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
+
     source = ColumnDataSource(data=dict(
         x=x[:location_plot],
         y=y[:location_plot],
@@ -258,7 +261,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    return p
+    layout_ = row(p), row(toggle_bases, width=5)
+    return layout_
 
 
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
@@ -425,6 +429,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                                       text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
+
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(
@@ -464,8 +471,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    return p
-
+    layout_ = row(p), row(toggle_bases, width=5)
+    return layout_
 
 def run(args):
     if args.read_id != "":
@@ -683,12 +690,12 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 if args.fixed_width:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
-                    p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
                 output_file(output_file_name, title=read_id)
-                save(p)
+                save(layout_)
                 print(f'output file: {os.path.abspath(output_file_name)}')
 
                 num_plots += 1
@@ -889,13 +896,13 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
             output_file(output_file_name, title=read_id)
-            save(p)
+            save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
                         
             num_plots += 1
@@ -1079,16 +1086,16 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
                                           sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                p = plot_function(read_id=read_id, signal_tuple=signal_tuple,
+                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple,
                               sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                               draw_data=draw_data)
                 
             output_file(output_file_name, title=read_id)
-            save(p)
+            save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
 
             num_plots += 1

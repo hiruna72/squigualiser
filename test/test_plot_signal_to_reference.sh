@@ -532,10 +532,10 @@ testcase_11s() {
 
 }
 
-#testcase_4s #basic
-#testcase_5s #signal-reference squigulator ideal signals
-#testcase_6s #signal-reference squigulator DNA
-#testcase_7s #signal-reference squigulator RNA
+testcase_4s #basic
+testcase_5s #signal-reference squigulator ideal signals
+testcase_6s #signal-reference squigulator DNA
+testcase_7s #signal-reference squigulator RNA
 testcase_8s #signal-reference realigned DNA
 testcase_9s #signal-reference realigned RNA
 testcase_10s #signal-reference f5c eventalign DNA
