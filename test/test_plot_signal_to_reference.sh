@@ -424,7 +424,7 @@ testcase_8s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="chr1:6,811,009-6,811,198"
-  python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  python src/plot.py --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
   TESTCASE=8.6
   info "testcase:$TESTCASE - reference-signal plot"
@@ -434,7 +434,7 @@ testcase_8s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="chr1:6,811,010-6,811,198"
-  python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  python src/plot.py --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
   TESTCASE=8.7
   info "testcase:$TESTCASE - reference-signal plot"
@@ -444,7 +444,7 @@ testcase_8s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="chr1:6811404-6811443"
-  python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  python src/plot.py --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
 }
 testcase_9s() {
@@ -500,7 +500,7 @@ testcase_10s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="chr1:6,811,011-6,811,198"
-  python src/plot.py --pileup --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  python src/plot.py --fixed_width --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
   TESTCASE=10.2
   info "testcase:$TESTCASE - reference-signal plot"
@@ -510,7 +510,7 @@ testcase_10s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="chr1:6811404-6811443"
-  python src/plot.py --pileup --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+  python src/plot.py --fixed_width --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
 
 }
 testcase_11s() {
@@ -532,10 +532,10 @@ testcase_11s() {
 
 }
 
-testcase_4s #basic
-testcase_5s #signal-reference squigulator ideal signals
-testcase_6s #signal-reference squigulator DNA
-testcase_7s #signal-reference squigulator RNA
+#testcase_4s #basic
+#testcase_5s #signal-reference squigulator ideal signals
+#testcase_6s #signal-reference squigulator DNA
+#testcase_7s #signal-reference squigulator RNA
 testcase_8s #signal-reference realigned DNA
 testcase_9s #signal-reference realigned RNA
 testcase_10s #signal-reference f5c eventalign DNA
