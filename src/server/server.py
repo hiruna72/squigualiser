@@ -2,9 +2,10 @@ import html
 from http import HTTPStatus
 import http.server
 import io
+import posixpath
 import socketserver
 import os
-from urllib.parse import urlparse, parse_qs, quote, unquote
+from urllib.parse import urlparse, parse_qs, quote, unquote, urlsplit, urlunsplit
 
 import sys
 sys.path.append('../')
@@ -14,17 +15,21 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urlparse(self.path)
 
+        # for normal GET requests to be served properly after the translate_path override
+        if self.path.startswith('/'):
+            self.path = "." + self.path
+
         if parsed_url.path == '/':
             self.path = 'index.html'
 
         if parsed_url.path == '/dir_listing':
             query_components = parse_qs(parsed_url.query)
             if 'dir_path' in query_components:
-                dir_path = "." + query_components["dir_path"][0]
+                dir_path = query_components["dir_path"][0]
             else:
                 dir_path = "./"
 
-            f = self.list_directory_mod(dir_path)
+            f = self.list_directory(dir_path)
             if f:
                 try:
                     self.copyfile(f, self.wfile)
@@ -32,6 +37,13 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                     f.close()
 
             return
+
+        if parsed_url.path == "/show_file":
+            query_components = parse_qs(parsed_url.query)
+            if 'file_path' in query_components:
+                file_path = query_components["file_path"][0]
+                self.path = file_path
+                print(self.path)
 
         return http.server.SimpleHTTPRequestHandler.do_GET(self)
 
@@ -52,8 +64,30 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(bytes("Success", "utf8"))
 
         return
+
+    def translate_path(self, path):
+        """Overridden method to allow accessing any path in the system.
+           Note: this causes GET requests to be served with 
+
+        """
+        # abandon query parameters
+        path = path.split('?',1)[0]
+        path = path.split('#',1)[0]
+        # Don't forget explicit trailing slash when normalizing. Issue17324
+        trailing_slash = path.rstrip().endswith('/')
+        try:
+            path = unquote(path, errors='surrogatepass')
+        except UnicodeDecodeError:
+            path = unquote(path)
+        path = posixpath.normpath(path)
+        if trailing_slash:
+            path += '/'
+        return path
     
-    def list_directory_mod(self, path):
+    def list_directory(self, path):
+        """Overridden method to have a custom formatting for the directory listing html page.
+
+        """
         try:
             list = os.listdir(path)
         except OSError:
@@ -77,7 +111,6 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         r.append('<ul>')
         for name in list:
             fullname = os.path.join(path, name)
-            relpath = os.path.relpath(fullname)
             
             displayname = linkname = name
             # Append / for directories or @ for symbolic links
@@ -89,13 +122,13 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 # Note: a link to a directory displays with @ and links with /
 
             if os.path.isfile(fullname) :
-                r.append('<li><a target="_blank" href="%s">%s</a></li>'
-                        % (quote(relpath,
+                r.append('<li><a target="_blank" href="show_file?file_path=%s">%s</a></li>'
+                        % (quote(fullname,
                                             errors='surrogatepass'),
                         html.escape(displayname, quote=False)))
             else:
-                r.append('<li><a href="dir_listing?dir_path=/%s">%s</a></li>'
-                    % (quote(relpath,
+                r.append('<li><a href="dir_listing?dir_path=%s">%s</a></li>'
+                    % (quote(fullname,
                                         errors='surrogatepass'),
                     html.escape(displayname, quote=False)))
                 
