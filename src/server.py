@@ -2,11 +2,10 @@ import html
 from http import HTTPStatus
 import http.server
 import io
-import posixpath
 import socketserver
 import os
 import sys
-from urllib.parse import urlparse, parse_qs, quote, unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote
 from plot import argparser, run
 
 class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -35,11 +34,8 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         return
     
     def list_directory(self, path):
-        """Helper to produce a directory listing (absent index.html).
-
-        Return value is either a file object, or None (indicating an
-        error).  In either case, the headers are sent, making the
-        interface the same as for send_head().
+        """ Overridden method to have a custom formatting for the directory listing html page.
+            Presents ".." to go back to previous directory.
 
         """
         try:
