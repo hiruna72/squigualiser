@@ -5,8 +5,8 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment
-from bokeh.layouts import column
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle
+from bokeh.layouts import column, layout, row
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -221,6 +221,9 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     p.add_layout(base_annotation_labels)
 
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
+
     source = ColumnDataSource(data=dict(
         x=x[:location_plot],
         y=y[:location_plot],
@@ -258,7 +261,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    return p
+    layout_ = row(p), row(toggle_bases, width=5)
+    return layout_
 
 
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
@@ -425,6 +429,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                                       text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
+
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(
@@ -464,8 +471,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    return p
-
+    layout_ = row(p), row(toggle_bases, width=5)
+    return layout_
 
 def run(args):
     if args.read_id != "":
@@ -511,13 +518,6 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
-    if args.pileup:
-        if not args.fixed_width:
-            print("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
-            exit(1)
-        if args.region == "":
-            print("Error: pileup requires to a region to be specified with the argument --region")
-            exit(1)
 
     if args.base_limit:
         base_limit = args.base_limit
@@ -537,8 +537,6 @@ def run(args):
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["base_shift"] = args.base_shift
-
-    pileup = []
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -692,18 +690,13 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 if args.fixed_width:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
-                    p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
-                if args.pileup:
-                    if num_plots > 0:
-                        p.x_range = pileup[0].x_range
-                    pileup.append(p)
-                else:
-                    output_file(output_file_name, title=read_id)
-                    save(p)
-                    print(f'output file: {os.path.abspath(output_file_name)}')
+                output_file(output_file_name, title=read_id)
+                save(layout_)
+                print(f'output file: {os.path.abspath(output_file_name)}')
 
                 num_plots += 1
                 if num_plots == args.plot_limit:
@@ -903,19 +896,14 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                p = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
-            if args.pileup:
-                if num_plots > 0:
-                    p.x_range = pileup[0].x_range
-                pileup.append(p)
-            else:
-                output_file(output_file_name, title=read_id)
-                save(p)
-                print(f'output file: {os.path.abspath(output_file_name)}')
+            output_file(output_file_name, title=read_id)
+            save(layout_)
+            print(f'output file: {os.path.abspath(output_file_name)}')
                         
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -1098,22 +1086,17 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
                                           sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                                           draw_data=draw_data)
             else:
-                p = plot_function(read_id=read_id, signal_tuple=signal_tuple,
+                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple,
                               sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
                               draw_data=draw_data)
                 
-            if args.pileup:
-                if num_plots > 0:
-                    p.x_range = pileup[0].x_range
-                pileup.append(p)
-            else:
-                output_file(output_file_name, title=read_id)
-                save(p)
-                print(f'output file: {os.path.abspath(output_file_name)}')
+            output_file(output_file_name, title=read_id)
+            save(layout_)
+            print(f'output file: {os.path.abspath(output_file_name)}')
 
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -1123,13 +1106,6 @@ def run(args):
         exit(1)
 
 
-
-    if args.pileup:
-        pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-        pileup_fig = column(pileup, sizing_mode='stretch_both')
-        output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
-        save(pileup_fig)
-        print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
     print("Number of plots: {}".format(num_plots))
 
@@ -1158,7 +1134,6 @@ def argparser():
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
-    parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
