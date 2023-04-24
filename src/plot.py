@@ -91,10 +91,11 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     if sig_algn_data["pa"]:
         y_axis_label = "signal value (pA)"
 
-    # label_position = np.median(y)
-    label_position = np.percentile(y, 75)  # Q3
     y_min = np.amin(y)
     y_max = np.amax(y)
+    # label_position = np.median(y)
+    # label_position = np.percentile(y, 75)  # Q3
+    label_position = np.percentile(y, 98)
 
     p = figure(x_axis_label='signal index',
                y_axis_label=y_axis_label,
@@ -272,7 +273,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         y_axis_label = "signal value (pA)"
 
     # label_position = np.median(y)
-    label_position = np.percentile(y, 75)  # Q3
+    # label_position = np.percentile(y, 75)  # Q3
+    label_position = np.percentile(y, 98)
     y_min = np.amin(y)
     y_max = np.amax(y)
 
