@@ -106,6 +106,7 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         r.append('<html>\n<head>')
         r.append('<meta http-equiv="Content-Type" '
                  'content="text/html; charset=%s">' % enc)
+        r.append('<link rel="stylesheet" href="style.css">')
         r.append('<title>%s</title>\n</head>' % title)
         r.append('<body>\n<b>%s</b>' % title)
         r.append('<ul>')

@@ -1,8 +1,17 @@
+body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI Adjusted","Segoe UI","Liberation Sans",sans-serif;
+}
+
+.title {
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
 .plot-command-pane {
     text-align: center;
     width: 80%;
     display: flex;
-    margin: 5px auto;
+    margin: 10px auto;
 }
 
 .inputs-div {
