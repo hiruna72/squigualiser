@@ -22,14 +22,24 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
             plot_params = post_data_bytes.decode("UTF-8").split()
             print(plot_params)
 
-            parser = argparser()
-            args = parser.parse_args(plot_params)
-            run(args) # TODO: get a return value send it in the response
-
-            self.send_response(200)
-            self.send_header('Content-type','text/html')
-            self.end_headers()
-            self.wfile.write(bytes("Success", "utf8"))
+            try:
+                parser = argparser()
+                args = parser.parse_args(plot_params)
+                run(args)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes("Success", "utf8"))
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes(str(e), "utf8"))
+            except SystemExit:
+                self.send_response(400)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes("Error: please check the arguments again.", "utf8"))
 
         return
     
@@ -63,7 +73,7 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         r.append('<link rel="stylesheet" href="/src/server/style.css">')
         r.append('<title>%s</title>\n</head>' % title)
         r.append('<body>\n<b>%s</b>' % title)
-        r.append('<hr>\n<ul>')
+        r.append('<ul>')
 
         parent_path = '/'.join(self.path.split('/')[0:-2])
         if parent_path == '':
@@ -94,7 +104,7 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                     % (quote(linkname,
                                         errors='surrogatepass'),
                     html.escape(displayname, quote=False)))
-        r.append('</ul>\n<hr>\n</body>\n</html>\n')
+        r.append('</ul>\n</body>\n</html>\n')
         encoded = '\n'.join(r).encode(enc, 'surrogateescape')
         f = io.BytesIO()
         f.write(encoded)

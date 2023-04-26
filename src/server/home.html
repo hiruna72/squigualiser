@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/src/server/style.css">
 </head>
 
-<body>
+<body onload="change_command_type()">
     <h1 class="title">Squigualiser</h1>
     <hr>
     <div class="plot-command-pane" id="plot_command_pane">
@@ -29,30 +29,35 @@
                 <label for="output_dir">Output Directory: </label>
                 <input id="output_dir" type="text" name="output_dir">
             </span>
+
+            <span>
+                <label for="fullcmd">Full command: </label>
+                <input type="checkbox" id="use_fullcmd" name="use_fullcmd" onclick="change_command_type();">
+                <input id="fullcmd" type="text" name="fullcmd">
+            </span>
         </div>
         <div class="plot-btn-div">
-            <button class="plot-btn" onClick="generate_plots();">Plot</button>
+            <button class="plot-btn" id="plot_btn" onClick="generate_plots();">Plot</button>
         </div>
     </div>
 
     <hr>
 
-    <div>
-        <div class="dir-listing-pane" id="dir_listing_pane">
-            <label for="dir_path">Directory Path: </label>
-            <input id="dir_path" type="text" name="dir_path">
-            <button id="list_files" onClick="change_dir();">List Files</button>
+    <div class="dir-listing-pane" id="dir_listing_pane">
+        <label for="dir_path">Directory Path: </label>
+        <input id="dir_path" type="text" name="dir_path">
+        <button id="list_files" onClick="change_dir();">List Files</button>
 
-            <iframe id="dir_listing" src="/"></iframe>
-        </div>
-
-        <div class="command-history-pane">
-            <b>Command History:</b>
-
-            <ul id="command_history"></ul>
-        </div>
+        <iframe id="dir_listing" src="/"></iframe>
     </div>
 
+    <hr>
+
+    <div class="command-history-pane">
+        <b>Command History:</b>
+
+        <ol class="command-history-list" id="command_history"></ol>
+    </div>
     <script src="/src/server/script.js"></script>
 </body>
 
