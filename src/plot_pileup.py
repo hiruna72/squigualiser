@@ -80,7 +80,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
 
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
-
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
@@ -267,8 +266,6 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         p.add_layout(subplot_labels)
 
     return p
-
-
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -285,8 +282,6 @@ def run(args):
             exit()
 
     plot_sig_ref_flag = 0
-    if args.sig_ref:
-        plot_sig_ref_flag = 1
     use_paf = 0
     if args.alignment:
         print(f'alignment file: {args.alignment}')
@@ -295,10 +290,8 @@ def run(args):
             use_paf = 0
             plot_sig_ref_flag = 1
         elif alignment_extension == ".paf":
-            use_paf = 1
-            if args.sig_ref:
-                print("Error: For signal to reference alignment the paf file must be bgzip compressed and tabix indexed")
-                exit(1)
+            print("Error: For signal to reference alignment the paf file must be bgzip compressed and tabix indexed")
+            exit(1)
         elif args.alignment[-7:] == ".paf.gz":
             use_paf = 1
             plot_sig_ref_flag = 1
@@ -310,16 +303,19 @@ def run(args):
             print("error please provide the alignment file with correct extension")
             exit()
 
+    if plot_sig_ref_flag == 0:
+        print("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
+        exit(1)
+
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
-    if args.pileup:
-        if not args.fixed_width:
-            print("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
-            exit(1)
-        if args.region == "":
-            print("Error: pileup requires to a region to be specified with the argument --region")
-            exit(1)
+    # if not args.fixed_width:
+    #     print("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
+    #     exit(1)
+    if args.region == "":
+        print("Error: pileup requires to a region to be specified with the argument --region")
+        exit(1)
 
     if args.base_limit:
         base_limit = args.base_limit
@@ -338,6 +334,7 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
+    sig_algn_dic = {}
 
     pileup = []
     prev_y_shift = 0
@@ -354,174 +351,8 @@ def run(args):
     previous_plot = p
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
-        print("Info: Signal to read method using PAF ...")
-        with open(args.alignment, "r") as handle:
-            if use_fasta:
-                sequence_reads = Fasta(args.file)
-            else:
-                sequence_reads = Fastq(args.file)
-            for paf_record in parse_paf(handle):
-                if paf_record.query_name != paf_record.target_name:
-                    print("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
-                    exit(1)
-                read_id = paf_record.query_name
-                if args.read_id != "" and read_id != args.read_id:
-                    continue
-                if read_id not in set(sequence_reads.keys()):
-                    print("Error: read_id {} is not found in {}".format(read_id, args.file))
-                    exit(1)
-
-                data_is_rna = 0
-                if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
-                    data_is_rna = 1
-                    if not args.rna:
-                        print("Info: data is detected as RNA")
-                        print("Error: data is not specified as RNA. Please provide the argument --rna ")
-                        exit(1)
-
-                fasta_seq = ""
-                if use_fasta:
-                    fasta_seq = sequence_reads[read_id][:].seq
-                else:
-                    fasta_seq = sequence_reads[read_id].seq
-                    if len(fasta_seq) < paf_record.target_length:
-                        print(
-                            "Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(
-                                args.file))
-                        exit(1)
-
-                ref_start = -1
-                ref_end = -1
-                if data_is_rna == 1:
-                    fasta_seq = fasta_seq[paf_record.target_end:]
-                    ref_start = paf_record.target_end + 1
-                else:
-                    fasta_seq = fasta_seq[paf_record.target_start:]
-                    ref_start = paf_record.target_start + 1
-
-                seq_len = len(fasta_seq)
-                if seq_len < base_limit:
-                    base_limit = seq_len
-                ref_end = base_limit
-
-                if args.region != "":
-                    pattern = re.compile("^[0-9]+\-[0-9]+")
-                    if not pattern.match(args.region):
-                        print("Error: region provided is not in correct format")
-                        exit(1)
-                    ref_start = int(args.region.split("-")[0])
-                    ref_end = int(args.region.split("-")[1])
-
-                    if ref_start < 1:
-                        print("Error: region start coordinate ({}) must be positive")
-                        exit(1)
-
-                    if ref_end < 1:
-                        print("Error: region end coordinate ({}) must be positive")
-                        exit(1)
-
-                    if data_is_rna == 1 and paf_record.target_start < ref_end:
-                        ref_end = paf_record.target_start
-                    elif data_is_rna == 0 and paf_record.target_end < ref_end:
-                        ref_end = paf_record.target_end
-
-                    # print("ref_start: " + str(ref_start))
-                    # print("ref_end: " + str(ref_end))
-
-                    if (ref_end - ref_start + 1) < base_limit:
-                        base_limit = ref_end - ref_start + 1
-
-                print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
-
-                output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-
-                x = []
-                x_real = []
-                y = []
-                read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-                if read is not None:
-                    start_index = paf_record.query_start
-                    end_index = read['len_raw_signal']
-                    x = list(range(1, end_index - start_index + 1))
-                    x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                    y = read['signal'][start_index:end_index]
-                if args.sig_scale == "medmad":
-                    arr = np.ma.array(y).compressed()
-                    read_median = np.median(arr)
-                    if read_median == np.nan:
-                        print("Error: calculated median is NaN")
-                        exit(1)
-                    mad = np.median(np.abs(arr - read_median))
-                    if mad == np.nan:
-                        print("Error: calculated mad is NaN")
-                        exit(1)
-                    read_mad = mad * 1.4826
-                    if read_mad < 1.0:
-                        read_mad = 1.0
-                    y = (y - read_mad) / read_mad
-                    args.tag_name += " scale:medmad"
-                elif args.sig_scale == "znorm":
-                    # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                    # Calculate the z-score from scratch
-                    y = (y - np.mean(y)) / np.std(y)
-                    args.tag_name += " scale:znorm"
-                elif not args.sig_scale == "":
-                    print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
-                    exit(1)
-
-                strand_dir = "(DNA 5'->3')"
-
-                # if data_is_rna == 1 and args.reverse_signal:
-                #     x_real.reverse()
-                #     y = np.flip(y)
-                #     moves.reverse()
-                #     strand_dir = "(RNA 5'->3')"
-
-                if data_is_rna == 1:
-                    fasta_seq = fasta_seq[::-1]
-                    strand_dir = "(RNA 5'->3')"
-
-                signal_tuple = (x, x_real, y)
-                region_tuple = (ref_start, ref_end, 0, seq_len)
-
-                sig_algn_dic = {}
-                sig_algn_dic['start_kmer'] = ref_start - 1
-                sig_algn_dic['ref_start'] = ref_start
-                sig_algn_dic['ref_end'] = ref_end
-                sig_algn_dic['pa'] = args.no_pa
-                sig_algn_dic['use_paf'] = use_paf
-                sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
-                sig_algn_dic['data_is_rna'] = data_is_rna
-                if args.fixed_width:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
-                else:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: "
-
-                moves_string = paf_record.tags['ss'][2]
-                moves_string = re.sub('D', 'D,', moves_string)
-                moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-                moves = re.split(r',+', moves_string)
-                sig_algn_dic['ss'] = moves
-
-                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-                if args.fixed_width:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-                else:
-                    print("Error: use plot.py")
-                    exit(1)
-
-                if args.pileup:
-                    if num_plots > 0:
-                        p.x_range = pileup[0].x_range
-                    pileup.append(p)
-                else:
-                    output_file(output_file_name, title=read_id)
-                    save(p)
-                    print(f'output file: {os.path.abspath(output_file_name)}')
-
-                num_plots += 1
-                if num_plots == args.plot_limit:
-                    break
+        print("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
+        exit(1)
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
         print("Info: Signal to reference method using SAM/BAM ...")
         fasta_reads = Fasta(args.file)
@@ -639,6 +470,7 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
+            scaling_str = "no scaling"
             if args.sig_scale == "medmad":
                 arr = np.ma.array(y).compressed()
                 read_median = np.median(arr)
@@ -653,12 +485,12 @@ def run(args):
                 if read_mad < 1.0:
                     read_mad = 1.0
                 y = (y - read_mad) / read_mad
-                args.tag_name += " scale:medmad"
+                scaling_str = args.sig_scale
             elif args.sig_scale == "znorm":
                 # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
                 # Calculate the z-score from scratch
                 y = (y - np.mean(y)) / np.std(y)
-                args.tag_name += " scale:znorm"
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
                 exit(1)
@@ -699,39 +531,47 @@ def run(args):
             signal_tuple = (x, x_real, y)
             region_tuple = (ref_start, ref_end, sam_record.reference_start, sam_record.reference_start+ref_seq_len)
 
-            sig_algn_dic = {}
             sig_algn_dic['start_kmer'] = 0
             sig_algn_dic['ref_start'] = ref_start
             sig_algn_dic['ref_end'] = ref_end
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
 
-            if args.fixed_width:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data)
-            else:
-                print("Error: use plot.py")
-                exit(1)
+            y_min = np.amin(y)
+            y_max = np.amax(y)
+            if num_plots == 0:
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                              base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=-1,
+                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
 
-            if args.pileup:
-                if num_plots > 0:
-                    p.x_range = pileup[0].x_range
-                pileup.append(p)
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                              base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
             else:
-                output_file(output_file_name, title=read_id)
-                save(p)
-                print(f'output file: {os.path.abspath(output_file_name)}')
-                        
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                              base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
@@ -828,7 +668,6 @@ def run(args):
                     print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
                                                                                      read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
             x_real = []
@@ -842,6 +681,7 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
+            scaling_str = "no scaling"
             if args.sig_scale == "medmad":
                 arr = np.ma.array(y).compressed()
                 read_median = np.median(arr)
@@ -856,10 +696,12 @@ def run(args):
                 if read_mad < 1.0:
                     read_mad = 1.0
                 y = (y - read_mad) / read_mad
+                scaling_str = args.sig_scale
             elif args.sig_scale == "znorm":
                 # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
                 # Calculate the z-score from scratch
                 y = (y - np.mean(y)) / np.std(y)
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
                 exit(1)
@@ -890,18 +732,14 @@ def run(args):
             signal_tuple = (x, x_real, y)
             region_tuple = (ref_start, ref_end, reference_start, reference_start + ref_seq_len)
 
-            sig_algn_dic = {}
             sig_algn_dic['start_kmer'] = 0
             sig_algn_dic['ref_start'] = ref_start
             sig_algn_dic['ref_end'] = ref_end
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(
-                    args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(
+                args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
@@ -911,40 +749,28 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             y_min = np.amin(y)
             y_max = np.amax(y)
-            if args.fixed_width:
-                if num_plots == 0:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
-                    previous_plot = p
-                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+            if num_plots == 0:
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
+                                          draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
 
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                                  sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                                  base_limit=base_limit,
-                                                  draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                                  y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
-                    previous_plot = p
-                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
-                else:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                                  sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                                  base_limit=base_limit,
-                                                  draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                                  y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
-                    previous_plot = p
-                    prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
-
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                              base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
             else:
-                print("Error: use plot.py")
-                exit(1)
-                
-            if args.pileup:
-                pass
-            else:
-                output_file(output_file_name, title=read_id)
-                save(p)
-                print(f'output file: {os.path.abspath(output_file_name)}')
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
+                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
+                                              base_limit=base_limit,
+                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
+                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                previous_plot = p
+                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
 
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -953,26 +779,18 @@ def run(args):
         print("Error: You should not have ended up here. Please check your arguments")
         exit(1)
 
+    print("Number of plots: {}".format(num_plots))
 
-
-    if args.pileup:
+    if num_plots > 0:
         pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
         output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
-        if sig_algn_dic["plot_sig_ref_flag"] == 0:
-            print("Error: please use plot.py")
-            exit(1)
+        if sig_algn_dic["data_is_rna"] == 1:
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
         else:
-            if sig_algn_dic["data_is_rna"] == 1:
-                plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
-            else:
-                plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
-
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
         p.title = plot_title
-
         save(p)
         print(f'output file: {os.path.abspath(pileup_output_file_name)}')
-
-    print("Number of plots: {}".format(num_plots))
 
     s5.close()
 
@@ -996,14 +814,14 @@ def argparser():
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
-    parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
-    parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
+    # parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
+    # parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
-    parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
+    # parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
-    parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="signal point size [5]")
+    parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
