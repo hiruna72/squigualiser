@@ -79,10 +79,10 @@ samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a s
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
-squigualiser reform --sig_move_offset 1 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
+squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
 
 # For human readability you may prefer the tsv output (not supported for plotting)
-squigualiser reform --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform_output.tsv
+squigualiser reform --sig_move_offset 0 --kmer_length 1 --bam out.sam -o reform_output.tsv
 
 ```
 * Refer [Note(5)](#note) for more information on the paf output.
@@ -169,10 +169,10 @@ samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a s
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
-squigualiser reform --sig_move_offset 1 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
+squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
 
 # For human readability you may prefer the tsv output (not supported for plotting)
-squigualiser reform --sig_move_offset 1 --kmer_length 1 --bam out.sam -o reform_output.tsv
+squigualiser reform --sig_move_offset 0 --kmer_length 1 --bam out.sam -o reform_output.tsv
 
 ```
 * Refer [Note(5)](#note) for more information on the paf output.
