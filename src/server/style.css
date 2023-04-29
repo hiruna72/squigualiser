@@ -1,100 +1,31 @@
 body {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI Adjusted","Segoe UI","Liberation Sans",sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Adjusted", "Segoe UI", "Liberation Sans", sans-serif;
 }
 
-.title {
-    margin-left: 5px;
-    margin-bottom: 5px;
+hr {
+    border-color: #a4a7aa !important;
 }
 
-.plot-command-pane {
-    text-align: left;
-    width: 100%;
-    display: flex;
-}
-
-.inputs-div {
-    display: block;
-    float: left;
-    width: 95%;
-}
-
-.plot-btn-div {
-    float: right;
-    width: 5%;
-    display: flex;
-    align-items: center;
-}
-
-.inputs-div span {
-    display: inline-block;
-    margin-bottom: 5px;
-    width: 100%;
-}
-
-.inputs-div label {
-    display: block;
-    width: 10%;
-    text-align: left;
-    float: left;
-    font-weight: bold;
-}
-
-.inputs-div input[type="text"] {
-    display: block;
-    width: 88%;
-    float: right;
-}
-
-.plot-btn-div button {
-    padding: 2px 10px;
-    margin: 5px auto;
-}
-
-.dir-listing-pane,
-.command-history-pane {
-    display: block;
-    padding-top: 5px;
-    width: 100%;
-}
-
-.dir-listing-pane {
-    float: left;
-    text-align: left;
-}
-
-.dir-listing-pane label {
-    display: block;
-    float: left;
-    width: 11.4%;
-    font-weight: bold;
-}
-
-.dir-listing-pane input {
-    display: block;
-    float: left;
-    width: 80%;
-}
-
-.dir-listing-pane button {
-    display: block;
-    float: right;
-    width: 7%;
-}
-
-.dir-listing-pane iframe {
-    height: 50%;
-    width: 100%;
-    border: none;
+.command-history {
+    font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New;
     margin-top: 10px;
 }
 
-.command-history-pane {
-    float: right;
+.command-history li {
+    margin-left: 10px;
+    margin-bottom: 5px;
 }
 
-.command-history-item {
-    font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New;
-    background-color: rgb(163, 163, 163);
-    width: 95%;
+.dir-listing {
+    height: 300px;
+    border: 1px solid #ced4da;
+}
+
+.dir-path {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="30"><text x="5" y="24" fill="%23212529" style="font-family: -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Helvetica Neue\',Arial,\'Noto Sans\',sans-serif,\'Apple Color Emoji\',\'Segoe UI Emoji\',\'Segoe UI Symbol\',\'Noto Color Emoji\';">[webroot]</text></svg>') no-repeat;
+    padding-left: 75px;
+}
+
+.hide {
+    display: none;
 }

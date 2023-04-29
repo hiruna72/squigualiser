@@ -72,7 +72,7 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                  'content="text/html; charset=%s">' % enc)
         r.append('<link rel="stylesheet" href="/src/server/style.css">')
         r.append('<title>%s</title>\n</head>' % title)
-        r.append('<body>\n<b>%s</b>' % title)
+        r.append('<body>')
         r.append('<ul>')
 
         parent_path = '/'.join(self.path.split('/')[0:-2])

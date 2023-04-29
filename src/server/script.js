@@ -21,6 +21,10 @@ function change_dir() {
     document.getElementById("dir_listing").src = dir_path_input.value;
 }
 
+function change_dir_path(new_dir_path) {
+    document.getElementById("dir_path").value = new_dir_path;
+}
+
 function generate_plots() {
     document.getElementById("plot_btn").disabled = true;
 
@@ -61,12 +65,13 @@ function generate_plots() {
 
             console.log(xhr.status);
             if (xhr.status == 200) {
-                document.getElementById("dir_path").value = output_dir;
-                document.getElementById("list_files").click();
+                document.getElementById("error_msg").style.display = "none";
+                document.getElementById("dir_listing").src = output_dir;
 
-                document.getElementById("command_history").innerHTML += "<li class=\"command-history-item\">" + plot_command + "</li>";
+                document.getElementById("command_history").innerHTML += "<li>" + plot_command + "</li>";
             } else if (xhr.status == 400) {
-                alert(xhr.responseText)
+                document.getElementById("error_msg").innerHTML = xhr.responseText;
+                document.getElementById("error_msg").style.display = "block";
             }
         }
     };
