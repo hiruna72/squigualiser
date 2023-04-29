@@ -339,10 +339,10 @@ def run(args):
     pileup = []
     prev_y_shift = 0
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
-    p = figure(sizing_mode="stretch_both",
-               # sizing_mode="scale_width",
+    p = figure(output_backend="webgl",
+                # sizing_mode="stretch_both",
+               sizing_mode="scale_width",
                # height=PLOT_HEIGHT,
-               output_backend="webgl",
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
