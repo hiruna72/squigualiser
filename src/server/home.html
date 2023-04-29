@@ -13,7 +13,7 @@
 
 <body onload="change_command_type()">
     <div class="container mt-5">
-        <h1 class="text-left">Squigualiser</h1>
+        <h1 class="text-left title">Squigualiser</h1>
         <hr>
         <div class="alert alert-danger hide" role="alert" id="error_msg"></div>
         <div class="row" id="plot_command_pane">
@@ -58,7 +58,7 @@
                 </div>
                 <div class="form-group row">
                     <div class="col-sm-12">
-                        <button class="btn btn-primary" id="plot_btn" onClick="generate_plots();">Plot</button>
+                        <button class="btn btn-info" id="plot_btn" onClick="generate_plots();">Plot</button>
                     </div>
                 </div>
             </div>
@@ -70,8 +70,9 @@
                     <label for="dir_path" class="col-sm-3 col-form-label">Directory Path:</label>
                     <div class="input-group col-sm-9">
                         <input id="dir_path" type="text" class="form-control dir-path" name="dir_path">
+                        <span class="fixed-text">[webroot]</span>
                         <div class="input-group-append">
-                            <button id="list_files" class="btn btn-primary" onClick="change_dir();">List Files</button>
+                            <button id="list_files" class="btn btn-info" onClick="change_dir();">List Files</button>
                         </div>
                     </div>
                 </div>
