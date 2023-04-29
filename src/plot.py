@@ -76,7 +76,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         signal_tuple = (x, x_real, y)
 
         sig_algn_data['ss'] = moves
-
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
 
@@ -129,9 +128,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     base_index = sig_algn_data["start_kmer"]
     num_Is = 0
     num_Ds = 0
-
     line_segment_x = []
-
     for i in moves:
         previous_location = location_plot
         if 'D' in i:
@@ -181,7 +178,6 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         else:
             n_samples = int(i)
             location_plot += n_samples
-
             base = fasta_sequence[base_index]
             base_box = BoxAnnotation(left=previous_location, right=location_plot, bottom=y_min, top=y_max, fill_alpha=0.2, fill_color=base_color_map[base])
             p.add_layout(base_box)
@@ -715,6 +711,9 @@ def run(args):
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
         for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
+            if ref_name != sam_record.reference_name:
+                print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
+                continue
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
@@ -744,20 +743,15 @@ def run(args):
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
+            ref_name = sam_record.reference_name
+            ref_start = sam_record.reference_start + 1
+            ref_end = sam_record.reference_start + ref_seq_len
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
             if args.region != "":
-                if ref_name != sam_record.reference_name:
-                    print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
-                    continue
-                # print("ref_start: " + str(ref_start))
-                # print("ref_end: " + str(ref_end))
-                # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
-                # print("ref_seq_len: " + str(ref_seq_len))
-                # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
                 if ref_start > sam_record.reference_start + ref_seq_len:
                     continue
                 if ref_end > sam_record.reference_start + ref_seq_len:
@@ -767,10 +761,6 @@ def run(args):
 
                 if (ref_end - ref_start + 1) < BASE_LIMIT:
                     base_limit = ref_end - ref_start + 1
-            else:
-                ref_name = sam_record.reference_name
-                ref_start = sam_record.reference_start + 1
-                ref_end = sam_record.reference_start + ref_seq_len
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
@@ -907,7 +897,12 @@ def run(args):
         for paf_record in tbxfile.fetch(ref_name, ref_start, ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
+            if ref_name != paf_record[SEQUENCE_ID]:
+                print("Warning: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
+                continue
             read_id = paf_record[READ_ID]
+            # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
+            #     continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
             if paf_record[STRAND] == "-" and args.no_reverse:
@@ -928,17 +923,16 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
+            ref_name = paf_record[SEQUENCE_ID]
+            ref_start = reference_start + 1
+            ref_end = reference_start + ref_seq_len
+
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
             if args.region != "":
-                if ref_name != paf_record[SEQUENCE_ID]:
-                    print(
-                        "Warning: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
-                    continue
-
                 if ref_start > reference_start + ref_seq_len:
                     continue
                 if ref_end > reference_start + ref_seq_len:
@@ -948,10 +942,6 @@ def run(args):
 
                 if (ref_end - ref_start + 1) < BASE_LIMIT:
                     base_limit = ref_end - ref_start + 1
-            else:
-                ref_name = paf_record[SEQUENCE_ID]
-                ref_start = reference_start + 1
-                ref_end = reference_start + ref_seq_len
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))

@@ -48,7 +48,7 @@ testcase_11s() {
   SIGNAL="${RAW_DIR}/pileup_view/test_0/na12878_chr22.blow5"
   ALIGNMENT="${RAW_DIR}/pileup_view/test_0/na12878_chr22.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  PLOT_LIMIT=5
+  PLOT_LIMIT=10
   REGION="chr22_1_5k:4000-4500"
   SCALING="znorm"
   python src/plot_pileup.py --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
