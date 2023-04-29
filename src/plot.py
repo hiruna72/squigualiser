@@ -712,8 +712,7 @@ def run(args):
 
         for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
             if ref_name != sam_record.reference_name:
-                print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
-                continue
+                raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
@@ -898,8 +897,7 @@ def run(args):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
             if ref_name != paf_record[SEQUENCE_ID]:
-                print("Warning: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
-                continue
+                raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
             read_id = paf_record[READ_ID]
             # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
             #     continue

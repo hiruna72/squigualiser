@@ -382,6 +382,9 @@ def run(args):
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
         for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
+            if ref_name != sam_record.reference_name:
+                print("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
+                exit(1)
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
@@ -413,20 +416,16 @@ def run(args):
                 print("Error: sam record does not have a 'si' tag.")
                 exit(1)
             # print("ref_seq_len: " + str(ref_seq_len))
+            ref_name = sam_record.reference_name
+            ref_start = sam_record.reference_start + 1
+            ref_end = sam_record.reference_start + ref_seq_len
+
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
             if args.region != "":
-                if ref_name != sam_record.reference_name:
-                    print("Warning: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
-                    continue
-                # print("ref_start: " + str(ref_start))
-                # print("ref_end: " + str(ref_end))
-                # print("sam_record.reference_start: " + str(sam_record.reference_start + 1))
-                # print("ref_seq_len: " + str(ref_seq_len))
-                # print("sam_record.reference_start + ref_seq_len: " + str(int(sam_record.reference_start) + ref_seq_len))
                 if ref_start > sam_record.reference_start + ref_seq_len:
                     continue
                 if ref_end > sam_record.reference_start + ref_seq_len:
@@ -436,10 +435,6 @@ def run(args):
 
                 if (ref_end - ref_start + 1) < BASE_LIMIT:
                     base_limit = ref_end - ref_start + 1
-            else:
-                ref_name = sam_record.reference_name
-                ref_start = sam_record.reference_start + 1
-                ref_end = sam_record.reference_start + ref_seq_len
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
@@ -599,6 +594,9 @@ def run(args):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 print("Error: this paf file is a signal to read mapping.")
                 exit(1)
+            if ref_name != paf_record[SEQUENCE_ID]:
+                print("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
+                exit(1)
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
@@ -621,17 +619,15 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
+            ref_name = paf_record[SEQUENCE_ID]
+            ref_start = reference_start + 1
+            ref_end = reference_start + ref_seq_len
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
             if args.region != "":
-                if ref_name != paf_record[SEQUENCE_ID]:
-                    print(
-                        "Warning: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
-                    continue
-
                 if ref_start > reference_start + ref_seq_len:
                     continue
                 if ref_end > reference_start + ref_seq_len:
@@ -641,10 +637,6 @@ def run(args):
 
                 if (ref_end - ref_start + 1) < BASE_LIMIT:
                     base_limit = ref_end - ref_start + 1
-            else:
-                ref_name = paf_record[SEQUENCE_ID]
-                ref_start = reference_start + 1
-                ref_end = reference_start + ref_seq_len
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
