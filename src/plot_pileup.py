@@ -370,19 +370,19 @@ def run(args):
             if not pattern.match(args_region):
                 print("Error: region provided is not in correct format")
                 exit(1)
-            ref_name = args_region.split(":")[0]
-            ref_start = int(args_region.split(":")[1].split("-")[0])
-            ref_end = int(args_region.split(":")[1].split("-")[1])
+            args_ref_name = args_region.split(":")[0]
+            args_ref_start = int(args_region.split(":")[1].split("-")[0])
+            args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
             samfile = pysam.AlignmentFile(args.alignment, mode='rb')
         else:
-            ref_name = None
-            ref_start = None
-            ref_end = None
+            args_ref_name = None
+            args_ref_start = None
+            args_ref_end = None
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
-        for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
-            if ref_name != sam_record.reference_name:
+        for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
+            if args_ref_name != sam_record.reference_name:
                 print("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
                 exit(1)
             read_id = sam_record.query_name
@@ -416,9 +416,9 @@ def run(args):
                 print("Error: sam record does not have a 'si' tag.")
                 exit(1)
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = sam_record.reference_name
-            ref_start = sam_record.reference_start + 1
-            ref_end = sam_record.reference_start + ref_seq_len
+            ref_name = args_ref_name
+            ref_start = args_ref_start
+            ref_end = args_ref_end
 
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
@@ -582,19 +582,19 @@ def run(args):
             if not pattern.match(args_region):
                 print("Error: region provided is not in correct format")
                 exit(1)
-            ref_name = args_region.split(":")[0]
-            ref_start = int(args_region.split(":")[1].split("-")[0])
-            ref_end = int(args_region.split(":")[1].split("-")[1])
+            args_ref_name = args_region.split(":")[0]
+            args_ref_start = int(args_region.split(":")[1].split("-")[0])
+            args_ref_end = int(args_region.split(":")[1].split("-")[1])
         else:
-            ref_name = None
-            ref_start = None
-            ref_end = None
+            args_ref_name = None
+            args_ref_start = None
+            args_ref_end = None
 
-        for paf_record in tbxfile.fetch(ref_name, ref_start, ref_end, parser=pysam.asTuple()):
+        for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 print("Error: this paf file is a signal to read mapping.")
                 exit(1)
-            if ref_name != paf_record[SEQUENCE_ID]:
+            if args_ref_name != paf_record[SEQUENCE_ID]:
                 print("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
                 exit(1)
             read_id = paf_record[READ_ID]
@@ -619,9 +619,9 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = paf_record[SEQUENCE_ID]
-            ref_start = reference_start + 1
-            ref_end = reference_start + ref_seq_len
+            ref_name = args_ref_name
+            ref_start = args_ref_start
+            ref_end = args_ref_end
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:

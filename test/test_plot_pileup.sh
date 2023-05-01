@@ -29,6 +29,16 @@ EXP_DIR="${REL_PATH}/data/exp/plot"
 
 testcase_11s() {
   GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  TESTCASE=11.0
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  SCALING="znorm"
+  python src/plot_pileup.py --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
+
 
   TESTCASE=11.1
   info "testcase:$TESTCASE - reference-signal plot"

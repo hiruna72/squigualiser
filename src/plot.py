@@ -699,19 +699,19 @@ def run(args):
             pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
             if not pattern.match(args_region):
                 raise Exception("Error: region provided is not in correct format")
-            ref_name = args_region.split(":")[0]
-            ref_start = int(args_region.split(":")[1].split("-")[0])
-            ref_end = int(args_region.split(":")[1].split("-")[1])
+            args_ref_name = args_region.split(":")[0]
+            args_ref_start = int(args_region.split(":")[1].split("-")[0])
+            args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
             samfile = pysam.AlignmentFile(args.alignment, mode='rb')
         else:
-            ref_name = None
-            ref_start = None
-            ref_end = None
+            args_ref_name = None
+            args_ref_start = None
+            args_ref_end = None
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
-        for sam_record in samfile.fetch(contig=ref_name, start=ref_start, stop=ref_end):
-            if ref_name != sam_record.reference_name:
+        for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
+            if args_ref_name != sam_record.reference_name:
                 raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
@@ -885,18 +885,18 @@ def run(args):
             pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
             if not pattern.match(args_region):
                 raise Exception("Error: region provided is not in correct format")
-            ref_name = args_region.split(":")[0]
-            ref_start = int(args_region.split(":")[1].split("-")[0])
-            ref_end = int(args_region.split(":")[1].split("-")[1])
+            args_ref_name = args_region.split(":")[0]
+            args_ref_start = int(args_region.split(":")[1].split("-")[0])
+            args_ref_end = int(args_region.split(":")[1].split("-")[1])
         else:
-            ref_name = None
-            ref_start = None
-            ref_end = None
+            args_ref_name = None
+            args_ref_start = None
+            args_ref_end = None
 
-        for paf_record in tbxfile.fetch(ref_name, ref_start, ref_end, parser=pysam.asTuple()):
+        for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
-            if ref_name != paf_record[SEQUENCE_ID]:
+            if args_ref_name != paf_record[SEQUENCE_ID]:
                 raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
             read_id = paf_record[READ_ID]
             # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
