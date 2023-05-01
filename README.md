@@ -190,7 +190,7 @@ samtools fastq out.sam | minimap2 -ax map-ont ${REF} -t8 --secondary=no -o ${MAP
 4. Realign move array to reference
 ```
 REALIGN_BAM=realign_output.bam
-python src/realign.py --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
+squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
 ```
 
 5. Plot signal to reference alignment
