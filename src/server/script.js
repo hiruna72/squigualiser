@@ -26,7 +26,9 @@ function change_dir_path(new_dir_path) {
 }
 
 function generate_plots() {
-    document.getElementById("plot_btn").disabled = true;
+    let plot_button = document.getElementById("plot_btn");
+    plot_button.disabled = true;
+    plot_button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
 
     var use_fullcmd_checkbox = document.getElementById("use_fullcmd");
     var plot_command = "";
@@ -61,7 +63,8 @@ function generate_plots() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
-            document.getElementById("plot_btn").disabled = false;
+            plot_button.disabled = false;
+            plot_button.innerHTML = "Generate Plots";
 
             console.log(xhr.status);
             if (xhr.status == 200) {
