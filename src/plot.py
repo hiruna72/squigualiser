@@ -742,25 +742,22 @@ def run(args):
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = sam_record.reference_name
-            ref_start = sam_record.reference_start + 1
-            ref_end = sam_record.reference_start + ref_seq_len
+
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
+            ref_name = sam_record.reference_name
+            ref_start = sam_record.reference_start + 1
+            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
+
             if args.region != "":
-                if ref_start > sam_record.reference_start + ref_seq_len:
-                    continue
-                if ref_end > sam_record.reference_start + ref_seq_len:
-                    ref_end = sam_record.reference_start + ref_seq_len
-                if ref_start < sam_record.reference_start + 1:
-                    ref_start = sam_record.reference_start + 1
-
-                if (ref_end - ref_start + 1) < BASE_LIMIT:
-                    base_limit = ref_end - ref_start + 1
-
+                if args_ref_start > ref_start:
+                    ref_start = args_ref_start
+                if args_ref_end < ref_end:
+                    ref_end = args_ref_end
+            base_limit = ref_end - ref_start + 1
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
             # print("ref_seq_len: {}".format(ref_seq_len))
@@ -921,26 +918,20 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = paf_record[SEQUENCE_ID]
-            ref_start = reference_start + 1
-            ref_end = reference_start + ref_seq_len
-
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
 
+            ref_name = paf_record[SEQUENCE_ID]
+            ref_start = reference_start + 1
+            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
             if args.region != "":
-                if ref_start > reference_start + ref_seq_len:
-                    continue
-                if ref_end > reference_start + ref_seq_len:
-                    ref_end = reference_start + ref_seq_len
-                if ref_start < reference_start + 1:
-                    ref_start = reference_start + 1
-
-                if (ref_end - ref_start + 1) < BASE_LIMIT:
-                    base_limit = ref_end - ref_start + 1
-
+                if args_ref_start > ref_start:
+                    ref_start = args_ref_start
+                if args_ref_end < ref_end:
+                    ref_end = args_ref_end
+            base_limit = ref_end - ref_start + 1
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
             # print("ref_seq_len: {}".format(ref_seq_len))
@@ -956,11 +947,9 @@ def run(args):
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if record_is_reverse:
-                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
-                                                                                     read_id))
+                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
-                                                                                     read_id))
+                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
@@ -1037,9 +1026,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple,
-                                                                                         region_tuple, sig_algn_dic,
-                                                                                         fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
@@ -1111,5 +1098,6 @@ if __name__ == "__main__":
         run(args)
     except Exception as e:
         print(str(e))
+        exit(1)
 
 

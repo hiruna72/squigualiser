@@ -267,7 +267,6 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     return p
 def run(args):
-    print("using plot pileup")
     if args.read_id != "":
         args.plot_limit = 1
 
