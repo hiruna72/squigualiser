@@ -4,6 +4,7 @@ test/data/raw/plot/one_read/read.fasta
 test/data/raw/plot/one_read/read.slow5
 test/data/raw/plot/one_read/reform/r1k1m0.paf
 test/data/out/plot_server/testcase_0.1
+--file test/data/raw/plot/one_read/read.fasta --slow5 test/data/raw/plot/one_read/read.slow5 --alignment test/data/raw/plot/one_read/reform/r1k1m0.paf --output_dir test/data/out/plot_server/testcase_0.1
 
 TESTCASE=0.2
 [Sequence File, SLOW5 File, Alignment File, Output Directory]
