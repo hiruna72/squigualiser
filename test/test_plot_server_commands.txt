@@ -7,9 +7,9 @@ test/data/out/plot_server/testcase_0.1
 --file test/data/raw/plot/one_read/read.fasta --slow5 test/data/raw/plot/one_read/read.slow5 --alignment test/data/raw/plot/one_read/reform/r1k1m0.paf --output_dir test/data/out/plot_server/testcase_0.1
 
 TESTCASE=0.2
-[Sequence File, SLOW5 File, Alignment File, Output Directory]
+[Sequence File, SLOW5 File, Alignment File, Output Directory, Region]
 /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa
 test/data/raw/plot/f5c_eventalign/reads.blow5
 test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz
 test/data/out/plot_server/testcase_0.2
---region  chr1:6811404-6811443
+chr1:6811404-6811443

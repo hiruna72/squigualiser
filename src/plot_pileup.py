@@ -267,6 +267,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     return p
 def run(args):
+    print("using plot pileup")
     if args.read_id != "":
         args.plot_limit = 1
 
@@ -278,8 +279,7 @@ def run(args):
         elif args.file[-6:] == ".fasta" or args.file[-3:] == ".fa":
             use_fasta = 1
         else:
-            print("error please provide the sequence file with correct extension")
-            exit()
+            raise Exception("Error: please provide the sequence file with correct extension")
 
     plot_sig_ref_flag = 0
     use_paf = 0
@@ -290,32 +290,26 @@ def run(args):
             use_paf = 0
             plot_sig_ref_flag = 1
         elif alignment_extension == ".paf":
-            print("Error: For signal to reference alignment the paf file must be bgzip compressed and tabix indexed")
-            exit(1)
+            raise Exception("Error: For signal to reference alignment the paf file must be bgzip compressed and tabix indexed")
         elif args.alignment[-7:] == ".paf.gz":
             use_paf = 1
             plot_sig_ref_flag = 1
             index_file = args.alignment + ".tbi"
             if not os.path.exists(index_file):
-                print("Error: please provide a bgzip compressed and tabix indexed paf file to extract the regions")
-                exit(1)
+                raise Exception("Error: please provide a bgzip compressed and tabix indexed paf file to extract the regions")
         else:
-            print("error please provide the alignment file with correct extension")
-            exit()
+            raise Exception("Error: please provide the alignment file with correct extension")
 
     if plot_sig_ref_flag == 0:
-        print("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
-        exit(1)
+        raise Exception("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
 
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
     # if not args.fixed_width:
-    #     print("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
-    #     exit(1)
+    #     raise Exception("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
     if args.region == "":
-        print("Error: pileup requires to a region to be specified with the argument --region")
-        exit(1)
+        raise Exception("Error: pileup requires to a region to be specified with the argument --region")
 
     if args.base_limit:
         base_limit = args.base_limit
@@ -351,8 +345,7 @@ def run(args):
     previous_plot = p
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
-        print("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
-        exit(1)
+        raise Exception("Error: If you are trying to plot just reads please use plot.py. Otherwise provide the correct signal-reference alignment.")
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
         print("Info: Signal to reference method using SAM/BAM ...")
         fasta_reads = Fasta(args.file)
@@ -360,16 +353,14 @@ def run(args):
             # check if there exists a .bam.bai
             index_file = args.alignment + ".bai"
             if not os.path.exists(index_file):
-                print("Error: please provide a bam file that is sorted and indexed to extract the regions")
-                exit(1)
+                raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
 
             args_region = re.sub(',', '', args.region)
             # print(args_region)
             # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
             pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
             if not pattern.match(args_region):
-                print("Error: region provided is not in correct format")
-                exit(1)
+                raise Exception("Error: region provided is not in correct format")
             args_ref_name = args_region.split(":")[0]
             args_ref_start = int(args_region.split(":")[1].split("-")[0])
             args_ref_end = int(args_region.split(":")[1].split("-")[1])
@@ -383,8 +374,7 @@ def run(args):
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
             if args_ref_name != sam_record.reference_name:
-                print("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
-                exit(1)
+                raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
@@ -408,13 +398,11 @@ def run(args):
                     data_is_rna = 1
                     if not args.rna:
                         print("Info: data is detected as RNA")
-                        print("Error: data is not specified as RNA. Please provide the argument --rna ")
-                        exit(1)
+                        raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                     ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
 
             else:
-                print("Error: sam record does not have a 'si' tag.")
-                exit(1)
+                raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
             ref_name = args_ref_name
             ref_start = args_ref_start
@@ -470,12 +458,10 @@ def run(args):
                 arr = np.ma.array(y).compressed()
                 read_median = np.median(arr)
                 if read_median == np.nan:
-                    print("Error: calculated median is NaN")
-                    exit(1)
+                    raise Exception("Error: calculated median is NaN")
                 mad = np.median(np.abs(arr - read_median))
                 if mad == np.nan:
-                    print("Error: calculated mad is NaN")
-                    exit(1)
+                    raise Exception("Error: calculated mad is NaN")
                 read_mad = mad * 1.4826
                 if read_mad < 1.0:
                     read_mad = 1.0
@@ -487,8 +473,7 @@ def run(args):
                 y = (y - np.mean(y)) / np.std(y)
                 scaling_str = args.sig_scale
             elif not args.sig_scale == "":
-                print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
-                exit(1)
+                raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -496,12 +481,10 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             # if data_is_rna == 0 and args.reverse_signal:
-            #     print("Error: the signal will be reversed only in RNA plots")
-            #     exit(1)
+            #     raise Exception("Error: the signal will be reversed only in RNA plots")
 
             if sam_record.is_reverse and data_is_rna == 1:
-                print("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
-                exit(1)
+                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
 
             # if data_is_rna == 1 and args.reverse_signal:
             #     x_real.reverse()
@@ -520,8 +503,7 @@ def run(args):
                 strand_dir = "(RNA 5'->3')"
                 fasta_seq = fasta_seq[::-1]
                 if sam_record.is_reverse:
-                    print("Error: data is rna and sam record is reverse mapped. This is not implemented yet. Please report")
-                    exit(1)
+                    raise Exception("Error: data is rna and sam record is reverse mapped. This is not implemented yet. Please report")
 
             signal_tuple = (x, x_real, y)
             region_tuple = (ref_start, ref_end, sam_record.reference_start, sam_record.reference_start+ref_seq_len)
@@ -580,8 +562,7 @@ def run(args):
             # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
             pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
             if not pattern.match(args_region):
-                print("Error: region provided is not in correct format")
-                exit(1)
+                raise Exception("Error: region provided is not in correct format")
             args_ref_name = args_region.split(":")[0]
             args_ref_start = int(args_region.split(":")[1].split("-")[0])
             args_ref_end = int(args_region.split(":")[1].split("-")[1])
@@ -592,11 +573,9 @@ def run(args):
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
-                print("Error: this paf file is a signal to read mapping.")
-                exit(1)
+                raise Exception("Error: this paf file is a signal to read mapping.")
             if args_ref_name != paf_record[SEQUENCE_ID]:
-                print("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
-                exit(1)
+                raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
@@ -614,8 +593,7 @@ def run(args):
                 data_is_rna = 1
                 if not args.rna:
                     print("Info: data is detected as RNA")
-                    print("Error: data is not specified as RNA. Please provide the argument --rna ")
-                    exit(1)
+                    raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
@@ -647,8 +625,7 @@ def run(args):
             if paf_record[STRAND] == "-":
                 record_is_reverse = 1
             if record_is_reverse and data_is_rna == 1:
-                print("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
-                exit(1)
+                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
@@ -678,12 +655,10 @@ def run(args):
                 arr = np.ma.array(y).compressed()
                 read_median = np.median(arr)
                 if read_median == np.nan:
-                    print("Error: calculated median is NaN")
-                    exit(1)
+                    raise Exception("Error: calculated median is NaN")
                 mad = np.median(np.abs(arr - read_median))
                 if mad == np.nan:
-                    print("Error: calculated mad is NaN")
-                    exit(1)
+                    raise Exception("Error: calculated mad is NaN")
                 read_mad = mad * 1.4826
                 if read_mad < 1.0:
                     read_mad = 1.0
@@ -695,16 +670,14 @@ def run(args):
                 y = (y - np.mean(y)) / np.std(y)
                 scaling_str = args.sig_scale
             elif not args.sig_scale == "":
-                print("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
-                exit(1)
+                raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
             for i in range(12, len(paf_record)):
                 tag = paf_record[i][:2]
                 if tag == "ss":
                     moves_string = paf_record[i][5:]
             if moves_string == "":
-                print("Error: ss tag was not found")
-                exit(1)
+                raise Exception("Error: ss tag was not found")
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
@@ -768,8 +741,7 @@ def run(args):
             if num_plots == args.plot_limit:
                 break
     else:
-        print("Error: You should not have ended up here. Please check your arguments")
-        exit(1)
+        raise Exception("Error: You should not have ended up here. Please check your arguments")
 
     print("Number of plots: {}".format(num_plots))
 
@@ -823,6 +795,8 @@ def argparser():
 if __name__ == "__main__":
     parser = argparser()
     args = parser.parse_args()
-    run(args)
-
+    try:
+        run(args)
+    except Exception as e:
+        print(str(e))
 

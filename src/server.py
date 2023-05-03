@@ -6,7 +6,8 @@ import socketserver
 import os
 import sys
 from urllib.parse import quote, unquote
-from plot import argparser, run
+import plot
+import plot_pileup
 
 class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -19,13 +20,20 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == "/generate_plots":
             content_len = int(self.headers.get('content-length', 0))
             post_data_bytes = self.rfile.read(content_len)
-            plot_params = post_data_bytes.decode("UTF-8").split()
-            print(plot_params)
-
+            post_data_parts = post_data_bytes.decode("UTF-8").split()
+            use_pileup = post_data_parts[0]
+            plot_params = post_data_parts[1:]
+            print(use_pileup, plot_params)
+            
             try:
-                parser = argparser()
-                args = parser.parse_args(plot_params)
-                run(args)
+                if use_pileup == "true":
+                    parser = plot_pileup.argparser()
+                    args = parser.parse_args(plot_params)
+                    plot_pileup.run(args)
+                else:
+                    parser = plot.argparser()
+                    args = parser.parse_args(plot_params)
+                    plot.run(args)
                 self.send_response(200)
                 self.send_header('Content-type','text/html')
                 self.end_headers()
@@ -72,7 +80,7 @@ class SquigHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                  'content="text/html; charset=%s">' % enc)
         r.append('<link rel="stylesheet" href="/src/server/style.css">')
         r.append('<title>%s</title>\n</head>' % title)
-        r.append('<body>\n<b>%s</b>' % title)
+        r.append('<body>')
         r.append('<ul>')
 
         parent_path = '/'.join(self.path.split('/')[0:-2])
