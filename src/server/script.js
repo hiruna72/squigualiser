@@ -6,14 +6,14 @@ function change_command_type() {
     if (use_fullcmd_checkbox.checked) {
         document.getElementById("fullcmd").disabled = false;
         for (var i = 0; i < inputs.length; i++) {
-            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd")) {
+            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd" || inputs[i].id == "use_pileup")) {
                 inputs[i].disabled = true;
             }
         }
     } else {
         document.getElementById("fullcmd").disabled = true;
         for (var i = 0; i < inputs.length; i++) {
-            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd")) {
+            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd" || inputs[i].id == "use_pileup")) {
                 inputs[i].disabled = false;
             }
         }
@@ -35,6 +35,7 @@ function generate_plots() {
     plot_button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
 
     var use_fullcmd_checkbox = document.getElementById("use_fullcmd");
+    var use_pileup_checkbox = document.getElementById("use_pileup");
     var plot_command = "";
     var output_dir;
     if (use_fullcmd_checkbox.checked) {
@@ -51,14 +52,16 @@ function generate_plots() {
     } else {
         var inputs = document.getElementById("plot_command_pane").getElementsByTagName("input");
         for (var i = 0; i < inputs.length; i++) {
-            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd")) {
-                plot_command += "--" + inputs[i].id + " " + inputs[i].value + " ";
+            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd" || inputs[i].id == "use_pileup")) {
+                if (inputs[i].value != "") {
+                    plot_command += "--" + inputs[i].id + " " + inputs[i].value + " ";
+                }
             }
         }
         output_dir = document.getElementById("output_dir").value;
     }
 
-    console.log(plot_command);
+    console.log(use_pileup_checkbox.checked + " " + plot_command);
 
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/generate_plots");
@@ -75,7 +78,7 @@ function generate_plots() {
                 document.getElementById("error_msg").style.display = "none";
                 document.getElementById("dir_listing").src = output_dir;
 
-                document.getElementById("command_history").innerHTML += "<li>" + plot_command + "</li>";
+                document.getElementById("command_history").innerHTML = "<li>" + plot_command + "</li>" + document.getElementById("command_history").innerHTML;
             } else if (xhr.status == 400) {
                 document.getElementById("error_msg").innerHTML = xhr.responseText;
                 document.getElementById("error_msg").style.display = "block";
@@ -83,5 +86,5 @@ function generate_plots() {
         }
     };
 
-    xhr.send(plot_command);
+    xhr.send(use_pileup_checkbox.checked + " " + plot_command);
 }
