@@ -1,18 +1,22 @@
 
 function change_command_type() {
     var use_fullcmd_checkbox = document.getElementById("use_fullcmd");
+    var inputs = document.getElementById("plot_command_pane").getElementsByTagName("input");
+
     if (use_fullcmd_checkbox.checked) {
         document.getElementById("fullcmd").disabled = false;
-        document.getElementById("file").disabled = true;
-        document.getElementById("slow5").disabled = true;
-        document.getElementById("alignment").disabled = true;
-        document.getElementById("output_dir").disabled = true;
+        for (var i = 0; i < inputs.length; i++) {
+            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd")) {
+                inputs[i].disabled = true;
+            }
+        }
     } else {
         document.getElementById("fullcmd").disabled = true;
-        document.getElementById("file").disabled = false;
-        document.getElementById("slow5").disabled = false;
-        document.getElementById("alignment").disabled = false;
-        document.getElementById("output_dir").disabled = false;
+        for (var i = 0; i < inputs.length; i++) {
+            if (!(inputs[i].id == "use_fullcmd" || inputs[i].id == "fullcmd")) {
+                inputs[i].disabled = false;
+            }
+        }
     }
 }
 
