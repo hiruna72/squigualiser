@@ -20,8 +20,8 @@ def run(args):
     elif args.output[-4:] == ".sam":
         fout = pysam.AlignmentFile(args.output, "w", template=samfile)
     else:
-        print("error please provide the output file with correct extension")
-        exit()
+        print("Error: please provide the output file with correct extension")
+        exit(1)
 
     # inefficient
     paf_file = open(args.paf, "r")
@@ -37,10 +37,11 @@ def run(args):
         #     continue
         sam_read_id = sam_record.query_name
         if sam_read_id not in paf_dic:
-            print("Error associated paf record is missing for the read id: {}".format(sam_read_id))
+            print("Error: associated paf record is missing for the read id: {}".format(sam_read_id))
+            exit(1)
         paf_read_id = paf_dic[sam_read_id].query_name
         if paf_read_id != sam_read_id:
-            print("sam and paf read ids do not match")
+            print("Error: sam and paf read ids do not match")
             exit(1)
 
         data_is_rna = False
@@ -56,7 +57,7 @@ def run(args):
         # print(sam_read.cigarstring)
         cigar_t = sam_record.cigartuples
         if cigar_t is None:
-            print("cigartuples for sam record {} is an empty object".format(sam_read_id))
+            print("Error: cigartuples for sam record {} is an empty object".format(sam_read_id))
             exit(1)
         # print(cigar_t)
 
@@ -126,7 +127,8 @@ def run(args):
             elif cig_op == BAM_CHARD_CLIP:
                 continue
             else:
-                print("error: cigar operation [" + str(cig_op) + "]is not handled yet")
+                print("Error: cigar operation [" + str(cig_op) + "]is not handled yet")
+                exit(1)
             op_count += 1
 
         sam_record.set_tag("ss", ss_string, "Z")
