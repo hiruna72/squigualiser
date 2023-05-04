@@ -6,7 +6,7 @@ hiruna@unsw.edu.au
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle
-from bokeh.layouts import column, layout, row
+from bokeh.layouts import row
 from bokeh.colors import RGB
 import pyslow5
 import copy
@@ -217,7 +217,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     p.add_layout(base_annotation_labels)
 
-    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(
@@ -227,16 +227,9 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5, legend_label='hide')
-    p.legend.click_policy = "hide"
-    p.legend.location = 'bottom_right'
-    p.legend.label_text_font_size = '7pt'
-    p.legend.glyph_width = 10
-    p.legend.glyph_height = 10
-    p.legend.label_height = 5
-    p.legend.label_height = 5
-    p.legend.padding = 1
-    p.legend.background_fill_alpha = 0.5
+    sample_labels = p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -257,7 +250,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    layout_ = row(p), row(toggle_bases, width=5)
+    layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
 
 
@@ -425,7 +418,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                                       text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
-    toggle_bases = Toggle(label="base", button_type="primary", active=True, default_size=2)
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     fixed_width_x = fixed_width_x[1:]
@@ -437,16 +430,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     ))
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5, legend_label='hide')
-    p.legend.click_policy = "hide"
-    p.legend.location = 'bottom_right'
-    p.legend.label_text_font_size = '7pt'
-    p.legend.glyph_width = 10
-    p.legend.glyph_height = 10
-    p.legend.label_height = 5
-    p.legend.label_height = 5
-    p.legend.padding = 1
-    p.legend.background_fill_alpha = 0.5
+    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -467,7 +453,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    layout_ = row(p), row(toggle_bases, width=5)
+    layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
 
 def run(args):
@@ -711,8 +697,8 @@ def run(args):
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
-            if args_ref_name != sam_record.reference_name:
-                raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + ref_name + "]")
+            if args_ref_name is not None and args_ref_name != sam_record.reference_name:
+                raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + args_ref_name + "]")
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
@@ -761,6 +747,9 @@ def run(args):
                         ref_end = sam_record_reference_end
                 if args_ref_end < ref_end:
                     ref_end = args_ref_end
+            if ref_end < ref_start:
+                print("Warning: a corner case has hit because  the kmer_length used is larger than 1. This alignment will be skipped")
+                continue
             base_limit = ref_end - ref_start + 1
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
@@ -897,8 +886,8 @@ def run(args):
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
-            if args_ref_name != paf_record[SEQUENCE_ID]:
-                raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
+            if args_ref_name is not None and args_ref_name != paf_record[SEQUENCE_ID]:
+                raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + args_ref_name + "]")
             read_id = paf_record[READ_ID]
             # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
             #     continue
@@ -940,6 +929,9 @@ def run(args):
                         ref_end = paf_record_reference_end
                 if args_ref_end < ref_end:
                     ref_end = args_ref_end
+            if ref_end < ref_start:
+                print("Warning: a corner case has hit because  the kmer_length used is larger than 1. This alignment will be skipped")
+                continue
             base_limit = ref_end - ref_start + 1
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))

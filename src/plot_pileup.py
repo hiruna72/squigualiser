@@ -419,6 +419,9 @@ def run(args):
                     ref_end = sam_record_reference_end
             if args_ref_end < ref_end:
                 ref_end = args_ref_end
+            if ref_end < ref_start:
+                print("Warning: a corner case has hit because the kmer_length used is larger than 1. This alignment will be skipped")
+                continue
             base_limit = ref_end - ref_start + 1
 
             # print("ref_start: {}".format(ref_start))
@@ -607,6 +610,9 @@ def run(args):
                     ref_end = paf_record_reference_end
             if args_ref_end < ref_end:
                 ref_end = args_ref_end
+            if ref_end < ref_start:
+                print("Warning: a corner case has hit because the kmer_length used is larger than 1. This alignment will be skipped")
+                continue
             base_limit = ref_end - ref_start + 1
 
             # print("ref_start: {}".format(ref_start))

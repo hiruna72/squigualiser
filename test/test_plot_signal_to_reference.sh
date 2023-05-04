@@ -266,6 +266,13 @@ testcase_5s() {
   REGION="MN908947.3:552-553"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only || die "testcase:$TESTCASE failed"
+
+  TESTCASE=5.14
+  info "testcase:$TESTCASE"
+  REGION="MN908947.3:540-560"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --reverse_only || die "testcase:$TESTCASE failed"
+
 }
 testcase_6s() {
   GENOME="${REL_PATH}/data/raw/plot/reference_genomes/nCoV-2019.reference.fasta"
