@@ -747,14 +747,18 @@ def run(args):
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
+            sam_record_reference_end = sam_record.reference_start + ref_seq_len #1based closed
 
             ref_name = sam_record.reference_name
             ref_start = sam_record.reference_start + 1
             ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
-
             if args.region != "":
                 if args_ref_start > ref_start:
                     ref_start = args_ref_start
+                    if (ref_start + base_limit - 1) < sam_record_reference_end:
+                        ref_end = ref_start + base_limit - 1
+                    else:
+                        ref_end = sam_record_reference_end
                 if args_ref_end < ref_end:
                     ref_end = args_ref_end
             base_limit = ref_end - ref_start + 1
@@ -922,6 +926,7 @@ def run(args):
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
+            paf_record_reference_end = reference_start + ref_seq_len #1based closed
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
@@ -929,6 +934,10 @@ def run(args):
             if args.region != "":
                 if args_ref_start > ref_start:
                     ref_start = args_ref_start
+                    if (ref_start + base_limit - 1) < paf_record_reference_end:
+                        ref_end = ref_start + base_limit - 1
+                    else:
+                        ref_end = paf_record_reference_end
                 if args_ref_end < ref_end:
                     ref_end = args_ref_end
             base_limit = ref_end - ref_start + 1

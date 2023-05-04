@@ -307,8 +307,6 @@ def run(args):
 
     # if not args.fixed_width:
     #     raise Exception("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
-    if args.region == "":
-        raise Exception("Error: pileup requires to a region to be specified with the argument --region")
 
     if args.base_limit:
         base_limit = args.base_limit
@@ -348,28 +346,23 @@ def run(args):
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
         print("Info: Signal to reference method using SAM/BAM ...")
         fasta_reads = Fasta(args.file)
-        if args.region != "":
-            # check if there exists a .bam.bai
-            index_file = args.alignment + ".bai"
-            if not os.path.exists(index_file):
-                raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
 
-            args_region = re.sub(',', '', args.region)
-            # print(args_region)
-            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
-            if not pattern.match(args_region):
-                raise Exception("Error: region provided is not in correct format")
-            args_ref_name = args_region.split(":")[0]
-            args_ref_start = int(args_region.split(":")[1].split("-")[0])
-            args_ref_end = int(args_region.split(":")[1].split("-")[1])
+        # check if there exists a .bam.bai
+        index_file = args.alignment + ".bai"
+        if not os.path.exists(index_file):
+            raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
 
-            samfile = pysam.AlignmentFile(args.alignment, mode='rb')
-        else:
-            args_ref_name = None
-            args_ref_start = None
-            args_ref_end = None
-            samfile = pysam.AlignmentFile(args.alignment, mode='r')
+        args_region = re.sub(',', '', args.region)
+        # print(args_region)
+        # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+        pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
+        if not pattern.match(args_region):
+            raise Exception("Error: region provided is not in correct format")
+        args_ref_name = args_region.split(":")[0]
+        args_ref_start = int(args_region.split(":")[1].split("-")[0])
+        args_ref_end = int(args_region.split(":")[1].split("-")[1])
+
+        samfile = pysam.AlignmentFile(args.alignment, mode='rb')
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
             if args_ref_name != sam_record.reference_name:
@@ -403,25 +396,30 @@ def run(args):
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = args_ref_name
-            ref_start = args_ref_start
-            ref_end = args_ref_end
-
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
+            sam_record_reference_end = sam_record.reference_start + ref_seq_len #1based closed
+            if args_ref_start < sam_record.reference_start + 1:
+                print("Warning: for pileup view we skip the alignments that are not completely within the specified region")
+                continue
+            if args_ref_end > sam_record_reference_end:
+                print("Warning: for pileup view we skip the alignments that are not completely within the specified region")
+                continue
 
-            if args.region != "":
-                if ref_start > sam_record.reference_start + ref_seq_len:
-                    continue
-                if ref_end > sam_record.reference_start + ref_seq_len:
-                    ref_end = sam_record.reference_start + ref_seq_len
-                if ref_start < sam_record.reference_start + 1:
-                    ref_start = sam_record.reference_start + 1
-
-                if (ref_end - ref_start + 1) < BASE_LIMIT:
-                    base_limit = ref_end - ref_start + 1
+            ref_name = sam_record.reference_name
+            ref_start = sam_record.reference_start + 1
+            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
+            if args_ref_start > ref_start:
+                ref_start = args_ref_start
+                if (ref_start + base_limit - 1) < sam_record_reference_end:
+                    ref_end = ref_start + base_limit - 1
+                else:
+                    ref_end = sam_record_reference_end
+            if args_ref_end < ref_end:
+                ref_end = args_ref_end
+            base_limit = ref_end - ref_start + 1
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
@@ -555,20 +553,16 @@ def run(args):
         print("Info: Signal to reference method using PAF ...")
         fasta_reads = Fasta(args.file)
         tbxfile = pysam.TabixFile(args.alignment)
-        if args.region != "":
-            args_region = re.sub(',', '', args.region)
-            # print(args_region)
-            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
-            if not pattern.match(args_region):
-                raise Exception("Error: region provided is not in correct format")
-            args_ref_name = args_region.split(":")[0]
-            args_ref_start = int(args_region.split(":")[1].split("-")[0])
-            args_ref_end = int(args_region.split(":")[1].split("-")[1])
-        else:
-            args_ref_name = None
-            args_ref_start = None
-            args_ref_end = None
+
+        args_region = re.sub(',', '', args.region)
+        # print(args_region)
+        # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+        pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
+        if not pattern.match(args_region):
+            raise Exception("Error: region provided is not in correct format")
+        args_ref_name = args_region.split(":")[0]
+        args_ref_start = int(args_region.split(":")[1].split("-")[0])
+        args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
@@ -596,24 +590,24 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER])
             # print("ref_seq_len: " + str(ref_seq_len))
-            ref_name = args_ref_name
-            ref_start = args_ref_start
-            ref_end = args_ref_end
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
+            paf_record_reference_end = reference_start + ref_seq_len #1based closed
 
-            if args.region != "":
-                if ref_start > reference_start + ref_seq_len:
-                    continue
-                if ref_end > reference_start + ref_seq_len:
-                    ref_end = reference_start + ref_seq_len
-                if ref_start < reference_start + 1:
-                    ref_start = reference_start + 1
-
-                if (ref_end - ref_start + 1) < BASE_LIMIT:
-                    base_limit = ref_end - ref_start + 1
+            ref_name = paf_record[SEQUENCE_ID]
+            ref_start = reference_start + 1
+            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
+            if args_ref_start > ref_start:
+                ref_start = args_ref_start
+                if (ref_start + base_limit - 1) < paf_record_reference_end:
+                    ref_end = ref_start + base_limit - 1
+                else:
+                    ref_end = paf_record_reference_end
+            if args_ref_end < ref_end:
+                ref_end = args_ref_end
+            base_limit = ref_end - ref_start + 1
 
             # print("ref_start: {}".format(ref_start))
             # print("ref_end: {}".format(ref_end))
@@ -768,12 +762,9 @@ def argparser():
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
     parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=True,
-                        help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-    parser.add_argument('--region', required=False, type=str, default="",
-                        help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
-    parser.add_argument('--tag_name', required=False, type=str, default="",
-                        help="a tag name to easily identify the plot")
+    parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('--region', required=True, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
+    parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
@@ -798,4 +789,5 @@ if __name__ == "__main__":
         run(args)
     except Exception as e:
         print(str(e))
+        exit(1)
 
