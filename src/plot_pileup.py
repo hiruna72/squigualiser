@@ -19,6 +19,7 @@ from pyfaidx import Fasta
 from pyfastx import Fastq
 import os
 import pysam
+import math
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
@@ -32,7 +33,7 @@ SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
 # PLOT_HEIGHT = 900
-PLOT_Y_MARGIN = 0.5
+PLOT_Y_MARGIN = 5
 SUBPLOT_X = -100
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
@@ -247,19 +248,23 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
         else:
             signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
-    arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_shift, x_end=-1, y_end=y_shift)
+    y_plot = y[:x_coordinate]+y_shift
+    y_median = np.nanmedian(y_plot)
+    y_max = np.nanmax(y_plot)
+    y_min = np.nanmin(y_plot)
+    arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
     p.add_layout(arrow)
     if num_plots != -1:
         sub_plot_y_shift = (y_max - y_min)/6
         source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X],
-                                            y=[y_shift+sub_plot_y_shift*1, y_shift, y_shift-sub_plot_y_shift*1],
+                                            y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1],
                                             tags=[signal_region, indels, read_id]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
                           x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
     else:
         source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X],
-                                            y=[y_shift],
+                                            y=[y_median],
                                             tags=["overlap"]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
                           x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
@@ -328,7 +333,9 @@ def run(args):
     sig_algn_dic = {}
 
     pileup = []
-    prev_y_shift = 0
+    y_shift = 0
+    prev_y_max = 0
+    prev_y_min = 0
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
     p = figure(output_backend="webgl",
                 # sizing_mode="stretch_both",
@@ -337,7 +344,7 @@ def run(args):
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
-    p.yaxis.visible = False
+    # p.yaxis.visible = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
     previous_plot = p
 
@@ -522,32 +529,28 @@ def run(args):
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
 
-            y_min = np.amin(y)
-            y_max = np.amax(y)
+            y_min = math.floor(np.amin(y))
+            y_max = math.ceil(np.amax(y))
             if num_plots == 0:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                              base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=-1,
-                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                y_shift = 0
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
 
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                              base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                y_shift = prev_y_max + PLOT_Y_MARGIN - y_min
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
+
             else:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                              base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + PLOT_Y_MARGIN - y_min
+                y_shift = y_shift + prev_y_max + PLOT_Y_MARGIN - y_min
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
 
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -707,34 +710,29 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple,
-                                                                                         region_tuple, sig_algn_dic,
-                                                                                         fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            y_min = np.amin(y)
-            y_max = np.amax(y)
+            y_min = math.floor(np.amin(y))
+            y_max = math.ceil(np.amax(y))
             if num_plots == 0:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                y_shift = 0
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
 
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                              base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                y_shift = prev_y_max + PLOT_Y_MARGIN - y_min
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
             else:
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq,
-                                              base_limit=base_limit,
-                                              draw_data=draw_data, p=previous_plot, num_plots=num_plots,
-                                              y_shift=prev_y_shift, y_min=y_min, y_max=y_max)
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + PLOT_Y_MARGIN - y_min
+                y_shift = y_shift + prev_y_max + PLOT_Y_MARGIN - y_min
+                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
-                prev_y_shift += (y_max - y_min) + PLOT_Y_MARGIN
+                prev_y_max = y_max
+                prev_y_min = y_min
 
             num_plots += 1
             if num_plots == args.plot_limit:
