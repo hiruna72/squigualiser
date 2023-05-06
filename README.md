@@ -105,7 +105,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details>
 <summary>Click to expand</summary>
 
-1. For r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start) are sufficient.
+1. Setup f5c v1.2 that supports both R9 and R10 data as explained in the [f5c documentation](https://github.com/hasindu2008/f5c). 
 
 2. Run f5c resquiggle
 ```
@@ -113,10 +113,9 @@ FASTQ=reads.fastq
 SIGNAL_FILE=reads.blow5
 ALIGNMENT=move.paf
 
-f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT} 
-```
-* Refer [Note(3)](#note) for more information about `KMER_MODEL`.
-* Refer [Note(4)](#note) for more information about RNA.
+f5c resquiggle -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}  
+* Refer [Note(3)](#note) for more information if you want to specify a custom k-mer model.
+* Typically f5c resquiggle autodetects if DNA/RNA or R9/R10. Refer [Note(4)](#note) for more information.
 
 3. Plot signal to read alignment
 ````
@@ -129,16 +128,16 @@ squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 <details>
 <summary>Click to expand</summary>
 
-1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
+1.  Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -q and -c options).
 ```
-REF=ref.fasta #reference
-READ=sim.fasta
-ALIGNMENT=sim.paf
-SIGNAL_FILE=sim.blow5
+REF=ref.fasta          #reference
+READ=sim.fasta         #simulated reads
+ALIGNMENT=sim.paf      #contains signal-read alignment
+SIGNAL_FILE=sim.blow5  #simultated raw signal data
 
-squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT}
+squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT} # instead of dna-r10-prom, you can specify any other profile
 ```
 
 3. Plot signal to read alignment.
@@ -206,20 +205,21 @@ squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} 
 
 ````
 
-### Option B - Using the signal simulation software - Squigulator (using SAM)
+### Option B - Using the signal simulation software - Squigulator (using SAM output)
 <details>
 <summary>Click to expand</summary>
 
-1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
+1.  Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -a).
 ```
-REF=ref.fasta #reference
-READ=sim.fasta
-ALIGNMENT=sorted_sim.bam
-SIGNAL_FILE=sim.blow5
-NUM_READS=50 #number of reads to simulate
-squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} -a sim.sam -n ${NUM_READS} && samtools sort sim.sam -o ${ALIGNMENT} && samtools index ${ALIGNMENT}
+REF=ref.fasta              #reference
+ALIGNMENT=sorted_sim.bam   #sorted BAM file containing signal to reference alignment
+SIGNAL_FILE=sim.blow5      #simulated raw signals
+NUM_READS=50               #number of reads to simulate
+squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} -a sim.sam -n ${NUM_READS} 
+samtools sort sim.sam -o ${ALIGNMENT} 
+samtools index ${ALIGNMENT}
 ```
 
 3. Plot signal to reference alignment.
@@ -230,23 +230,22 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 ````
 </details>
 
-### Option C - Using the signal simulation software  - Squigulator (using PAF)
+### Option C - Using the signal simulation software  - Squigulator (using PAF output)
 <details>
 <summary>Click to expand</summary>
 
-1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -c and --paf-ref).
 ```
-REF=ref.fasta #reference
-READ=sim.fasta
-ALIGNMENT=sorted_sim.paf.gz
-SIGNAL_FILE=sim.blow5
-NUM_READS=50 #number of reads to simulate
-squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS} \
-   && sort -k6,6 -nk8,8 sim.paf -o sorted_sim.paf \
-   && bgzip sorted_sim.paf \
-   && tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
+REF=ref.fasta                 #reference
+ALIGNMENT=sorted_sim.paf.gz   #sorted bgzip compressed PAF file containing signal to reference alignment
+SIGNAL_FILE=sim.blow5         #simulated raw signals   
+NUM_READS=50                  #number of reads to simulate
+squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
+sort -k6,6 -k8,8n sim.paf -o sorted_sim.paf
+bgzip sorted_sim.paf 
+tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
 ```
 
 3. Plot signal to reference alignment.
@@ -296,8 +295,8 @@ Work in progress...
 ## Note
 1. To get a pileup view, use [scripts/cat_plots.sh](scripts/cat_plots.sh) to concatenate multiple `.html` plots in a directory.
 2. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-3. The argument `KMER_MODEL` is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
-4. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
+3. you specify `--kmer-model KMER_MODEL`if you want to run f5c with a custom model.
+4. f5c autodetects if DNA/RNA and R9/R10 if a S/BLOW5 file is used as the input. Othewise, specify `--rna` and `--pore` options in f5c, accordingly.  Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
 5. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 6. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
 7. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
