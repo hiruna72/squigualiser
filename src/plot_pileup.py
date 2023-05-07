@@ -221,12 +221,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     if num_plots != -1:
         p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
         p.legend.click_policy = "hide"
-        p.legend.location = 'bottom_right'
+        p.legend.location = 'top_left'
         p.legend.label_text_font_size = '7pt'
-        p.legend.glyph_width = 10
-        p.legend.glyph_height = 10
-        p.legend.label_height = 5
-        p.legend.label_height = 5
+        p.legend.glyph_width = 20
+        p.legend.glyph_height = 20
+        p.legend.label_height = 10
+        p.legend.label_height = 10
         p.legend.padding = 1
         p.legend.background_fill_alpha = 0.5
 
