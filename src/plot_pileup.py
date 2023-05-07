@@ -540,16 +540,21 @@ def run(args):
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
-
-                y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
+                if args.overlap_bottom:
+                    y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
+                else:
+                    y_shift = prev_y_min - draw_data["plot_y_margin"] - y_max
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
 
             else:
-                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
-                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
+                if args.overlap_bottom:
+                    # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                    y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
+                else:
+                    y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
@@ -725,14 +730,20 @@ def run(args):
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
-                y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
+                if args.overlap_bottom:
+                    y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
+                else:
+                    y_shift = prev_y_min - draw_data["plot_y_margin"] - y_max
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
             else:
-                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
-                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
+                if args.overlap_bottom:
+                    # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                    y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
+                else:
+                    y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
@@ -782,6 +793,7 @@ def argparser():
     # parser.add_argument('--pileup', required=False, action='store_true', help="generate a pile-up view of all the plots")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
