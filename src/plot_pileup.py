@@ -35,6 +35,7 @@ PLOT_X_RANGE = 750
 # PLOT_HEIGHT = 900
 PLOT_Y_MARGIN = 1
 SUBPLOT_X = -100
+PLOT_BASE_SHIFT = 0
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
@@ -91,7 +92,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     if num_plots == -1:
         label_position = y_min
 
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red'}
+    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_x = []
     base_y = []
     base_label = []
@@ -101,6 +102,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
+
+    base_shift_seq = 'N' * abs(draw_data['base_shift'])
+    if draw_data["base_shift"] > 0:
+        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
+    else:
+        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -254,11 +261,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     y_min = np.nanmin(y_plot)
     arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
     p.add_layout(arrow)
+    base_shift_tag = "base_shift:" + str(draw_data["base_shift"])
     if num_plots != -1:
         sub_plot_y_shift = (y_max - y_min)/6
-        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X],
-                                            y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1],
-                                            tags=[signal_region, indels, read_id]))
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X],
+                                            y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1,y_median-sub_plot_y_shift*2],
+                                            tags=[signal_region, indels, read_id, base_shift_tag]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
                           x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
@@ -331,6 +339,7 @@ def run(args):
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["plot_y_margin"] = PLOT_Y_MARGIN
+    draw_data["base_shift"] = args.base_shift
     sig_algn_dic = {}
 
     pileup = []
@@ -796,6 +805,7 @@ def argparser():
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
+    parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")

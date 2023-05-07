@@ -282,7 +282,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
 
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red'}
+    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_x = []
     base_y = []
     base_label = []
@@ -294,11 +294,11 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
 
-    base_shift_seq = 'N' * draw_data['base_shift']
+    base_shift_seq = 'N' * abs(draw_data['base_shift'])
     if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1 * draw_data["base_shift"]]
+        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
     else:
-        fasta_sequence = fasta_sequence[-1 * draw_data["base_shift"]:] + base_shift_seq
+        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -930,7 +930,7 @@ def run(args):
                 if args_ref_end < ref_end:
                     ref_end = args_ref_end
             if ref_end < ref_start:
-                print("Warning: a corner case has hit because  the kmer_length used is larger than 1. This alignment will be skipped")
+                print("Warning: a corner case has hit because the kmer_length used is larger than 1. This alignment will be skipped")
                 continue
             base_limit = ref_end - ref_start + 1
             # print("ref_start: {}".format(ref_start))
@@ -1082,13 +1082,10 @@ def argparser():
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
-    parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the ")
-    parser.add_argument('--plot_limit', required=False, type=int, default=1000,
-                        help="limit the number of plots generated")
-    parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH,
-                        help="maximum number of signal samples to plot")
-    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE,
-                        help="stride used in basecalling network")
+    parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
+    parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
+    parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
+    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('-o', '--output_dir', required=True, help="output dir")
     return parser
 
