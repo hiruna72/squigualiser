@@ -33,7 +33,7 @@ SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
 # PLOT_HEIGHT = 900
-PLOT_Y_MARGIN = 5
+PLOT_Y_MARGIN = 1
 SUBPLOT_X = -100
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
@@ -330,6 +330,7 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
+    draw_data["plot_y_margin"] = PLOT_Y_MARGIN
     sig_algn_dic = {}
 
     pileup = []
@@ -474,11 +475,13 @@ def run(args):
                     read_mad = 1.0
                 y = (y - read_mad) / read_mad
                 scaling_str = args.sig_scale
+                draw_data["plot_y_margin"] = 0.1
             elif args.sig_scale == "znorm":
                 # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
                 # Calculate the z-score from scratch
                 y = (y - np.mean(y)) / np.std(y)
                 scaling_str = args.sig_scale
+                draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -538,15 +541,15 @@ def run(args):
                 prev_y_max = y_max
                 prev_y_min = y_min
 
-                y_shift = prev_y_max + PLOT_Y_MARGIN - y_min
+                y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
 
             else:
-                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + PLOT_Y_MARGIN - y_min
-                y_shift = y_shift + prev_y_max + PLOT_Y_MARGIN - y_min
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
@@ -666,11 +669,13 @@ def run(args):
                     read_mad = 1.0
                 y = (y - read_mad) / read_mad
                 scaling_str = args.sig_scale
+                draw_data["plot_y_margin"] = 0.1
             elif args.sig_scale == "znorm":
                 # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
                 # Calculate the z-score from scratch
                 y = (y - np.mean(y)) / np.std(y)
                 scaling_str = args.sig_scale
+                draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -720,15 +725,14 @@ def run(args):
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
-
-                y_shift = prev_y_max + PLOT_Y_MARGIN - y_min
+                y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
                 prev_y_min = y_min
             else:
-                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + PLOT_Y_MARGIN - y_min
-                y_shift = y_shift + prev_y_max + PLOT_Y_MARGIN - y_min
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
                 p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
                 previous_plot = p
                 prev_y_max = y_max
