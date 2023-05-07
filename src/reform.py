@@ -69,10 +69,9 @@ def run(args):
 
         if mv[0] != stride:
             if args.rna:
-                print("Info: Using a stride of {} for RNA".format(stride))
+                print("Info: expected stride of {} for RNA is not present. Found {}. Please double check if your data is RNA".format(stride, mv[0]))
             else:
-                print("Info: Using a stride of {} for DNA".format(stride))
-            print("expected stride of {} is missing.".format(stride))
+                print("Info: expected stride of {} for DNA is not present. Found {}. Please double check if your data is DNA. Please provide --rna for RNA.".format(stride, mv[0]))
             exit(1)
         if not args.c:
             move_count = 0

@@ -345,7 +345,7 @@ def run(args):
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
-    # p.yaxis.visible = False
+    p.yaxis.visible = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
     previous_plot = p
 
