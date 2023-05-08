@@ -1,8 +1,8 @@
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
-from src import plot, reform, realign
+from src import plot, reform, realign, plot_pileup
 from ._version import __version__
 
-modules = ['plot', 'reform', 'realign']
+modules = ['plot', 'reform', 'realign', 'plot_pileup']
 version = "squigualiser     {}".format(__version__)
 
 def main():
