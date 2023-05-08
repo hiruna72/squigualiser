@@ -213,8 +213,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
-    p.line('x', 'y_real', line_width=2, source=source)
     p.line('x', 'y', line_width=2, source=source)
+    if not draw_data['no_overlap']:
+        p.line('x', 'y_real', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     if num_plots != -1:
         p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
@@ -324,6 +325,8 @@ def run(args):
     draw_data["fixed_base_width"] = args.base_width
     draw_data["plot_y_margin"] = PLOT_Y_MARGIN
     draw_data["base_shift"] = args.base_shift
+    draw_data["no_overlap"] = args.no_overlap
+    draw_data["overlap_only"] = args.overlap_only
     sig_algn_dic = {}
 
     pileup = []
@@ -717,21 +720,13 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
-            if num_plots == 0:
-                y_shift = 0
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
-                if args.overlap_bottom:
-                    y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
-                else:
-                    y_shift = prev_y_min - draw_data["plot_y_margin"] - y_max
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
-            else:
+            if not args.no_overlap:
+                if num_plots == 0:
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    previous_plot = p
+                    prev_y_max = y_max
+                    prev_y_min = y_min
+            if not args.overlap_only:
                 if args.overlap_bottom:
                     # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
                     y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
@@ -787,6 +782,8 @@ def argparser():
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
+    parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
+    parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")
     parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
