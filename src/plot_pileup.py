@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -92,7 +92,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     if num_plots == -1:
         label_position = y_min
 
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
+    # base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
+    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -117,6 +118,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     fixed_width_x = [0.0]
     line_segment_x = []
 
+    base_box_details = {'left': [], 'right': [], 'fill_color': []}
+
     for i in moves:
         previous_location = location_plot
         previous_x_coordinate = x_coordinate
@@ -129,13 +132,15 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
                 if num_plots == -1:
-                    base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min+y_shift, top=y_max+y_shift, fill_alpha=0.2, fill_color=base_color_map[base])
                     base_label_colors.append('black')
+                    base_box_details['left'].append(prev_loc)
+                    base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
+                    base_box_details['fill_color'].append(base_color_map[base])
                 else:
-                    base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min+y_shift, top=y_max+y_shift, fill_alpha=0.2, fill_color='white')
                     base_label_colors.append('red')
-
-                p.add_layout(base_box)
+                    base_box_details['left'].append(prev_loc)
+                    base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
+                    base_box_details['fill_color'].append('white')
 
                 base_x.append(prev_loc)
                 base_y.append(label_position+y_shift)
@@ -179,8 +184,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             x_coordinate += n_samples
 
             base = fasta_sequence[base_index]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, bottom=y_min+y_shift, top=y_max+y_shift, fill_color=base_color_map[base])
-            p.add_layout(base_box)
+            base_box_details['left'].append(previous_location)
+            base_box_details['right'].append(location_plot)
+            base_box_details['fill_color'].append(base_color_map[base])
             line_segment_x.append(location_plot)
             if num_plots == -1:
                 base_x.append(previous_location)
@@ -196,7 +202,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             break
 
     line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min+y_shift] * len(line_segment_x), y1=[y_max+y_shift] * len(line_segment_x)))
-    glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
+    glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="#8b4513", line_width=1, line_alpha=0.5)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas', text_font_size="9pt", text_color='colors')
@@ -204,6 +210,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
+    p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
     p.line('x', 'y_real', line_width=2, source=source)
@@ -245,21 +252,14 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     y_min = np.nanmin(y_plot)
     arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
     p.add_layout(arrow)
-    base_shift_tag = "base_shift:" + str(draw_data["base_shift"])
     if num_plots != -1:
         sub_plot_y_shift = (y_max - y_min)/6
-        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X],
-                                            y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1,y_median-sub_plot_y_shift*2],
-                                            tags=[signal_region, indels, read_id, base_shift_tag]))
-        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
-                          x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1], tags=[signal_region, indels, read_id]))
+        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
     else:
-        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X],
-                                            y=[y_median],
-                                            tags=["overlap"]))
-        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt",
-                          x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X], y=[y_median], tags=["overlap"]))
+        subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
 
     return p
