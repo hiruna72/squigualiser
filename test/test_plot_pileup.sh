@@ -39,7 +39,6 @@ testcase_11s() {
   SCALING="znorm"
   python src/plot_pileup.py --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
 
-
   TESTCASE=11.1
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
@@ -49,7 +48,8 @@ testcase_11s() {
   PLOT_LIMIT=10
   REGION="chr1:6,811,011-6,811,198"
   SCALING="znorm"
-  python src/plot_pileup.py --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
   TESTCASE=11.2
   info "testcase:$TESTCASE - reference-signal plot"
@@ -61,7 +61,8 @@ testcase_11s() {
   PLOT_LIMIT=10
   REGION="chr22_1_5k:4000-4500"
   SCALING="znorm"
-  python src/plot_pileup.py --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
 }
 testcase_11s #pileup

@@ -87,10 +87,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    # label_position = np.median(y)
-    label_position = np.percentile(y, 75)  # Q3
-    if num_plots == -1:
-        label_position = y_min
+    label_position = y_min
 
     # base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
@@ -131,7 +128,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                if num_plots == -1:
+                if num_plots == -1 or draw_data['overlap_only']:
                     base_label_colors.append('black')
                     base_box_details['left'].append(prev_loc)
                     base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
@@ -188,7 +185,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             base_box_details['right'].append(location_plot)
             base_box_details['fill_color'].append(base_color_map[base])
             line_segment_x.append(location_plot)
-            if num_plots == -1:
+            if num_plots == -1 or draw_data['overlap_only']:
                 base_x.append(previous_location)
                 base_y.append(label_position+y_shift)
                 label = str(base) + "\t" + str(base_index + 1)
@@ -210,10 +207,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
-    p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
-    p.add_glyph(line_segment_source, glyph)
-    p.add_layout(base_annotation_labels)
-    p.line('x', 'y', line_width=2, source=source)
+    if (draw_data['overlap_only'] and num_plots == 0) or not draw_data['overlap_only']:
+        p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
+        p.add_glyph(line_segment_source, glyph)
+        p.add_layout(base_annotation_labels)
+    if not draw_data['overlap_only']:
+        p.line('x', 'y', line_width=2, source=source)
     if not draw_data['no_overlap']:
         p.line('x', 'y_real', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
@@ -252,16 +251,17 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     y_max = np.nanmax(y_plot)
     y_min = np.nanmin(y_plot)
     arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
-    p.add_layout(arrow)
-    if num_plots != -1:
+    if num_plots != -1 and not draw_data['overlap_only']:
         sub_plot_y_shift = (y_max - y_min)/6
         source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1], tags=[signal_region, indels, read_id]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
-    else:
+        p.add_layout(arrow)
+    elif num_plots == -1 or (draw_data['overlap_only'] and num_plots == 0):
         source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X], y=[y_median], tags=["overlap"]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels, render_mode='canvas')
         p.add_layout(subplot_labels)
+        p.add_layout(arrow)
 
     return p
 def run(args):
@@ -341,7 +341,7 @@ def run(args):
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
-    p.yaxis.visible = False
+    # p.yaxis.visible = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
     previous_plot = p
 
@@ -530,31 +530,24 @@ def run(args):
 
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
-            if num_plots == 0:
-                y_shift = 0
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
-                if args.overlap_bottom:
-                    y_shift = prev_y_max + draw_data["plot_y_margin"] - y_min
-                else:
-                    y_shift = prev_y_min - draw_data["plot_y_margin"] - y_max
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
+            if not args.no_overlap and not args.overlap_only:
+                if num_plots == 0:
+                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    previous_plot = p
+                    prev_y_max = y_max
+                    prev_y_min = y_min
 
+            if args.overlap_bottom:
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
             else:
-                if args.overlap_bottom:
-                    # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
-                    y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
-                else:
-                    y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
+                y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
+            if args.overlap_only:
+                y_shift = 0
+            p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            previous_plot = p
+            prev_y_max = y_max
+            prev_y_min = y_min
 
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -720,22 +713,24 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
-            if not args.no_overlap:
+            if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
                     p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
-            if not args.overlap_only:
-                if args.overlap_bottom:
-                    # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
-                    y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
-                else:
-                    y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
-                p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
-                previous_plot = p
-                prev_y_max = y_max
-                prev_y_min = y_min
+
+            if args.overlap_bottom:
+                # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
+                y_shift = y_shift + prev_y_max + draw_data["plot_y_margin"] - y_min
+            else:
+                y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
+            if args.overlap_only:
+                y_shift = 0
+            p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            previous_plot = p
+            prev_y_max = y_max
+            prev_y_min = y_min
 
             num_plots += 1
             if num_plots == args.plot_limit:
