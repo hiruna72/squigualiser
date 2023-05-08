@@ -533,7 +533,7 @@ def run(args):
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            sig_algn_dic['tag_name'] = args.tag_name + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             sig_algn_dic['ss'] = moves
             # print(len(moves))
@@ -724,8 +724,8 @@ def run(args):
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            sig_algn_dic['tag_name'] = args.tag_name + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(
-                args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
