@@ -195,33 +195,17 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
 
-    line_segment_source = ColumnDataSource(dict(
-        x=line_segment_x,
-        x1=line_segment_x,
-        y=[y_min+y_shift] * len(line_segment_x),
-        y1=[y_max+y_shift] * len(line_segment_x),
-    ))
+    line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min+y_shift] * len(line_segment_x), y1=[y_max+y_shift] * len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
-    p.add_glyph(line_segment_source, glyph)
 
-    base_annotation = ColumnDataSource(data=dict(base_x=base_x,
-                                                 base_y=base_y,
-                                                 base_label=base_label,
-                                                 colors=base_label_colors))
+    base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas', text_font_size="9pt", text_color='colors')
 
-    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-                                      x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
-                                      text_font_size="9pt", text_color='colors')
-
-    p.add_layout(base_annotation_labels)
     fixed_width_x = fixed_width_x[1:]
+    source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
-    source = ColumnDataSource(data=dict(
-        x=fixed_width_x[:x_coordinate],
-        y=y[:x_coordinate]+y_shift,
-        x_real=x_real[:x_coordinate],
-        y_real=y[:x_coordinate]
-    ))
+    p.add_glyph(line_segment_source, glyph)
+    p.add_layout(base_annotation_labels)
     p.line('x', 'y_real', line_width=2, source=source)
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
