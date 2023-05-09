@@ -312,8 +312,11 @@ def run(args):
         base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
-    if not os.path.exists(args.output_dir):
-        os.mkdir(args.output_dir)
+    if args.return_plot:
+        print("Info: plots will be returned without saving")
+    else:
+        if not os.path.exists(args.output_dir):
+            os.mkdir(args.output_dir)
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -737,21 +740,24 @@ def run(args):
                 break
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
+    s5.close()
 
     print("Number of plots: {}".format(num_plots))
 
     if num_plots > 0:
-        pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-        output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
         if sig_algn_dic["data_is_rna"] == 1:
             plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
         else:
             plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
         p.title = plot_title
-        save(p)
-        print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+        if args.return_plot:
+            return p
+        else:
+            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
+            output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+            print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+            save(p)
 
-    s5.close()
 
 def argparser():
     # parser = argparse.ArgumentParser()
@@ -785,7 +791,9 @@ def argparser():
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
-    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-o', '--output_dir', help="output dir")
+    group.add_argument('--return_plot', action='store_true', help="return plot object without saving to output")
     return parser
 
 if __name__ == "__main__":
