@@ -116,6 +116,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     line_segment_x = []
 
     base_box_details = {'left': [], 'right': [], 'fill_color': []}
+    flag_base_index_bound = 0
 
     for i in moves:
         previous_location = location_plot
@@ -148,7 +149,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                 prev_x_cord += draw_data["fixed_base_width"]
                 base_index += 1
                 num_Ds += 1
+                if base_index - sig_algn_data["start_kmer"] == base_limit:
+                    flag_base_index_bound = 1
+                    break
 
+            if flag_base_index_bound == 1:
+                break
             location_plot = prev_loc
             x_coordinate = prev_x_cord
 

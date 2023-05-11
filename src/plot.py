@@ -129,6 +129,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     num_Is = 0
     num_Ds = 0
     line_segment_x = []
+    flag_base_index_bound = 0
     for i in moves:
         previous_location = location_plot
         if 'D' in i:
@@ -150,7 +151,12 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
                 prev_loc += draw_data["fixed_base_width"]
                 base_index += 1
                 num_Ds += 1
+                if base_index - sig_algn_data["start_kmer"] == base_limit:
+                    flag_base_index_bound = 1
+                    break
 
+            if flag_base_index_bound == 1:
+                break
             location_plot = prev_loc
 
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["fixed_base_width"]))
@@ -309,7 +315,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     line_segment_x = []
 
     num_samples_in_insertion = 0
-
+    flag_base_index_bound = 0
     for i in moves:
         previous_location = location_plot
         previous_x_coordinate = x_coordinate
@@ -334,7 +340,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                 prev_x_cord += draw_data["fixed_base_width"]
                 base_index += 1
                 num_Ds += 1
+                if base_index - sig_algn_data["start_kmer"] == base_limit:
+                    flag_base_index_bound = 1
+                    break
 
+            if flag_base_index_bound == 1:
+                break
             location_plot = prev_loc
             x_coordinate = prev_x_cord
 
