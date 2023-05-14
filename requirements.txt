@@ -1,4 +1,4 @@
-bokeh==2.3.3
+bokeh==3.1.1
 numpy
 pyslow5
 readpaf
