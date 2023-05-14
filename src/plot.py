@@ -31,6 +31,8 @@ BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
+PLOT_BOUNT_X_STRIDE = 1000
+PLOT_BOUNT_Y_STRIDE = 500
 PLOT_HEIGHT = 300
 PLOT_BASE_SHIFT = 0
 
@@ -77,14 +79,12 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
 
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-
-
 def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,zoom_out,zoom_in',
 
     y_axis_label = "signal value (raw)"
     if sig_algn_data["pa"]:
@@ -101,7 +101,6 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
                sizing_mode="stretch_width",
                height=PLOT_HEIGHT,
                output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
 
@@ -255,12 +254,24 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         else:
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
-    # p.x_range = Range1d(0, 600, bounds=(-100, 3000))
-    # p.y_range = Range1d(0, 200, bounds=(-500, 500))
+
+    if location_plot < PLOT_X_RANGE:
+        draw_data["plot_dims"]['start_x'] = 0
+        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
+    else:
+        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
+        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
+    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
+    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
+    draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
+    draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
+    draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
+    draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
+    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
+    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
-
-
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
@@ -283,7 +294,6 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                sizing_mode="stretch_width",
                height=PLOT_HEIGHT,
                output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
     # tooltips=tool_tips)
 
@@ -465,6 +475,21 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
+    if location_plot < PLOT_X_RANGE:
+        draw_data["plot_dims"]['start_x'] = 0
+        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
+    else:
+        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
+        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
+    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
+    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
+    draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
+    draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
+    draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
+    draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
+    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
+    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
 
@@ -527,6 +552,7 @@ def run(args):
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["base_shift"] = args.base_shift
+    draw_data["plot_dims"] = {}
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
