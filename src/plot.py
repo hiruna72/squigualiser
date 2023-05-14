@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d
 from bokeh.layouts import row
 from bokeh.colors import RGB
 import pyslow5
@@ -218,7 +218,7 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
                                                  colors=base_label_colors))
 
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-                                      x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
+                                      x_offset=5, y_offset=5, source=base_annotation,
                                       text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
@@ -255,7 +255,8 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         else:
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
-
+    # p.x_range = Range1d(0, 600, bounds=(-100, 3000))
+    # p.y_range = Range1d(0, 200, bounds=(-500, 500))
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
 
@@ -425,7 +426,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                                                  colors=base_label_colors))
 
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-                                      x_offset=5, y_offset=5, source=base_annotation, render_mode='canvas',
+                                      x_offset=5, y_offset=5, source=base_annotation,
                                       text_font_size="9pt", text_color='colors')
 
     p.add_layout(base_annotation_labels)
