@@ -77,14 +77,12 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
 
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-
-
 def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
 
     y_axis_label = "signal value (raw)"
     if sig_algn_data["pa"]:
@@ -102,11 +100,12 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
                height=PLOT_HEIGHT,
                output_backend="webgl",
                x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show)
+               tools=tools_to_show,
+               toolbar_location="below")
     # tooltips=tool_tips)
 
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-
+    p.toolbar.logo = None
     base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_x = []
     base_y = []
@@ -255,18 +254,15 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         else:
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
-    # p.x_range = Range1d(0, 600, bounds=(-100, 3000))
-    # p.y_range = Range1d(0, 200, bounds=(-500, 500))
+
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
-
-
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
 
     y_axis_label = "signal value (raw)"
     if sig_algn_data["pa"]:
@@ -284,10 +280,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
                height=PLOT_HEIGHT,
                output_backend="webgl",
                x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show)
+               tools=tools_to_show,
+               toolbar_location="below")
     # tooltips=tool_tips)
 
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
+    p.toolbar.logo = None
 
     base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
     base_x = []

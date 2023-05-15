@@ -27,9 +27,9 @@ mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 RAW_DIR="${REL_PATH}/data/raw/plot"
 EXP_DIR="${REL_PATH}/data/exp/plot"
 
-testcase_11s() {
+testcase_20s() {
   GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
-  TESTCASE=11.0
+  TESTCASE=20.0
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
@@ -39,7 +39,7 @@ testcase_11s() {
   SCALING="znorm"
   python src/plot_pileup.py --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
 
-  TESTCASE=11.1
+  TESTCASE=20.1
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
@@ -51,7 +51,7 @@ testcase_11s() {
   BASE_SHIFT="--base_shift -6"
   python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
-  TESTCASE=11.2
+  TESTCASE=20.2
   info "testcase:$TESTCASE - reference-signal plot"
   GENOME="test/data/raw/plot/reference_genomes/chr22_1_5k.fa"
   FASTA=${GENOME}
@@ -65,7 +65,7 @@ testcase_11s() {
   python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
 }
-testcase_11s #pileup
+testcase_20s #pileup
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

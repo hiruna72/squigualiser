@@ -40,7 +40,6 @@ PLOT_BASE_SHIFT = 0
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
-
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
@@ -81,7 +80,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         sig_algn_data['ss'] = moves
 
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-
 def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
@@ -339,7 +337,7 @@ def run(args):
     y_shift = 0
     prev_y_max = 0
     prev_y_min = 0
-    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom'
+    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,reset,zoom_in,zoom_out'
     p = figure(output_backend="webgl",
                 # sizing_mode="stretch_both",
                sizing_mode="scale_width",
@@ -349,6 +347,7 @@ def run(args):
     # tooltips=tool_tips)
     # p.yaxis.visible = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
+    p.toolbar.logo = None
     previous_plot = p
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
@@ -758,7 +757,6 @@ def run(args):
         print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
     s5.close()
-
 def argparser():
     # parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(
