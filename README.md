@@ -23,10 +23,11 @@ A simple tool to Visualise nanopore raw signal-base alignment
    3. [Option C - Using the signal simulation software - Squigulator (using PAF)](#option-c---using-the-signal-simulation-software----squigulator-using-paf)
    4. [Option D - Using F5c eventalign](#option-d---using-f5c-eventalign)
 4. [Pileup view](#pileup-view)
-5. [Note](#note)
-6. [Guppy move table explanation](#guppy-move-table-explanation)
-7. [Base shift](#base-shift)
-8. [Example](#example)
+5. [Squigualiser website](#Squigualiser-website)
+6. [Note](#note)
+7. [Guppy move table explanation](#guppy-move-table-explanation)
+8. [Base shift](#base-shift)
+9. [Example](#example)
 
 
 ## Installation
@@ -304,6 +305,17 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 ````
 [Here](https://hiruna72.github.io/squigualiser/docs/figures/fixed_with_region_specified_pileup.html) is an example pileup plot created using the [testcase 8.1](test/test_plot_signal_to_read.sh).
 
+## Squigualiser website
+<details>
+<summary>Click to expand</summary>
+
+![image](docs/figures/squigualiser_website.png)
+
+For GUI lovers, plots can be generated using a website running on localhost.
+````
+python src/server.py
+````
+</details>
 
 ## Note
 1. To get a pileup view, use [scripts/cat_plots.sh](scripts/cat_plots.sh) to concatenate multiple `.html` plots in a directory.
