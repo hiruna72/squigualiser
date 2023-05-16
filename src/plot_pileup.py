@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, Range1d
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, Range1d, CustomJS
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -211,15 +211,12 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
+
+
     if (draw_data['overlap_only'] and num_plots == 0) or not draw_data['overlap_only']:
         p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
         p.add_glyph(line_segment_source, glyph)
         p.add_layout(base_annotation_labels)
-    if not draw_data['overlap_only']:
-        p.line('x', 'y', line_width=2, source=source)
-    if not draw_data['no_overlap']:
-        p.line('x', 'y_real', line_width=2, source=source)
-    # add a circle renderer with a size, color, and alpha
     if num_plots != -1:
         p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
         p.legend.click_policy = "hide"
@@ -231,6 +228,14 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         p.legend.label_height = 10
         p.legend.padding = 1
         p.legend.background_fill_alpha = 0.5
+
+    if not draw_data['overlap_only']:
+        if num_plots != -1:
+            p.line('x', 'y', line_width=2, source=source)
+    if not draw_data['no_overlap']:
+        leg_lable = "plot_" + str(num_plots)
+        if num_plots != -1:
+            p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable)
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -257,7 +262,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
     if num_plots != -1 and not draw_data['overlap_only']:
         sub_plot_y_shift = (y_max - y_min)/6
-        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1], tags=[signal_region, indels, read_id]))
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1, y_median-sub_plot_y_shift*2], tags=[signal_region, indels, read_id, "plot: "+str(num_plots)]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels)
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
