@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, Range1d, CustomJS
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -80,7 +80,7 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         sig_algn_data['ss'] = moves
 
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
+def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
@@ -93,6 +93,8 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     base_y = []
     base_label = []
     base_label_colors = []
+    sample_label_colors_match = []
+    sample_label_colors_insert = []
     location_plot = 0
     initial_location = location_plot
 
@@ -115,6 +117,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     base_box_details = {'left': [], 'right': [], 'fill_color': []}
     flag_base_index_bound = 0
+    num_samples_in_insertion = 0
 
     for i in moves:
         previous_location = location_plot
@@ -162,20 +165,27 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             x_add = np.concatenate((x_real[:previous_x_coordinate], [x_real[previous_x_coordinate]] * n_samples * draw_data["fixed_base_width"]), axis=0)
             x_real = np.concatenate((x_add, x_real[previous_x_coordinate:]), axis=0)
 
+            for j in range(0, n_samples * draw_data["fixed_base_width"]):
+                sample_label_colors_match.append('None')
+                sample_label_colors_insert.append('None')
+
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-            prev_x_value = fixed_width_x[-1]
-            for s in range(0, n_samples-1):
-                fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"]/n_samples)
-            fixed_width_x.append(prev_x_value + draw_data["fixed_base_width"])
+            # prev_x_value = fixed_width_x[-1]
+            # for s in range(0, n_samples-1):
+            #     fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"]/n_samples)
+            # fixed_width_x.append(prev_x_value + draw_data["fixed_base_width"])
+            num_samples_in_insertion = n_samples
             num_Is += n_samples
-            location_plot += draw_data["fixed_base_width"]
-            x_coordinate += n_samples
-            line_segment_x.append(location_plot)
-
+            # location_plot += draw_data["fixed_base_width"]
+            # x_coordinate += n_samples
+            # line_segment_x.append(location_plot)
+            for j in range(0, n_samples):
+                sample_label_colors_match.append('None')
+                sample_label_colors_insert.append('purple')
         else:
-            n_samples = int(i)
+            n_samples = int(i) + num_samples_in_insertion
             prev_x_value = fixed_width_x[-1]
             for s in range(0, n_samples - 1):
                 fixed_width_x.append(fixed_width_x[-1] + draw_data["fixed_base_width"] / n_samples)
@@ -191,11 +201,22 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             line_segment_x.append(location_plot)
             if num_plots == -1 or draw_data['overlap_only']:
                 base_x.append(previous_location)
-                base_y.append(label_position+y_shift)
+                base_y.append(label_position + y_shift)
                 label = str(base) + "\t" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('black')
+            else:
+                if num_samples_in_insertion > 0:
+                    base_x.append(previous_location)
+                    base_y.append(label_position + y_shift)
+                    label = str(num_samples_in_insertion)
+                    base_label.append(label)
+                    base_label_colors.append('purple')
+            for j in range(0, n_samples - num_samples_in_insertion):
+                sample_label_colors_match.append('red')
+                sample_label_colors_insert.append('None')
             base_index += 1
+            num_samples_in_insertion = 0
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
             break
@@ -211,23 +232,16 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
-
-
     if (draw_data['overlap_only'] and num_plots == 0) or not draw_data['overlap_only']:
         p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
         p.add_glyph(line_segment_source, glyph)
         p.add_layout(base_annotation_labels)
     if num_plots != -1:
-        p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color="red", alpha=0.5, legend_label='hide', visible=False)
-        p.legend.click_policy = "hide"
-        p.legend.location = 'top_left'
-        p.legend.label_text_font_size = '7pt'
-        p.legend.glyph_width = 20
-        p.legend.glyph_height = 20
-        p.legend.label_height = 10
-        p.legend.label_height = 10
-        p.legend.padding = 1
-        p.legend.background_fill_alpha = 0.5
+        if num_plots == 0:
+            sample_label_colors_insert[0] = 'purple'
+            sample_label_colors_match[0] = 'red'
+        sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color=sample_label_colors_match, alpha=0.2, legend_label='match', visible=False)
+        sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
 
     if not draw_data['overlap_only']:
         if num_plots != -1:
@@ -542,7 +556,7 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
@@ -554,7 +568,7 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
@@ -725,7 +739,7 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
@@ -737,7 +751,7 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
@@ -758,6 +772,12 @@ def run(args):
         else:
             plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
         p.title = plot_title
+
+        p.legend.click_policy = "hide"
+        # p.legend.location = 'top_left'
+        p.legend.label_text_font_size = '7pt'
+        p.legend.background_fill_alpha = 0.5
+
         save(p)
         print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
