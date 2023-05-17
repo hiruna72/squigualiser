@@ -80,16 +80,10 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
 
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
-
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-
-    y_axis_label = "signal value (raw)"
-    if sig_algn_data["pa"]:
-        y_axis_label = "signal value (pA)"
 
     y_min = np.amin(y)
     y_max = np.amax(y)
@@ -97,18 +91,6 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
 
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-    # tooltips=tool_tips)
-
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
@@ -252,36 +234,16 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
-def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
-
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-
-    y_axis_label = "signal value (raw)"
-    if sig_algn_data["pa"]:
-        y_axis_label = "signal value (pA)"
 
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
     y_min = np.amin(y)
     y_max = np.amax(y)
-
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-
-    # tooltips=tool_tips)
-
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
 
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
@@ -467,6 +429,11 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
+
+def plot_bed_annotation(p, annotation, signal_tuple):
+    p.quad(top=400, bottom=300, left=0, right=10, color='red')
+    return p
+
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -542,6 +509,22 @@ def run(args):
     draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
     draw_data["bed_content"] = bed_content
+
+    y_axis_label = "signal value (raw)"
+    if args.no_pa:
+        y_axis_label = "signal value (pA)"
+    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
+    p = figure(x_axis_label='signal index',
+               y_axis_label=y_axis_label,
+               sizing_mode="stretch_width",
+               height=PLOT_HEIGHT,
+               output_backend="webgl",
+               x_range=(0, PLOT_X_RANGE),
+               tools=tools_to_show,
+               toolbar_location="below")
+    # tooltips=tool_tips)
+    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
+    p.toolbar.logo = None
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -669,7 +652,6 @@ def run(args):
                 sig_algn_dic['start_kmer'] = ref_start - 1
                 sig_algn_dic['ref_start'] = ref_start
                 sig_algn_dic['ref_end'] = ref_end
-                sig_algn_dic['pa'] = args.no_pa
                 sig_algn_dic['use_paf'] = use_paf
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
@@ -686,9 +668,9 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 if args.fixed_width:
-                    layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
-                    layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
                 output_file(output_file_name, title=read_id)
                 save(layout_)
@@ -865,7 +847,6 @@ def run(args):
             sig_algn_dic['start_kmer'] = 0
             sig_algn_dic['ref_start'] = ref_start
             sig_algn_dic['ref_end'] = ref_end
-            sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
@@ -879,10 +860,9 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
-                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
             output_file(output_file_name, title=read_id)
             save(layout_)
@@ -1058,13 +1038,9 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
 
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
-                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple,
-                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                              draw_data=draw_data)
+                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 
             output_file(output_file_name, title=read_id)
             save(layout_)
