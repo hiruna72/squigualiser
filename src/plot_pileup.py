@@ -96,7 +96,6 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     sample_label_colors_match = []
     sample_label_colors_insert = []
     location_plot = 0
-    initial_location = location_plot
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
@@ -335,6 +334,9 @@ def run(args):
         base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
+    if args.bed:
+        print(f'bed file: {args.bed}')
+
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
@@ -358,8 +360,9 @@ def run(args):
     prev_y_min = 0
     tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,reset,zoom_in,zoom_out'
     p = figure(output_backend="webgl",
-                # sizing_mode="stretch_both",
-               sizing_mode="scale_width",
+                sizing_mode="stretch_both",
+               # sizing_mode="scale_width",
+               # sizing_mode="scale_height",
                # height=PLOT_HEIGHT,
                x_range=(0, PLOT_X_RANGE),
                tools=tools_to_show)
@@ -814,6 +817,7 @@ def argparser():
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
+    parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('-o', '--output_dir', required=True, help="output dir")
     return parser
 

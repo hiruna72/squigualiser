@@ -33,13 +33,15 @@ DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 750
 PLOT_BOUNT_X_STRIDE = 1000
 PLOT_BOUNT_Y_STRIDE = 500
-PLOT_HEIGHT = 300
+PLOT_HEIGHT = 600
 PLOT_BASE_SHIFT = 0
 
 DEFAULT_NUM_BED_COLS = 3
+DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
+BED_CHROM, BED_CHROM_START, BED_CHROM_END, BED_NAME, BED_SCORE, BED_STRAND, BED_THICK_START, BED_THICK_END, BED_ITEM_RGB, BED_BLOCK_COUNT, BED_BLOCK_SIZES, BLOCK_STARTS = range(12)
 
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
@@ -85,8 +87,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    y_min = np.amin(y)
-    y_max = np.amax(y)
+    y_min = draw_data['y_min']
+    y_max = draw_data['y_max']
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
@@ -242,8 +244,8 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
-    y_min = np.amin(y)
-    y_max = np.amax(y)
+    y_min = draw_data['y_min']
+    y_max = draw_data['y_max']
 
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
@@ -430,8 +432,123 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
 
-def plot_bed_annotation(p, annotation, signal_tuple):
-    p.quad(top=400, bottom=300, left=0, right=10, color='red')
+def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
+    moves = sig_algn_data["ss"]
+    base_index = sig_algn_data["start_kmer"]
+    annotation_box_details = {'left': [], 'right': [], 'fill_color': []}
+    annotation_label = []
+    annotation_label_x = []
+    location_plot = 0
+    x_coordinate = 0
+    initial_x_coordinate = x_coordinate
+    flag_base_index_bound = 0
+    bed_index = 0
+    bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+    bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+    if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+        bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+    else:
+        bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+
+    for i in moves:
+        previous_location = location_plot
+        previous_x_coordinate = x_coordinate
+        if 'D' in i:
+            i = re.sub('D', '', i)
+            n_samples = int(i)
+
+            prev_loc = previous_location
+            prev_x_cord = previous_x_coordinate
+            for j in range(0, n_samples):
+                annotation_box_details['left'].append(prev_loc)
+                annotation_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
+                annotation_box_details['fill_color'].append(bed_region_color)
+
+                prev_loc += draw_data["fixed_base_width"]
+                prev_x_cord += draw_data["fixed_base_width"]
+
+                #start add annotation
+                if bed_region_start == base_index+1:
+                    annotation_box_details['left'].append(previous_location)
+                if bed_region_end-1 == base_index+1:
+                    annotation_box_details['right'].append(location_plot)
+                    annotation_box_details['fill_color'].append(bed_region_color)
+                    if len(bed_content[bed_index]) >= BED_NAME + 1:
+                        bed_name = bed_content[bed_index][BED_NAME]
+                        annotation_label.append(bed_name)
+                        annotation_label_x.append((annotation_box_details['left'][-1]))
+                if base_index+1 == (bed_region_end-1) and bed_index < len(bed_content)-1:
+                    bed_index += 1
+                    prev_bed_end = bed_region_end
+                    bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+                    bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+                    if prev_bed_end > bed_region_start:
+                        raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                    if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+                        bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+                    else:
+                        bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+                #end add annotation
+
+                base_index += 1
+                if base_index - sig_algn_data["start_kmer"] == base_limit:
+                    flag_base_index_bound = 1
+                    break
+            if flag_base_index_bound == 1:
+                break
+            location_plot = prev_loc
+            x_coordinate = prev_x_cord
+
+        elif 'I' in i:
+            i = re.sub('I', '', i)
+            n_samples = int(i)
+
+        else:
+            n_samples = int(i)
+            if draw_data['fixed_width']:
+                location_plot += draw_data["fixed_base_width"]
+            else:
+                location_plot += n_samples
+            x_coordinate += n_samples
+            #start add annotation
+            if bed_region_start == base_index+1:
+                annotation_box_details['left'].append(previous_location)
+            if bed_region_end-1 == base_index+1:
+                annotation_box_details['right'].append(location_plot)
+                annotation_box_details['fill_color'].append(bed_region_color)
+                if len(bed_content[bed_index]) >= BED_NAME + 1:
+                    bed_name = bed_content[bed_index][BED_NAME]
+                    annotation_label.append(bed_name)
+                    annotation_label_x.append((annotation_box_details['left'][-1]))
+            if base_index+1 == (bed_region_end-1) and bed_index < len(bed_content)-1:
+                bed_index += 1
+                prev_bed_end = bed_region_end
+                bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+                bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+                if prev_bed_end > bed_region_start:
+                    raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+                    bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+                else:
+                    bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+            #end add annotation
+            base_index += 1
+
+        if base_index - sig_algn_data["start_kmer"] == base_limit:
+            break
+        if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
+            break
+
+    # print(annotation_box_details)
+    plot_height = draw_data['y_max'] - draw_data['y_min']
+    plot_shift = plot_height/10
+    p.quad(top=draw_data['y_max']+2*plot_shift, bottom=draw_data['y_max']+plot_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
+
+    # print(annotation_label)
+    bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
+    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+plot_shift, text='base_label', source=bed_annotation, text_font_size="9pt")
+    p.add_layout(bed_annotation_labels)
+
     return p
 
 def run(args):
@@ -474,7 +591,6 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
-
     if args.base_limit:
         base_limit = args.base_limit
     else:
@@ -493,7 +609,7 @@ def run(args):
                 else:
                     bed_num_cols = len(bed_list)
                 bed_content.append(bed_list)
-        print(bed_content)
+        # print(bed_content)
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
@@ -508,7 +624,7 @@ def run(args):
     draw_data["fixed_base_width"] = args.base_width
     draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
-    draw_data["bed_content"] = bed_content
+    draw_data["fixed_width"] = args.fixed_width
 
     y_axis_label = "signal value (raw)"
     if args.no_pa:
@@ -667,8 +783,13 @@ def run(args):
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+                draw_data['y_min'] = np.amin(y)
+                draw_data['y_max'] = np.amax(y)
+                if args.bed:
+                    p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+
                 if args.fixed_width:
-                    layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
                     layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
@@ -858,9 +979,13 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
+            draw_data['y_min'] = np.amin(y)
+            draw_data['y_max'] = np.amax(y)
+            if args.bed:
+                p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
                 layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
@@ -1036,9 +1161,13 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
+            draw_data['y_min'] = np.amin(y)
+            draw_data['y_max'] = np.amax(y)
+            if args.bed:
+                p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
                 layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 
@@ -1051,8 +1180,6 @@ def run(args):
                 break
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
-
-
 
     print("Number of plots: {}".format(num_plots))
 
