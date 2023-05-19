@@ -414,20 +414,20 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    if location_plot < PLOT_X_RANGE:
-        draw_data["plot_dims"]['start_x'] = 0
-        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
-    else:
-        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
-        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
-    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
-    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
-    draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
-    draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
-    draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
-    draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
-    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
-    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+    # if location_plot < PLOT_X_RANGE:
+    #     draw_data["plot_dims"]['start_x'] = 0
+    #     draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
+    # else:
+    #     draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
+    #     draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
+    # draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
+    # draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
+    # draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
+    # draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
+    # draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
+    # draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
+    # p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
+    # p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
@@ -551,6 +551,23 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
 
     return p
 
+def create_figure(args):
+    y_axis_label = "signal value (raw)"
+    if args.no_pa:
+        y_axis_label = "signal value (pA)"
+    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
+    p_default = figure(x_axis_label='signal index',
+               y_axis_label=y_axis_label,
+               sizing_mode="stretch_width",
+               height=PLOT_HEIGHT,
+               output_backend="webgl",
+               x_range=(0, PLOT_X_RANGE),
+               tools=tools_to_show,
+               toolbar_location="below")
+    # tooltips=tool_tips)
+    p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
+    p_default.toolbar.logo = None
+    return p_default
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -625,22 +642,6 @@ def run(args):
     draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
     draw_data["fixed_width"] = args.fixed_width
-
-    y_axis_label = "signal value (raw)"
-    if args.no_pa:
-        y_axis_label = "signal value (pA)"
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-    # tooltips=tool_tips)
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -785,6 +786,7 @@ def run(args):
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 draw_data['y_min'] = np.amin(y)
                 draw_data['y_max'] = np.amax(y)
+                p = create_figure(args)
                 if args.bed:
                     p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
@@ -981,6 +983,7 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
+            p = create_figure(args)
             if args.bed:
                 p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
@@ -1163,9 +1166,9 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
+            p = create_figure(args)
             if args.bed:
                 p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
-
             if args.fixed_width:
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
@@ -1174,7 +1177,6 @@ def run(args):
             output_file(output_file_name, title=read_id)
             save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
-
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
