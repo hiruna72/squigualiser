@@ -30,7 +30,7 @@ FIXED_INSERTION_WIDTH = 10
 BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
-PLOT_X_RANGE = 750
+PLOT_X_RANGE = 300
 PLOT_BOUNT_X_STRIDE = 1000
 PLOT_BOUNT_Y_STRIDE = 500
 PLOT_HEIGHT = 600
@@ -431,10 +431,11 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
-
-def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
+def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, track_shift, track_height):
+    bed_content.sort(key=lambda x: x[BED_CHROM_START])
     moves = sig_algn_data["ss"]
     base_index = sig_algn_data["start_kmer"]
+    ref_start = sig_algn_data["ref_start"]
     annotation_box_details = {'left': [], 'right': [], 'fill_color': []}
     annotation_label = []
     annotation_label_x = []
@@ -443,6 +444,7 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
     initial_x_coordinate = x_coordinate
     flag_base_index_bound = 0
     bed_index = 0
+
     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
     bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
     if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
@@ -456,28 +458,22 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
         if 'D' in i:
             i = re.sub('D', '', i)
             n_samples = int(i)
-
             prev_loc = previous_location
             prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
-                annotation_box_details['left'].append(prev_loc)
-                annotation_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
-                annotation_box_details['fill_color'].append(bed_region_color)
-
                 prev_loc += draw_data["fixed_base_width"]
                 prev_x_cord += draw_data["fixed_base_width"]
-
                 #start add annotation
-                if bed_region_start == base_index+1:
-                    annotation_box_details['left'].append(previous_location)
-                if bed_region_end-1 == base_index+1:
-                    annotation_box_details['right'].append(location_plot)
+                if bed_region_start+1 == base_index+ref_start:
+                    annotation_box_details['left'].append(prev_loc-draw_data["fixed_base_width"])
+                if bed_region_end == base_index+ref_start:
+                    annotation_box_details['right'].append(prev_loc)
                     annotation_box_details['fill_color'].append(bed_region_color)
                     if len(bed_content[bed_index]) >= BED_NAME + 1:
                         bed_name = bed_content[bed_index][BED_NAME]
                         annotation_label.append(bed_name)
                         annotation_label_x.append((annotation_box_details['left'][-1]))
-                if base_index+1 == (bed_region_end-1) and bed_index < len(bed_content)-1:
+                if base_index+ref_start == bed_region_end and bed_index < len(bed_content)-1:
                     bed_index += 1
                     prev_bed_end = bed_region_end
                     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
@@ -489,7 +485,6 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
                     else:
                         bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
                 #end add annotation
-
                 base_index += 1
                 if base_index - sig_algn_data["start_kmer"] == base_limit:
                     flag_base_index_bound = 1
@@ -502,7 +497,6 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-
         else:
             n_samples = int(i)
             if draw_data['fixed_width']:
@@ -511,16 +505,18 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
                 location_plot += n_samples
             x_coordinate += n_samples
             #start add annotation
-            if bed_region_start == base_index+1:
+            if bed_region_start+1 == base_index+ref_start:
                 annotation_box_details['left'].append(previous_location)
-            if bed_region_end-1 == base_index+1:
+
+            if bed_region_end == base_index+ref_start:
                 annotation_box_details['right'].append(location_plot)
                 annotation_box_details['fill_color'].append(bed_region_color)
                 if len(bed_content[bed_index]) >= BED_NAME + 1:
                     bed_name = bed_content[bed_index][BED_NAME]
                     annotation_label.append(bed_name)
                     annotation_label_x.append((annotation_box_details['left'][-1]))
-            if base_index+1 == (bed_region_end-1) and bed_index < len(bed_content)-1:
+
+            if base_index+ref_start == bed_region_end and bed_index < len(bed_content)-1:
                 bed_index += 1
                 prev_bed_end = bed_region_end
                 bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
@@ -540,15 +536,37 @@ def plot_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit):
             break
 
     # print(annotation_box_details)
-    plot_height = draw_data['y_max'] - draw_data['y_min']
-    plot_shift = plot_height/10
-    p.quad(top=draw_data['y_max']+2*plot_shift, bottom=draw_data['y_max']+plot_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
+    p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
 
     # print(annotation_label)
     bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
-    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+plot_shift, text='base_label', source=bed_annotation, text_font_size="9pt")
+    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="9pt")
     p.add_layout(bed_annotation_labels)
 
+    return p
+
+def plot_bed_annotation(p, ref_id, bed_content, sig_algn_data, draw_data, base_limit):
+    bed_dic = {}
+    bed_chrom_set = set()
+    for i in range(0, len(bed_content)):
+        bed_chrom_set.add(bed_content[i][BED_CHROM])
+    for i in bed_chrom_set:
+        bed_dic[i] = {}
+    bed_name_set = set()
+    for i in range(0, len(bed_content)):
+        bed_name_set.add(bed_content[i][BED_NAME])
+
+    for i in range(0, len(bed_content)):
+        if bed_content[i][BED_NAME] not in bed_dic[bed_content[i][BED_CHROM]]:
+            bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]] = []
+        bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]].append(bed_content[i])
+    if ref_id in bed_dic:
+        plot_height = draw_data['y_max'] - draw_data['y_min']
+        track_height = plot_height/10
+        track_count = 0
+        for key in bed_dic[ref_id]:
+            track_count += 1
+            draw_bed_annotation(p, bed_dic[ref_id][key], sig_algn_data, draw_data, base_limit, track_height*track_count, track_height)
     return p
 
 def create_figure(args):
@@ -788,7 +806,7 @@ def run(args):
                 draw_data['y_max'] = np.amax(y)
                 p = create_figure(args)
                 if args.bed:
-                    p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+                    p = plot_bed_annotation(p=p, ref_id=read_id, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
                 if args.fixed_width:
                     layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
@@ -985,7 +1003,7 @@ def run(args):
             draw_data['y_max'] = np.amax(y)
             p = create_figure(args)
             if args.bed:
-                p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
             if args.fixed_width:
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
@@ -1168,7 +1186,7 @@ def run(args):
             draw_data['y_max'] = np.amax(y)
             p = create_figure(args)
             if args.bed:
-                p = plot_bed_annotation(p=p, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
             if args.fixed_width:
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
