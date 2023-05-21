@@ -60,6 +60,18 @@ testcase_40s() {
   REGION="--region chr1:6,811,011-6,811,198"
   python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
+  TESTCASE=40.3
+  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA="-f ${GENOME}"
+  SIGNAL="-s ${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  BED="--bed ${RAW_DIR}/bed_files/sample_3.bed"
+  REGION="--region chr1:6,811,011-6,811,198"
+  python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+
 }
 testcase_40s #annotation
 

@@ -556,13 +556,17 @@ def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit
 def crate_bed_dic(args):
     bed_content = []
     bed_num_cols = DEFAULT_NUM_BED_COLS
+    count = 0
     with open(args.bed)as f:
         for line in f:
             bed_list = line.strip().split()
-            if len(bed_list) < bed_num_cols:
+            if len(bed_list) < DEFAULT_NUM_BED_COLS:
                 raise Exception("Error: minimum {} columns required in a bed file", bed_num_cols)
-            else:
+            if count == 0:
                 bed_num_cols = len(bed_list)
+            if len(bed_list) != bed_num_cols:
+                raise Exception("Error: Number of columns vary for different bed records")
+            count += 1
             bed_content.append(bed_list)
     # print(bed_content)
     bed_dic = {}
@@ -571,14 +575,17 @@ def crate_bed_dic(args):
         bed_chrom_set.add(bed_content[i][BED_CHROM])
     for i in bed_chrom_set:
         bed_dic[i] = {}
-    bed_name_set = set()
-    for i in range(0, len(bed_content)):
-        bed_name_set.add(bed_content[i][BED_NAME])
-
-    for i in range(0, len(bed_content)):
-        if bed_content[i][BED_NAME] not in bed_dic[bed_content[i][BED_CHROM]]:
-            bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]] = []
-        bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]].append(bed_content[i])
+    if len(bed_content) > 0:
+        if bed_num_cols >= BED_NAME + 1:
+            for i in range(0, len(bed_content)):
+                if bed_content[i][BED_NAME] not in bed_dic[bed_content[i][BED_CHROM]]:
+                    bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]] = []
+                bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]].append(bed_content[i])
+        else:
+            for i in range(0, len(bed_content)):
+                if "DEFAULT" not in bed_dic[bed_content[i][BED_CHROM]]:
+                    bed_dic[bed_content[i][BED_CHROM]]["DEFAULT"] = []
+                bed_dic[bed_content[i][BED_CHROM]]["DEFAULT"].append(bed_content[i])
     return bed_dic
 def create_figure(args):
     y_axis_label = "signal value (raw)"
