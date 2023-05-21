@@ -544,8 +544,27 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
     p.add_layout(bed_annotation_labels)
 
     return p
-
-def plot_bed_annotation(p, ref_id, bed_content, sig_algn_data, draw_data, base_limit):
+def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit):
+    if ref_id in bed_dic:
+        plot_height = draw_data['y_max'] - draw_data['y_min']
+        track_height = plot_height/10
+        track_count = 0
+        for key in bed_dic[ref_id]:
+            track_count += 1
+            draw_bed_annotation(p, bed_dic[ref_id][key], sig_algn_data, draw_data, base_limit, track_height*track_count, track_height)
+    return p
+def crate_bed_dic(args):
+    bed_content = []
+    bed_num_cols = DEFAULT_NUM_BED_COLS
+    with open(args.bed)as f:
+        for line in f:
+            bed_list = line.strip().split()
+            if len(bed_list) < bed_num_cols:
+                raise Exception("Error: minimum {} columns required in a bed file", bed_num_cols)
+            else:
+                bed_num_cols = len(bed_list)
+            bed_content.append(bed_list)
+    # print(bed_content)
     bed_dic = {}
     bed_chrom_set = set()
     for i in range(0, len(bed_content)):
@@ -560,15 +579,7 @@ def plot_bed_annotation(p, ref_id, bed_content, sig_algn_data, draw_data, base_l
         if bed_content[i][BED_NAME] not in bed_dic[bed_content[i][BED_CHROM]]:
             bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]] = []
         bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]].append(bed_content[i])
-    if ref_id in bed_dic:
-        plot_height = draw_data['y_max'] - draw_data['y_min']
-        track_height = plot_height/10
-        track_count = 0
-        for key in bed_dic[ref_id]:
-            track_count += 1
-            draw_bed_annotation(p, bed_dic[ref_id][key], sig_algn_data, draw_data, base_limit, track_height*track_count, track_height)
-    return p
-
+    return bed_dic
 def create_figure(args):
     y_axis_label = "signal value (raw)"
     if args.no_pa:
@@ -632,19 +643,10 @@ def run(args):
         base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
-    bed_content = []
+    bed_dic = {}
     if args.bed:
         print(f'bed file: {args.bed}')
-        bed_num_cols = DEFAULT_NUM_BED_COLS
-        with open(args.bed)as f:
-            for line in f:
-                bed_list = line.strip().split()
-                if len(bed_list) < bed_num_cols:
-                    raise Exception("Error: minimum {} columns required in a bed file", bed_num_cols)
-                else:
-                    bed_num_cols = len(bed_list)
-                bed_content.append(bed_list)
-        # print(bed_content)
+        bed_dic = crate_bed_dic(args)
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
@@ -806,7 +808,7 @@ def run(args):
                 draw_data['y_max'] = np.amax(y)
                 p = create_figure(args)
                 if args.bed:
-                    p = plot_bed_annotation(p=p, ref_id=read_id, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+                    p = plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
                 if args.fixed_width:
                     layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
@@ -1003,7 +1005,7 @@ def run(args):
             draw_data['y_max'] = np.amax(y)
             p = create_figure(args)
             if args.bed:
-                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
             if args.fixed_width:
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
@@ -1186,7 +1188,7 @@ def run(args):
             draw_data['y_max'] = np.amax(y)
             p = create_figure(args)
             if args.bed:
-                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_content=bed_content, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
             if args.fixed_width:
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
