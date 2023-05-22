@@ -447,6 +447,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
 
     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
     bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+    flag_region_active = 1
+    flag_interval_open = 0
     if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
         bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
     else:
@@ -464,16 +466,21 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                 prev_loc += draw_data["fixed_base_width"]
                 prev_x_cord += draw_data["fixed_base_width"]
                 #start add annotation
-                if bed_region_start+1 == base_index+ref_start:
+                if flag_interval_open == 0 and flag_region_active == 1 and bed_region_start+1 == base_index+ref_start:
                     annotation_box_details['left'].append(prev_loc-draw_data["fixed_base_width"])
-                if bed_region_end == base_index+ref_start:
+                    flag_interval_open = 1
+                if flag_interval_open == 1 and flag_region_active == 1 and bed_region_end == base_index+ref_start:
                     annotation_box_details['right'].append(prev_loc)
                     annotation_box_details['fill_color'].append(bed_region_color)
+                    bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
                     if len(bed_content[bed_index]) >= BED_NAME + 1:
-                        bed_name = bed_content[bed_index][BED_NAME]
-                        annotation_label.append(bed_name)
-                        annotation_label_x.append((annotation_box_details['left'][-1]))
-                if base_index+ref_start == bed_region_end and bed_index < len(bed_content)-1:
+                        bed_name += bed_content[bed_index][BED_NAME]
+                    annotation_label.append(bed_name)
+                    annotation_label_x.append((annotation_box_details['left'][bed_index]))
+                    flag_interval_open = 0
+                    flag_region_active = 0
+
+                if flag_region_active == 0 and bed_region_end == base_index+ref_start and bed_index < len(bed_content)-1:
                     bed_index += 1
                     prev_bed_end = bed_region_end
                     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
@@ -484,6 +491,7 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                         bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
                     else:
                         bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+                    flag_region_active = 1
                 #end add annotation
                 base_index += 1
                 if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -505,18 +513,21 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                 location_plot += n_samples
             x_coordinate += n_samples
             #start add annotation
-            if bed_region_start+1 == base_index+ref_start:
+            if flag_interval_open == 0 and flag_region_active == 1 and bed_region_start+1 <= base_index+ref_start:
                 annotation_box_details['left'].append(previous_location)
-
-            if bed_region_end == base_index+ref_start:
+                flag_interval_open = 1
+            if flag_interval_open == 1 and flag_region_active == 1 and bed_region_end == base_index+ref_start:
                 annotation_box_details['right'].append(location_plot)
                 annotation_box_details['fill_color'].append(bed_region_color)
+                bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
                 if len(bed_content[bed_index]) >= BED_NAME + 1:
-                    bed_name = bed_content[bed_index][BED_NAME]
-                    annotation_label.append(bed_name)
-                    annotation_label_x.append((annotation_box_details['left'][-1]))
+                    bed_name += bed_content[bed_index][BED_NAME]
+                annotation_label.append(bed_name)
+                annotation_label_x.append((annotation_box_details['left'][bed_index]))
+                flag_interval_open = 0
+                flag_region_active = 0
 
-            if base_index+ref_start == bed_region_end and bed_index < len(bed_content)-1:
+            if flag_region_active == 0 and bed_region_end == base_index+ref_start and bed_index < len(bed_content)-1:
                 bed_index += 1
                 prev_bed_end = bed_region_end
                 bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
@@ -527,6 +538,7 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                     bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
                 else:
                     bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+                flag_region_active = 1
             #end add annotation
             base_index += 1
 
@@ -535,12 +547,22 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
 
+    if flag_interval_open == 1 and flag_region_active == 1:
+        if len(annotation_box_details['left']) != len(annotation_box_details['right']) + 1:
+            raise Exception("Error: bed annotation interval dimensions are incorrect. Please report")
+        annotation_box_details['right'].append(location_plot)
+        annotation_box_details['fill_color'].append(bed_region_color)
+        bed_name = "{}- ".format(bed_region_start+1)
+        if len(bed_content[bed_index]) >= BED_NAME + 1:
+            bed_name += bed_content[bed_index][BED_NAME]
+        annotation_label.append(bed_name)
+        annotation_label_x.append((annotation_box_details['left'][bed_index]))
     # print(annotation_box_details)
     p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
 
     # print(annotation_label)
     bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
-    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="9pt")
+    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="6pt")
     p.add_layout(bed_annotation_labels)
 
     return p
