@@ -248,6 +248,13 @@ squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${N
    && sort -k6,6 -nk8,8 sim.paf -o sorted_sim.paf \
    && bgzip sorted_sim.paf \
    && tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
+
+For RNA
+squigulator -x rna-r9-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS} \
+   && sort -k6,6 -nk9,9 sim.paf -o sorted_sim.paf \
+   && bgzip sorted_sim.paf \
+   && tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
+
 ```
 
 3. Plot signal to reference alignment.

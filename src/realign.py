@@ -9,7 +9,7 @@ def run(args):
 
     print("input bam: " + args.bam)
     print("input paf: " + args.paf)
-    print("output bam: " + args.output)
+    print("output file: " + args.output)
     print("INFO: supplementary alignments will be skipped.")
     # print("INFO: move array of a reverse complemented alignment will be treated after reversing.")
 
@@ -19,6 +19,12 @@ def run(args):
         fout = pysam.AlignmentFile(args.output, "wb", template=samfile)
     elif args.output[-4:] == ".sam":
         fout = pysam.AlignmentFile(args.output, "w", template=samfile)
+    elif args.output[-4:] == ".paf":
+        if args.c:
+            fout = open(args.output, "w")
+        else:
+            print("Error: please provide argument '-c' to write in PAF format")
+            exit(1)
     else:
         print("Error: please provide the output file with correct extension")
         exit(1)
@@ -73,7 +79,7 @@ def run(args):
             strand_dir = "-"
         if data_is_rna:
             cigar_t.reverse()
-            strand_dir = "RNA"
+            # strand_dir = "RNA"
 
         idx = 0
         ss_string = ""
@@ -131,19 +137,25 @@ def run(args):
                 exit(1)
             op_count += 1
 
-        sam_record.set_tag("ss", ss_string, "Z")
-        kmer_start = 0
-        kmer_end = count_bases
-        #start_raw, end_raw, start_kmer and end_kmer,
-        if data_is_rna:
-            si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_end) + "," + str(kmer_start)
+        kmer_start = sam_record.reference_start
+        kmer_end = sam_record.reference_start + count_bases
+        if args.c:
+            if data_is_rna:
+                paf_record_str = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tss:Z:{}\n".format(paf_dic[sam_read_id].query_name, paf_dic[sam_read_id].query_length, raw_start, raw_end, strand_dir, sam_record.reference_name, count_bases, kmer_end, kmer_start, count_bases, count_bases, "255", ss_string)
+            else:
+                paf_record_str = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tss:Z:{}\n".format(paf_dic[sam_read_id].query_name, paf_dic[sam_read_id].query_length, raw_start, raw_end, strand_dir, sam_record.reference_name, count_bases, kmer_start, kmer_end, count_bases, count_bases, "255", ss_string)
+            fout.write(paf_record_str)
         else:
-            si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_start) + "," + str(kmer_end)
+            #start_raw, end_raw, start_kmer and end_kmer,
+            if data_is_rna:
+                si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_end) + "," + str(kmer_start)
+            else:
+                si_string = str(raw_start) + "," + str(raw_end) + "," + str(kmer_start) + "," + str(kmer_end)
 
-        # print("{}\t{}\t{}\t{}\t{}\t{}".format(strand_dir, sam_read_id, si_string, count_bases, count_bases_seq, abs(kmer_end-kmer_start)))
-        sam_record.set_tag("si", si_string, "Z")
-
-        fout.write(sam_record)
+            # print("{}\t{}\t{}\t{}\t{}\t{}".format(strand_dir, sam_read_id, si_string, count_bases, count_bases_seq, abs(kmer_end-kmer_start)))
+            sam_record.set_tag("ss", ss_string, "Z")
+            sam_record.set_tag("si", si_string, "Z")
+            fout.write(sam_record)
         processed_sam_record_count += 1
 
     print("processed_sam_record_count: " + str(processed_sam_record_count))
@@ -160,7 +172,8 @@ def argparser():
     )
     parser.add_argument('-p', '--paf', required=True, help="input read-signal alignment .paf file")
     parser.add_argument('-b', '--bam', required=True, help="input read-reference alignment SAM/BAM file")
-    parser.add_argument('-o', '--output', required=True, help="output reference-signal SAM/BAM file")
+    parser.add_argument('-c', action='store_true', help="write move table in paf format")
+    parser.add_argument('-o', '--output', required=True, help="output reference-signal SAM/BAM/PAF file")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
 
     return parser
