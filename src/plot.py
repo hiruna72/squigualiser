@@ -418,20 +418,24 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    # if location_plot < PLOT_X_RANGE:
-    #     draw_data["plot_dims"]['start_x'] = 0
-    #     draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
-    # else:
-    #     draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
-    #     draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
-    # draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
-    # draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
+    if location_plot < PLOT_X_RANGE:
+        draw_data["plot_dims"]['start_x'] = 0
+        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
+    else:
+        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
+        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
+    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
+    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
+    draw_data["plot_dims"]['bound_start_x'] = 0
+    draw_data["plot_dims"]['bound_end_x'] = location_plot
+    # draw_data["plot_dims"]['bound_start_y'] = y_min
+    # draw_data["plot_dims"]['bound_end_y'] = y_max
     # draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
     # draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
-    # draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
-    # draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
-    # p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
-    # p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+    draw_data["plot_dims"]['bound_start_y'] = y_min - 3*PLOT_BOUNT_Y_STRIDE
+    draw_data["plot_dims"]['bound_end_y'] = y_max + 3*PLOT_BOUNT_Y_STRIDE
+    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
+    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
     renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
@@ -630,6 +634,8 @@ def create_figure(args):
                tools=tools_to_show,
                toolbar_location="below")
     # tooltips=tool_tips)
+
+    p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
     p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
     p_default.toolbar.logo = None
     return p_default
