@@ -132,7 +132,10 @@ def run(args):
                 # print(str(signal_skip) + " I BAM_CSOFT_CLIP " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CHARD_CLIP:
                 continue
+            elif cig_op == BAM_CREF_SKIP:
+                continue
             else:
+                print(sam_read_id)
                 print("Error: cigar operation [" + str(cig_op) + "]is not handled yet")
                 exit(1)
             op_count += 1
