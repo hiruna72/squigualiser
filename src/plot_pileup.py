@@ -239,8 +239,8 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         if num_plots == 0:
             sample_label_colors_insert[0] = 'purple'
             sample_label_colors_match[0] = 'red'
-        sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color=sample_label_colors_match, alpha=0.2, legend_label='match', visible=False)
-        sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, size=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
+        sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_match, alpha=0.2, legend_label='match', visible=False)
+        sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
 
     if not draw_data['overlap_only']:
         if num_plots != -1:
@@ -811,7 +811,7 @@ def argparser():
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
     parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")
-    parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
+    parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")

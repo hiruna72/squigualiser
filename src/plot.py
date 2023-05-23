@@ -211,7 +211,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -395,7 +395,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -1274,7 +1274,7 @@ def argparser():
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
-    parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
+    parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
