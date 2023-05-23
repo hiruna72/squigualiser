@@ -31,10 +31,9 @@ BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
 PLOT_X_RANGE = 300
-PLOT_BOUNT_X_STRIDE = 1000
-PLOT_BOUNT_Y_STRIDE = 500
 PLOT_HEIGHT = 600
 PLOT_BASE_SHIFT = 0
+PLOT_X_PADDING = 100
 
 DEFAULT_NUM_BED_COLS = 3
 DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
@@ -234,6 +233,12 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
+    if location_plot > (y_max - y_min):
+        if location_plot > PLOT_X_RANGE:
+            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        else:
+            p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+
     renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
@@ -418,24 +423,14 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    if location_plot < PLOT_X_RANGE:
-        draw_data["plot_dims"]['start_x'] = 0
-        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
-    else:
-        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
-        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
-    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
-    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
-    draw_data["plot_dims"]['bound_start_x'] = 0
-    draw_data["plot_dims"]['bound_end_x'] = location_plot
-    # draw_data["plot_dims"]['bound_start_y'] = y_min
-    # draw_data["plot_dims"]['bound_end_y'] = y_max
-    # draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
-    # draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
-    draw_data["plot_dims"]['bound_start_y'] = y_min - 3*PLOT_BOUNT_Y_STRIDE
-    draw_data["plot_dims"]['bound_end_y'] = y_max + 3*PLOT_BOUNT_Y_STRIDE
-    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
-    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+    if location_plot > (y_max - y_min):
+        if location_plot > PLOT_X_RANGE:
+            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        else:
+            p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+    # else:
+    #     p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+
     renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
