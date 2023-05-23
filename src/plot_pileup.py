@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -36,6 +36,7 @@ PLOT_X_RANGE = 750
 PLOT_Y_MARGIN = 1
 SUBPLOT_X = -100
 PLOT_BASE_SHIFT = 0
+PLOT_X_PADDING = 100
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
@@ -239,7 +240,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         if num_plots == 0:
             sample_label_colors_insert[0] = 'purple'
             sample_label_colors_match[0] = 'red'
-        sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_match, alpha=0.2, legend_label='match', visible=False)
+        sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_match, alpha=0.5, legend_label='match', visible=False)
         sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
 
     if not draw_data['overlap_only']:
@@ -285,7 +286,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
 
-    return p
+    return p, location_plot
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -300,6 +301,7 @@ def run(args):
         else:
             raise Exception("Error: please provide the sequence file with correct extension")
 
+    max_location_plot = 0
     plot_sig_ref_flag = 0
     use_paf = 0
     if args.alignment:
@@ -368,6 +370,7 @@ def run(args):
                tools=tools_to_show)
     # tooltips=tool_tips)
     # p.yaxis.visible = False
+    p.select(dict(type=WheelZoomTool)).maintain_focus = False
     p.toolbar.active_scroll = p.select_one(WheelZoomTool)
     p.toolbar.logo = None
     previous_plot = p
@@ -559,10 +562,12 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
+                    if max_location_plot < location_plot:
+                        max_location_plot = location_plot
 
             if args.overlap_bottom:
                 # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
@@ -571,11 +576,12 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
-
+            if max_location_plot < location_plot:
+                max_location_plot = location_plot
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
@@ -742,10 +748,12 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
+                    if max_location_plot < location_plot:
+                        max_location_plot = location_plot
 
             if args.overlap_bottom:
                 # y_shift = y_shift + prev_y_min + prev_y_max - prev_y_min + draw_data["plot_y_margin"] - y_min
@@ -754,10 +762,12 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
+            if max_location_plot < location_plot:
+                max_location_plot = location_plot
 
             num_plots += 1
             if num_plots == args.plot_limit:
@@ -780,6 +790,16 @@ def run(args):
         # p.legend.location = 'top_left'
         p.legend.label_text_font_size = '7pt'
         p.legend.background_fill_alpha = 0.5
+
+        if max_location_plot > y_shift:
+            if max_location_plot > PLOT_X_RANGE:
+                p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+            else:
+                p.x_range = Range1d(0, max_location_plot, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+
+        renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
+        draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
+        p.add_tools(draw_tool)
 
         save(p)
         print(f'output file: {os.path.abspath(pileup_output_file_name)}')
