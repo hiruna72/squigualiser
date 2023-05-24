@@ -239,21 +239,22 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 
 2. Simulate a signal (remember to provide -c and --paf-ref).
 ```
-REF=ref.fasta #reference
-READ=sim.fasta
-ALIGNMENT=sorted_sim.paf.gz
-SIGNAL_FILE=sim.blow5
-NUM_READS=50 #number of reads to simulate
-squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS} \
-   && sort -k6,6 -nk8,8 sim.paf -o sorted_sim.paf \
-   && bgzip sorted_sim.paf \
-   && tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
+REF=ref.fasta                 #reference
+ALIGNMENT=sorted_sim.paf.gz   #sorted bgzip compressed PAF file containing signal to reference alignment
+SIGNAL_FILE=sim.blow5         #simulated raw signals   
+NUM_READS=50                  #number of reads to simulate
+
+For DNA
+squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
+sort -k6,6 -k8,8n sim.paf -o sorted_sim.paf
+bgzip sorted_sim.paf 
+tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
 
 For RNA
-squigulator -x rna-r9-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS} \
-   && sort -k6,6 -nk9,9 sim.paf -o sorted_sim.paf \
-   && bgzip sorted_sim.paf \
-   && tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
+squigulator -x rna-r9-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
+sort -k6,6 -k9,9n sim.paf -o sorted_sim.paf
+bgzip sorted_sim.paf 
+tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 
 ```
 
@@ -286,9 +287,17 @@ f5c index ${FASTQ} --slow5 ${SIGNAL}
 ```
 ALIGNMENT=sorted_sim.paf.gz
 f5c eventalign -b ${MAP_SAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -c -o sim.paf \
-   && sort -k6,6 -nk8,8 sim.paf -o sorted_sim.paf \
-   && bgzip sorted_sim.paf \
-   && tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
+
+For DNA
+sort -k6,6 -k8,8n sim.paf -o sorted_sim.paf
+bgzip sorted_sim.paf 
+tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
+
+For RNA
+sort -k6,6 -k9,9n sim.paf -o sorted_sim.paf
+bgzip sorted_sim.paf 
+tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
+
 ```
 4. Plot signal to reference alignment.
 ````
