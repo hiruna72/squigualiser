@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
 from bokeh.layouts import row
 from bokeh.colors import RGB
 import pyslow5
@@ -30,15 +30,17 @@ FIXED_INSERTION_WIDTH = 10
 BASE_LIMIT = 1000
 SIG_PLOT_LENGTH = 20000
 DEFAULT_STRIDE = 5
-PLOT_X_RANGE = 750
-PLOT_BOUNT_X_STRIDE = 1000
-PLOT_BOUNT_Y_STRIDE = 500
-PLOT_HEIGHT = 300
+PLOT_X_RANGE = 300
+PLOT_HEIGHT = 600
 PLOT_BASE_SHIFT = 0
+PLOT_X_PADDING = 100
 
+DEFAULT_NUM_BED_COLS = 3
+DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
+BED_CHROM, BED_CHROM_START, BED_CHROM_END, BED_NAME, BED_SCORE, BED_STRAND, BED_THICK_START, BED_THICK_END, BED_ITEM_RGB, BED_BLOCK_COUNT, BED_BLOCK_SIZES, BLOCK_STARTS = range(12)
 
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
@@ -79,36 +81,18 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
 
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-
-    y_axis_label = "signal value (raw)"
-    if sig_algn_data["pa"]:
-        y_axis_label = "signal value (pA)"
-
-    y_min = np.amin(y)
-    y_max = np.amax(y)
+    y_min = draw_data['y_min']
+    y_max = draw_data['y_max']
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
 
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-    # tooltips=tool_tips)
-
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
+    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -125,12 +109,13 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
 
     # draw moves
     moves = sig_algn_data["ss"]
-
+    base_box_details = {'left': [], 'right': [], 'fill_color': []}
     base_index = sig_algn_data["start_kmer"]
     num_Is = 0
     num_Ds = 0
     line_segment_x = []
     flag_base_index_bound = 0
+
     for i in moves:
         previous_location = location_plot
         if 'D' in i:
@@ -140,8 +125,10 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             prev_loc = previous_location
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min, top=y_max, fill_alpha=0.2, fill_color='white')
-                p.add_layout(base_box)
+
+                base_box_details['left'].append(prev_loc)
+                base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
+                base_box_details['fill_color'].append('white')
 
                 base_x.append(prev_loc)
                 base_y.append(label_position)
@@ -186,8 +173,10 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             n_samples = int(i)
             location_plot += n_samples
             base = fasta_sequence[base_index]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, bottom=y_min, top=y_max, fill_alpha=0.2, fill_color=base_color_map[base])
-            p.add_layout(base_box)
+            base_box_details['left'].append(previous_location)
+            base_box_details['right'].append(location_plot)
+            base_box_details['fill_color'].append(base_color_map[base])
+
             line_segment_x.append(location_plot)
 
             base_x.append(previous_location)
@@ -204,37 +193,24 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
         if location_plot - initial_location > draw_data["sig_plot_limit"]:
             break
 
-    line_segment_source = ColumnDataSource(dict(
-        x=line_segment_x,
-        x1=line_segment_x,
-        y=[y_min]*len(line_segment_x),
-        y1=[y_max]*len(line_segment_x),
-    ))
+    line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min]*len(line_segment_x), y1=[y_max]*len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
-    p.add_glyph(line_segment_source, glyph)
 
-    base_annotation = ColumnDataSource(data=dict(base_x=base_x,
-                                                 base_y=base_y,
-                                                 base_label=base_label,
-                                                 colors=base_label_colors))
+    base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
 
-    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-                                      x_offset=5, y_offset=5, source=base_annotation,
-                                      text_font_size="9pt", text_color='colors')
-
-    p.add_layout(base_annotation_labels)
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
 
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
-    source = ColumnDataSource(data=dict(
-        x=x[:location_plot],
-        y=y[:location_plot],
-        x_real=x_real[:location_plot],
-    ))
+    source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
+    p.add_glyph(line_segment_source, glyph)
+    p.add_layout(base_annotation_labels)
+
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(x[:location_plot], y[:location_plot], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -257,40 +233,30 @@ def plot_function(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_lim
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
+    if location_plot > (y_max - y_min):
+        if location_plot > PLOT_X_RANGE:
+            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        else:
+            p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+
+    renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
+    draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
+    p.add_tools(draw_tool)
+
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
-def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
+def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-
-    y_axis_label = "signal value (raw)"
-    if sig_algn_data["pa"]:
-        y_axis_label = "signal value (pA)"
-
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
-    y_min = np.amin(y)
-    y_max = np.amax(y)
+    y_min = draw_data['y_min']
+    y_max = draw_data['y_max']
 
-    p = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-
-    # tooltips=tool_tips)
-
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
-
-    base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
+    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -315,6 +281,7 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
     num_Ds = 0
     fixed_width_x = [0.0]
     line_segment_x = []
+    base_box_details = {'left': [], 'right': [], 'fill_color': []}
 
     num_samples_in_insertion = 0
     flag_base_index_bound = 0
@@ -329,8 +296,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
-                base_box = BoxAnnotation(left=prev_loc, right=prev_loc + draw_data["fixed_base_width"], bottom=y_min, top=y_max, fill_alpha=0.2, fill_color='white')
-                p.add_layout(base_box)
+                base_box_details['left'].append(prev_loc)
+                base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
+                base_box_details['fill_color'].append('white')
 
                 base_x.append(prev_loc)
                 base_y.append(label_position)
@@ -386,8 +354,9 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             x_coordinate += n_samples
 
             base = fasta_sequence[base_index]
-            base_box = BoxAnnotation(left=previous_location, right=location_plot, fill_alpha=0.2, bottom=y_min, top=y_max, fill_color=base_color_map[base])
-            p.add_layout(base_box)
+            base_box_details['left'].append(previous_location)
+            base_box_details['right'].append(location_plot)
+            base_box_details['fill_color'].append(base_color_map[base])
             line_segment_x.append(location_plot)
 
             if num_samples_in_insertion > 0:
@@ -412,38 +381,26 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
 
-    line_segment_source = ColumnDataSource(dict(
-        x=line_segment_x,
-        x1=line_segment_x,
-        y=[y_min] * len(line_segment_x),
-        y1=[y_max] * len(line_segment_x),
-    ))
+    line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min] * len(line_segment_x), y1=[y_max] * len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
-    p.add_glyph(line_segment_source, glyph)
 
-    base_annotation = ColumnDataSource(data=dict(base_x=base_x,
-                                                 base_y=base_y,
-                                                 base_label=base_label,
-                                                 colors=base_label_colors))
+    base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
 
-    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label',
-                                      x_offset=5, y_offset=5, source=base_annotation,
-                                      text_font_size="9pt", text_color='colors')
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
 
-    p.add_layout(base_annotation_labels)
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     fixed_width_x = fixed_width_x[1:]
 
-    source = ColumnDataSource(data=dict(
-        x=fixed_width_x[:x_coordinate],
-        y=y[:x_coordinate],
-        x_real=x_real[:x_coordinate],
-    ))
+    source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
+    p.add_glyph(line_segment_source, glyph)
+    p.add_layout(base_annotation_labels)
+
     p.line('x', 'y', line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], size=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -466,24 +423,217 @@ def plot_function_fixed_width(read_id, signal_tuple, sig_algn_data, fasta_sequen
             plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index - 1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
-    if location_plot < PLOT_X_RANGE:
-        draw_data["plot_dims"]['start_x'] = 0
-        draw_data["plot_dims"]['end_x'] = PLOT_X_RANGE
-    else:
-        draw_data["plot_dims"]['start_x'] = location_plot/2 - PLOT_X_RANGE/2
-        draw_data["plot_dims"]['end_x'] = location_plot/2 + PLOT_X_RANGE/2
-    draw_data["plot_dims"]['start_y'] = y_min - (y_max-y_min)/2
-    draw_data["plot_dims"]['end_y'] = y_max + (y_max-y_min)/2
-    draw_data["plot_dims"]['bound_start_x'] = 0 - PLOT_BOUNT_X_STRIDE
-    draw_data["plot_dims"]['bound_end_x'] = location_plot + PLOT_BOUNT_X_STRIDE
-    draw_data["plot_dims"]['bound_start_y'] = y_min - PLOT_BOUNT_Y_STRIDE
-    draw_data["plot_dims"]['bound_end_y'] = y_max + PLOT_BOUNT_Y_STRIDE
-    p.x_range = Range1d(draw_data["plot_dims"]['start_x'], draw_data["plot_dims"]['end_x'], bounds=(draw_data["plot_dims"]['bound_start_x'], draw_data["plot_dims"]['bound_end_x']))
-    p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+    if location_plot > (y_max - y_min):
+        if location_plot > PLOT_X_RANGE:
+            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        else:
+            p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+    # else:
+    #     p.y_range = Range1d(draw_data["plot_dims"]['start_y'], draw_data["plot_dims"]['end_y'], bounds=(draw_data["plot_dims"]['bound_start_y'], draw_data["plot_dims"]['bound_end_y']))
+
+    renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
+    draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
+    p.add_tools(draw_tool)
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
+def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, track_shift, track_height):
+    bed_content.sort(key=lambda x: x[BED_CHROM_START])
+    moves = sig_algn_data["ss"]
+    base_index = sig_algn_data["start_kmer"]
+    ref_start = sig_algn_data["ref_start"]
+    annotation_box_details = {'left': [], 'right': [], 'fill_color': []}
+    annotation_label = []
+    annotation_label_x = []
+    location_plot = 0
+    x_coordinate = 0
+    initial_x_coordinate = x_coordinate
+    flag_base_index_bound = 0
+    bed_index = 0
 
+    bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+    bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+    flag_region_active = 1
+    flag_interval_open = 0
+    if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+        bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+    else:
+        bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+
+    for i in moves:
+        previous_location = location_plot
+        previous_x_coordinate = x_coordinate
+        if 'D' in i:
+            i = re.sub('D', '', i)
+            n_samples = int(i)
+            prev_loc = previous_location
+            prev_x_cord = previous_x_coordinate
+            for j in range(0, n_samples):
+                prev_loc += draw_data["fixed_base_width"]
+                prev_x_cord += draw_data["fixed_base_width"]
+                #start add annotation
+                if flag_interval_open == 0 and flag_region_active == 1 and bed_region_start+1 == base_index+ref_start:
+                    annotation_box_details['left'].append(prev_loc-draw_data["fixed_base_width"])
+                    flag_interval_open = 1
+                if flag_interval_open == 1 and flag_region_active == 1 and bed_region_end == base_index+ref_start:
+                    annotation_box_details['right'].append(prev_loc)
+                    annotation_box_details['fill_color'].append(bed_region_color)
+                    bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
+                    if len(bed_content[bed_index]) >= BED_NAME + 1:
+                        bed_name += bed_content[bed_index][BED_NAME]
+                    annotation_label.append(bed_name)
+                    annotation_label_x.append((annotation_box_details['left'][bed_index]))
+                    flag_interval_open = 0
+                    flag_region_active = 0
+
+                if flag_region_active == 0 and bed_region_end == base_index+ref_start and bed_index < len(bed_content)-1:
+                    bed_index += 1
+                    prev_bed_end = bed_region_end
+                    bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+                    bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+                    if prev_bed_end > bed_region_start:
+                        raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                    if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+                        bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+                    else:
+                        bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+                    flag_region_active = 1
+                #end add annotation
+                base_index += 1
+                if base_index - sig_algn_data["start_kmer"] == base_limit:
+                    flag_base_index_bound = 1
+                    break
+            if flag_base_index_bound == 1:
+                break
+            location_plot = prev_loc
+            x_coordinate = prev_x_cord
+
+        elif 'I' in i:
+            i = re.sub('I', '', i)
+            n_samples = int(i)
+        else:
+            n_samples = int(i)
+            if draw_data['fixed_width']:
+                location_plot += draw_data["fixed_base_width"]
+            else:
+                location_plot += n_samples
+            x_coordinate += n_samples
+            #start add annotation
+            if flag_interval_open == 0 and flag_region_active == 1 and bed_region_start+1 <= base_index+ref_start:
+                annotation_box_details['left'].append(previous_location)
+                flag_interval_open = 1
+            if flag_interval_open == 1 and flag_region_active == 1 and bed_region_end == base_index+ref_start:
+                annotation_box_details['right'].append(location_plot)
+                annotation_box_details['fill_color'].append(bed_region_color)
+                bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
+                if len(bed_content[bed_index]) >= BED_NAME + 1:
+                    bed_name += bed_content[bed_index][BED_NAME]
+                annotation_label.append(bed_name)
+                annotation_label_x.append((annotation_box_details['left'][bed_index]))
+                flag_interval_open = 0
+                flag_region_active = 0
+
+            if flag_region_active == 0 and bed_region_end == base_index+ref_start and bed_index < len(bed_content)-1:
+                bed_index += 1
+                prev_bed_end = bed_region_end
+                bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
+                bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+                if prev_bed_end > bed_region_start:
+                    raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
+                    bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
+                else:
+                    bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
+                flag_region_active = 1
+            #end add annotation
+            base_index += 1
+
+        if base_index - sig_algn_data["start_kmer"] == base_limit:
+            break
+        if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
+            break
+
+    if flag_interval_open == 1 and flag_region_active == 1:
+        if len(annotation_box_details['left']) != len(annotation_box_details['right']) + 1:
+            raise Exception("Error: bed annotation interval dimensions are incorrect. Please report")
+        annotation_box_details['right'].append(location_plot)
+        annotation_box_details['fill_color'].append(bed_region_color)
+        bed_name = "{}- ".format(bed_region_start+1)
+        if len(bed_content[bed_index]) >= BED_NAME + 1:
+            bed_name += bed_content[bed_index][BED_NAME]
+        annotation_label.append(bed_name)
+        annotation_label_x.append((annotation_box_details['left'][bed_index]))
+    # print(annotation_box_details)
+    p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
+
+    # print(annotation_label)
+    bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
+    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="6pt")
+    p.add_layout(bed_annotation_labels)
+
+    return p
+def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit):
+    if ref_id in bed_dic:
+        plot_height = draw_data['y_max'] - draw_data['y_min']
+        track_height = plot_height/10
+        track_count = 0
+        for key in bed_dic[ref_id]:
+            track_count += 1
+            draw_bed_annotation(p, bed_dic[ref_id][key], sig_algn_data, draw_data, base_limit, track_height*track_count, track_height)
+    return p
+def crate_bed_dic(args):
+    bed_content = []
+    bed_num_cols = DEFAULT_NUM_BED_COLS
+    count = 0
+    with open(args.bed)as f:
+        for line in f:
+            bed_list = line.strip().split()
+            if len(bed_list) < DEFAULT_NUM_BED_COLS:
+                raise Exception("Error: minimum {} columns required in a bed file", bed_num_cols)
+            if count == 0:
+                bed_num_cols = len(bed_list)
+            if len(bed_list) != bed_num_cols:
+                raise Exception("Error: Number of columns vary for different bed records")
+            count += 1
+            bed_content.append(bed_list)
+    # print(bed_content)
+    bed_dic = {}
+    bed_chrom_set = set()
+    for i in range(0, len(bed_content)):
+        bed_chrom_set.add(bed_content[i][BED_CHROM])
+    for i in bed_chrom_set:
+        bed_dic[i] = {}
+    if len(bed_content) > 0:
+        if bed_num_cols >= BED_NAME + 1:
+            for i in range(0, len(bed_content)):
+                if bed_content[i][BED_NAME] not in bed_dic[bed_content[i][BED_CHROM]]:
+                    bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]] = []
+                bed_dic[bed_content[i][BED_CHROM]][bed_content[i][BED_NAME]].append(bed_content[i])
+        else:
+            for i in range(0, len(bed_content)):
+                if "DEFAULT" not in bed_dic[bed_content[i][BED_CHROM]]:
+                    bed_dic[bed_content[i][BED_CHROM]]["DEFAULT"] = []
+                bed_dic[bed_content[i][BED_CHROM]]["DEFAULT"].append(bed_content[i])
+    return bed_dic
+def create_figure(args):
+    y_axis_label = "signal value (raw)"
+    if args.no_pa:
+        y_axis_label = "signal value (pA)"
+    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
+    p_default = figure(x_axis_label='signal index',
+               y_axis_label=y_axis_label,
+               sizing_mode="stretch_width",
+               height=PLOT_HEIGHT,
+               output_backend="webgl",
+               x_range=(0, PLOT_X_RANGE),
+               tools=tools_to_show,
+               toolbar_location="below")
+    # tooltips=tool_tips)
+
+    p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
+    p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
+    p_default.toolbar.logo = None
+    return p_default
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -524,12 +674,16 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         print("please provide a .fasta or .fa file when using SAM/BAM")
 
-
     if args.base_limit:
         base_limit = args.base_limit
     else:
         base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
+
+    bed_dic = {}
+    if args.bed:
+        print(f'bed file: {args.bed}')
+        bed_dic = crate_bed_dic(args)
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
@@ -544,6 +698,7 @@ def run(args):
     draw_data["fixed_base_width"] = args.base_width
     draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
+    draw_data["fixed_width"] = args.fixed_width
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -671,7 +826,6 @@ def run(args):
                 sig_algn_dic['start_kmer'] = ref_start - 1
                 sig_algn_dic['ref_start'] = ref_start
                 sig_algn_dic['ref_end'] = ref_end
-                sig_algn_dic['pa'] = args.no_pa
                 sig_algn_dic['use_paf'] = use_paf
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
@@ -687,10 +841,16 @@ def run(args):
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+                draw_data['y_min'] = np.amin(y)
+                draw_data['y_max'] = np.amax(y)
+                p = create_figure(args)
+                if args.bed:
+                    p = plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+
                 if args.fixed_width:
-                    layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
-                    layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                    layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
                 output_file(output_file_name, title=read_id)
                 save(layout_)
@@ -867,7 +1027,6 @@ def run(args):
             sig_algn_dic['start_kmer'] = 0
             sig_algn_dic['ref_start'] = ref_start
             sig_algn_dic['ref_end'] = ref_end
-            sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
@@ -879,12 +1038,16 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
+            draw_data['y_min'] = np.amin(y)
+            draw_data['y_max'] = np.amax(y)
+            p = create_figure(args)
+            if args.bed:
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
-                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
+                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
             output_file(output_file_name, title=read_id)
             save(layout_)
@@ -1058,27 +1221,24 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
-
+            draw_data['y_min'] = np.amin(y)
+            draw_data['y_max'] = np.amax(y)
+            p = create_figure(args)
+            if args.bed:
+                p = plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
             if args.fixed_width:
-                layout_ = plot_function_fixed_width(read_id=read_id, signal_tuple=signal_tuple,
-                                          sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                                          draw_data=draw_data)
+                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
-                layout_ = plot_function(read_id=read_id, signal_tuple=signal_tuple,
-                              sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit,
-                              draw_data=draw_data)
+                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 
             output_file(output_file_name, title=read_id)
             save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
-
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
-
-
 
     print("Number of plots: {}".format(num_plots))
 
@@ -1109,12 +1269,13 @@ def argparser():
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
-    parser.add_argument('--point_size', required=False, type=int, default=5, help="signal point size [5]")
+    parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
+    parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('-o', '--output_dir', required=True, help="output dir")
     return parser
 
