@@ -250,7 +250,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     if not draw_data['overlap_only']:
         if num_plots != -1:
-            p.line('x', 'y', line_width=2, source=source)
+            p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     if not draw_data['no_overlap']:
         leg_lable = "plot_" + str(num_plots)
         if num_plots != -1:
@@ -258,6 +258,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
+    hover.names = ["sig_plot_line"]
     hover.tooltips = [("x", "@x_real"), ("y", "@y_real")]
     hover.mode = 'mouse'
 

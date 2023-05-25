@@ -215,7 +215,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
 
-    p.line('x', 'y', line_width=2, source=source)
+    p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
@@ -223,7 +223,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
-    hover.tooltips = [("x", "@x_real"), ("y", "$y")]
+    hover.names = ["sig_plot_line"]
+    hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
@@ -405,7 +406,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
 
-    p.line('x', 'y', line_width=2, source=source)
+    p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
@@ -413,7 +414,8 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
-    hover.tooltips = [("x", "@x_real"), ("y", "$y")]
+    hover.names = ["sig_plot_line"]
+    hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
