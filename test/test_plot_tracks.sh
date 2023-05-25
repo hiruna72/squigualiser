@@ -40,7 +40,7 @@ testcase_20s() {
   TESTCASE=20.2
   info "testcase:$TESTCASE - plot tracks"
   COMMAND_FILE="${RAW_DIR}/t_20.2.txt"
-  python src/plot_tracks.py -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} && die "testcase:$TESTCASE failed"
+  python src/plot_tracks.py -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} || die "testcase:$TESTCASE failed"
 }
 testcase_20s #pileup
 

@@ -48,15 +48,21 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
     ref_region_end_diff = region_tuple[2] + ref_seq_len - region_tuple[1]
     # print("ref_region_start_diff: " + str(ref_region_start_diff))
-
     moves = sig_algn_data['ss']
     if ref_region_start_diff < 0:
         # we have to remove part of the sequence until we get to the ref start
         count_bases = 0
         eat_signal = 0
         count_moves = 0
+        prev_move = None
+        updated_move = []
         for i in moves:
             if count_bases == abs(ref_region_start_diff):
+                break
+            if count_bases > abs(ref_region_start_diff):
+                if not prev_move.find('D'):
+                    raise Exception("Error: a deletion move was expected. incorrect implementation. Please report with a minimal reproducible test")
+                updated_move = ["{}D".format(count_bases-abs(ref_region_start_diff))]
                 break
             count_moves += 1
 
@@ -71,13 +77,12 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
             else:
                 eat_signal += int(i)
                 count_bases += 1
-
-        moves = moves[count_moves:]
+            prev_move = i
+        moves = updated_move + moves[count_moves:]
         x = signal_tuple[0][:-eat_signal]
         x_real = signal_tuple[1][eat_signal:]
         y = signal_tuple[2][eat_signal:]
         signal_tuple = (x, x_real, y)
-
         sig_algn_data['ss'] = moves
 
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
@@ -258,17 +263,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     signal_region = ""
     indels = f'deletions(bases): {num_Ds} insertions(samples): {num_Is}'
-
-    if sig_algn_data["plot_sig_ref_flag"] == 0:
-        if sig_algn_data["data_is_rna"] == 1:
-            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
-        else:
-            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
-    else:
-        if sig_algn_data["data_is_rna"] == 1:
-            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
-        else:
-            signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
+    signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
     y_plot = y[:x_coordinate]+y_shift
     y_median = np.nanmedian(y_plot)
     y_max = np.nanmax(y_plot)
@@ -286,7 +281,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
 
-    return p, location_plot
+    return p, location_plot, base_index
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
@@ -302,6 +297,7 @@ def run(args):
             raise Exception("Error: please provide the sequence file with correct extension")
 
     max_location_plot = 0
+    max_base_index = 0
     plot_sig_ref_flag = 0
     use_paf = 0
     if args.alignment:
@@ -344,6 +340,8 @@ def run(args):
     else:
         if not os.path.exists(args.output_dir):
             os.mkdir(args.output_dir)
+    if not args.loose_bound:
+        print("Warning:truepileup view we skip the alignments that are not completely within the specified region")
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -438,12 +436,11 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             sam_record_reference_end = sam_record.reference_start + ref_seq_len #1based closed
-            if args_ref_start < sam_record.reference_start + 1:
-                print("Warning: for pileup view we skip the alignments that are not completely within the specified region")
-                continue
-            if args_ref_end > sam_record_reference_end:
-                print("Warning: for pileup view we skip the alignments that are not completely within the specified region")
-                continue
+            if not args.loose_bound:
+                if args_ref_start < sam_record.reference_start + 1:
+                    continue
+                if args_ref_end > sam_record_reference_end:
+                    continue
 
             ref_name = sam_record.reference_name
             ref_start = sam_record.reference_start + 1
@@ -468,7 +465,7 @@ def run(args):
             # print("base_limit: {}".format(base_limit))
 
             if data_is_rna == 1:
-                print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
+                print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if sam_record.is_reverse:
@@ -476,7 +473,6 @@ def run(args):
                 else:
                     print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
             x_real = []
@@ -565,10 +561,12 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
+                    if max_base_index < base_index:
+                        max_base_index = base_index
                     if max_location_plot < location_plot:
                         max_location_plot = location_plot
 
@@ -579,15 +577,18 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
+            if max_base_index < base_index:
+                max_base_index = base_index
             if max_location_plot < location_plot:
                 max_location_plot = location_plot
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
+
     elif use_paf == 1 and plot_sig_ref_flag == 1:
         print("Info: Signal to reference method using PAF ...")
         fasta_reads = Fasta(args.file)
@@ -634,6 +635,11 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
+            if not args.loose_bound:
+                if args_ref_start < reference_start + 1:
+                    continue
+                if args_ref_end > paf_record_reference_end:
+                    continue
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
@@ -662,7 +668,7 @@ def run(args):
             if record_is_reverse and data_is_rna == 1:
                 raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
             if data_is_rna == 1:
-                print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
+                print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if record_is_reverse:
@@ -751,10 +757,12 @@ def run(args):
             y_max = math.ceil(np.amax(y))
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
-                    p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
+                    p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
                     previous_plot = p
                     prev_y_max = y_max
                     prev_y_min = y_min
+                    if max_base_index < base_index:
+                        max_base_index = base_index
                     if max_location_plot < location_plot:
                         max_location_plot = location_plot
 
@@ -765,10 +773,12 @@ def run(args):
                 y_shift = y_shift + prev_y_min - draw_data["plot_y_margin"] - y_max
             if args.overlap_only:
                 y_shift = 0
-            p, location_plot = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
+            p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=num_plots, y_shift=y_shift, y_min=y_min, y_max=y_max)
             previous_plot = p
             prev_y_max = y_max
             prev_y_min = y_min
+            if max_base_index < base_index:
+                max_base_index = base_index
             if max_location_plot < location_plot:
                 max_location_plot = location_plot
 
@@ -782,9 +792,9 @@ def run(args):
 
     if num_plots > 0:
         if sig_algn_dic["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]'
         else:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]'
         p.title = plot_title
         p.legend.click_policy = "hide"
         # p.legend.location = 'top_left'
@@ -835,6 +845,7 @@ def argparser():
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
     parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")
+    parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")

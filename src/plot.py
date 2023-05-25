@@ -56,8 +56,15 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         count_bases = 0
         eat_signal = 0
         count_moves = 0
+        prev_move = None
+        updated_move = []
         for i in moves:
             if count_bases == abs(ref_region_start_diff):
+                break
+            if count_bases > abs(ref_region_start_diff):
+                if not prev_move.find('D'):
+                    raise Exception("Error: a deletion move was expected. incorrect implementation. Please report with a minimal reproducible test")
+                updated_move = ["{}D".format(count_bases-abs(ref_region_start_diff))]
                 break
             count_moves += 1
 
@@ -72,8 +79,8 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
             else:
                 eat_signal += int(i)
                 count_bases += 1
-
-        moves = moves[count_moves:]
+            prev_move = i
+        moves = updated_move + moves[count_moves:]
         x = signal_tuple[0][:-eat_signal]
         x_real = signal_tuple[1][eat_signal:]
         y = signal_tuple[2][eat_signal:]

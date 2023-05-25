@@ -31,26 +31,31 @@ def run(args):
             print("Error: {} is not suported in tracks. Please report on github if you want this feature.".format(tool))
             exit(1)
         command = line_[2:]
-        print(command)
+        if '--return_plot' not in command:
+            print("Error: please specify --return_plot for each command")
+            exit(1)
+        # print(command)
 
         args_tool = plot_pileup.argparser().parse_args(command)
         p = plot_pileup.run(args_tool)
         if p is None:
-            print("Error: please specify --return_plot for each command")
+            continue
         p.height = int(plot_heights[i])
+        p.sizing_mode = 'scale_width'
 
         if num_plots > 0:
             p.x_range = pileup[0].x_range
         pileup.append(p)
-        num_plots += 1
-        # output_file(args.output_dir+"/count.html", title=count)
+        # output_file(args.output_dir+"/"+str(num_plots)+".html", title=num_plots)
         # save(p)
-
+        num_plots += 1
+    if len(pileup) == 0:
+        print("Error: no plots to plot")
+        exit(1)
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
     pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-    pileup_fig = column(pileup, sizing_mode='stretch_width')
-    # pileup_fig = column(pileup)
+    pileup_fig = column(pileup, sizing_mode='stretch_both')
     output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
     save(pileup_fig)
     print(f'output file: {os.path.abspath(pileup_output_file_name)}')
