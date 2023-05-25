@@ -1255,12 +1255,9 @@ def argparser():
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
     parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=True,
-                        help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-    parser.add_argument('--region', required=False, type=str, default="",
-                        help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
-    parser.add_argument('--tag_name', required=False, type=str, default="",
-                        help="a tag name to easily identify the plot")
+    parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
+    parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")

@@ -339,8 +339,11 @@ def run(args):
     if args.bed:
         print(f'bed file: {args.bed}')
 
-    if not os.path.exists(args.output_dir):
-        os.mkdir(args.output_dir)
+    if args.return_plot:
+        print("Info: plots will be returned without saving")
+    else:
+        if not os.path.exists(args.output_dir):
+            os.mkdir(args.output_dir)
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -778,14 +781,11 @@ def run(args):
     print("Number of plots: {}".format(num_plots))
 
     if num_plots > 0:
-        pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-        output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
         if sig_algn_dic["data_is_rna"] == 1:
             plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_start"]}]'
         else:
             plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_end"]}]'
         p.title = plot_title
-
         p.legend.click_policy = "hide"
         # p.legend.location = 'top_left'
         p.legend.label_text_font_size = '7pt'
@@ -800,9 +800,13 @@ def run(args):
         renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
         draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
         p.add_tools(draw_tool)
-
-        save(p)
-        print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+        if args.return_plot:
+            return p
+        else:
+            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
+            output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+            print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+            save(p)
 
     s5.close()
 def argparser():
@@ -838,7 +842,9 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
-    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-o', '--output_dir', help="output dir")
+    group.add_argument('--return_plot', action='store_true', help="return plot object without saving to output")
     return parser
 
 if __name__ == "__main__":

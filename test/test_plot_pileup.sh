@@ -53,8 +53,8 @@ testcase_20s() {
 
   TESTCASE=20.2
   info "testcase:$TESTCASE - reference-signal plot"
-  GENOME="test/data/raw/plot/reference_genomes/chr22_1_5k.fa"
-  FASTA=${GENOME}
+  GENOME_2="test/data/raw/plot/reference_genomes/chr22_1_5k.fa"
+  FASTA=${GENOME_2}
   SIGNAL="${RAW_DIR}/pileup_view/test_0/na12878_chr22.blow5"
   ALIGNMENT="${RAW_DIR}/pileup_view/test_0/na12878_chr22.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
@@ -63,6 +63,42 @@ testcase_20s() {
   SCALING="znorm"
   BASE_SHIFT="--base_shift -6"
   python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.3
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="znorm"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py --no_overlap ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.4
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="znorm"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py --overlap_only ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.5
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="znorm"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py --overlap_only ${BASE_SHIFT} --region ${REGION} --no_reverse -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
 
 }
 testcase_20s #pileup
