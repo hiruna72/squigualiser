@@ -526,7 +526,7 @@ def run(args):
             #     x_real.reverse()
             #     y = np.flip(y)
             #     moves.reverse()
-            #     strand_dir = "(RNA 5'->3')"
+            #     strand_dir = "(RNA 3'->5')"
             if data_is_rna == 0:
                 strand_dir = "(DNA +)"
                 if sam_record.is_reverse:
@@ -536,7 +536,7 @@ def run(args):
                     moves.reverse()
 
             if data_is_rna == 1:
-                strand_dir = "(RNA 5'->3')"
+                strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
                 if sam_record.is_reverse:
                     raise Exception("Error: data is rna and sam record is reverse mapped. This is not implemented yet. Please report")
@@ -725,7 +725,7 @@ def run(args):
                     moves.reverse()
 
             if data_is_rna == 1:
-                strand_dir = "(RNA 5'->3')"
+                strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
 
             signal_tuple = (x, x_real, y)
