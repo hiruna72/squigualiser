@@ -223,7 +223,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
-    hover.names = ["sig_plot_line"]
+    hover.name = "sig_plot_line"
     hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
 
@@ -414,7 +414,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
-    hover.names = ["sig_plot_line"]
+    hover.name = "sig_plot_line"
     hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
 
