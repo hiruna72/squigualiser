@@ -258,7 +258,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
-    hover.name = "sig_plot_line"
+    hover.renderers = p.select(name="sig_plot_line")
     hover.tooltips = [("x", "@x_real"), ("y", "@y_real")]
     hover.mode = 'mouse'
 
