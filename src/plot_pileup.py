@@ -342,7 +342,7 @@ def run(args):
         if not os.path.exists(args.output_dir):
             os.mkdir(args.output_dir)
     if not args.loose_bound:
-        print("Warning:truepileup view we skip the alignments that are not completely within the specified region")
+        print("Warning: the alignments that are not completely within the specified region will be skipped. Please specify --loose_bound to keep")
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
