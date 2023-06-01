@@ -211,7 +211,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
-    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
 
@@ -396,7 +396,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
-    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'])
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
 
@@ -562,7 +562,7 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         annotation_label.append(bed_name)
         annotation_label_x.append((annotation_box_details['left'][bed_index]))
     # print(annotation_box_details)
-    p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.7)
+    p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.75)
 
     # print(annotation_label)
     bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
