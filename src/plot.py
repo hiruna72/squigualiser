@@ -204,7 +204,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, text_font_size="6pt", text_color='colors')
+    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, angle=0.3, text_font_size="9pt", text_color='colors')
 
     source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
@@ -392,7 +392,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, text_font_size="6pt", text_color='colors')
+    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, angle=0.3, text_font_size="9pt", text_color='colors')
 
     fixed_width_x = fixed_width_x[1:]
 
