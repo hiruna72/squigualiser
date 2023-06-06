@@ -73,7 +73,21 @@ testcase_40s() {
   python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
 }
-testcase_40s #annotation
+testcase_41s() {
+  TESTCASE=41.0
+  info "testcase:$TESTCASE - annotation RNA"
+  FASTA="-f ${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="-s ${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="-a ${RAW_DIR}/one_read/reform/r1k1m0.paf"
+  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  BED="--bed ${RAW_DIR}/bed_files/sample_1.bed"
+  python src/plot.py  ${BED} --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+
+
+}
+testcase_40s #annotation DNA
+#testcase_41s #annotation RNA
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

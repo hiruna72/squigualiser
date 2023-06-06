@@ -107,7 +107,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     sample_label_colors = []
     location_plot = 0
     initial_location = location_plot
-
+    x_coordinate = 0
+    initial_x_coordinate = x_coordinate
     base_shift_seq = 'N' * abs(draw_data['base_shift'])
     if draw_data["base_shift"] > 0:
         fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
@@ -125,11 +126,13 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     for i in moves:
         previous_location = location_plot
+        previous_x_coordinate = x_coordinate
         if 'D' in i:
             i = re.sub('D', '', i)
             n_samples = int(i)
 
             prev_loc = previous_location
+            prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
 
@@ -153,7 +156,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             if flag_base_index_bound == 1:
                 break
             location_plot = prev_loc
-
+            x_coordinate = prev_x_cord
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["fixed_base_width"]))
             y_add = np.concatenate((y[:previous_location], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
             y = np.concatenate((y_add, y[previous_location:]), axis=0)
@@ -179,6 +182,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
         else:
             n_samples = int(i)
             location_plot += n_samples
+            x_coordinate += n_samples
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
@@ -197,9 +201,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
             break
-        if location_plot - initial_location > draw_data["sig_plot_limit"]:
+        if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
-
     line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min]*len(line_segment_x), y1=[y_max]*len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
@@ -210,14 +213,14 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
-    source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
+    source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -230,9 +233,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     indt = "\t\t\t\t\t\t\t\t"
 
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -284,7 +287,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     fixed_width_x = [0.0]
     line_segment_x = []
     base_box_details = {'left': [], 'right': [], 'fill_color': []}
-
     num_samples_in_insertion = 0
     flag_base_index_bound = 0
     for i in moves:
@@ -411,13 +413,11 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.renderers = p.select(name="sig_plot_line")
     hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
-
     indt = "\t\t\t\t\t\t\t\t"
-
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
 
     p.title = plot_title
 
