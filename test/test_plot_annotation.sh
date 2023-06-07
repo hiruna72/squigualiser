@@ -35,7 +35,7 @@ testcase_40s() {
   ALIGNMENT="-a ${RAW_DIR}/one_read/reform/r1k1m0.paf"
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
-  BED="--bed ${RAW_DIR}/bed_files/sample_1.bed"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_1.bed"
   python src/plot.py  ${BED} --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.1
@@ -45,7 +45,7 @@ testcase_40s() {
   ALIGNMENT="-a ${RAW_DIR}/one_read/reform/r1k1m0.paf"
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
-  BED="--bed ${RAW_DIR}/bed_files/sample_1.bed"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_1.bed"
   python src/plot.py  ${BED} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.2
@@ -56,7 +56,7 @@ testcase_40s() {
   ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
-  BED="--bed ${RAW_DIR}/bed_files/sample_2.bed"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_2.bed"
   REGION="--region chr1:6,811,011-6,811,198"
   python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
@@ -68,26 +68,47 @@ testcase_40s() {
   ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
-  BED="--bed ${RAW_DIR}/bed_files/sample_3.bed"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_3.bed"
   REGION="--region chr1:6,811,011-6,811,198"
   python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
+  TESTCASE=40.4
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/realigned_DNA/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/realigned_DNA/sorted_test_1.4.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  READ_ID="--read_id a2d0e216-8610-40b8-92f0-0a04c4a58e08"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_4.bed"
+  python src/plot.py ${BED} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${READ_ID} || die "testcase:$TESTCASE failed"
+
 }
 testcase_41s() {
+  RAW_DIR="${RAW_DIR}/rna/t0"
   TESTCASE=41.0
   info "testcase:$TESTCASE - annotation RNA"
-  FASTA="-f ${RAW_DIR}/one_read/read.fasta"
-  SIGNAL="-s ${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="-a ${RAW_DIR}/one_read/reform/r1k1m0.paf"
-  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
-  PLOT_LIMIT="--plot_limit 10"
-  BED="--bed ${RAW_DIR}/bed_files/sample_1.bed"
-  python src/plot.py  ${BED} --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+  FASTA="${RAW_DIR}/sequin_reads.fastq"
+  SIGNAL="${RAW_DIR}/sequin_reads.blow5"
+  ALIGNMENT="${RAW_DIR}/resquiggle_move.paf"
+  REGION=""
+  READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  BED="--bed ${REL_PATH}/data/raw/plot/bed_files/RNA_1.bed"
+  python src/plot.py --rna ${BED} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
+  TESTCASE=41.1
+  info "testcase:$TESTCASE - annotation RNA"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/sequin_reads.blow5"
+  ALIGNMENT="${REL_PATH}/data/raw/plot/realigned_RNA/one_read/sorted_test_1.5.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  BED="--bed ${REL_PATH}/data/raw/plot/bed_files/RNA_2.bed"
+  python src/plot.py --rna ${BED} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
 }
 testcase_40s #annotation DNA
-#testcase_41s #annotation RNA
+testcase_41s #annotation RNA
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
