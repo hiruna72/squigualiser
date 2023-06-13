@@ -28,7 +28,9 @@ RAW_DIR="${REL_PATH}/data/raw/plot"
 EXP_DIR="${REL_PATH}/data/exp/plot"
 
 testcase_20s() {
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
+
   TESTCASE=20.0
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}

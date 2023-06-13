@@ -28,7 +28,8 @@ RAW_DIR="${REL_PATH}/data/raw/plot"
 EXP_DIR="${REL_PATH}/data/exp/plot"
 
 testcase_4s() {
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
 
   TESTCASE=4.1
   info "testcase:$TESTCASE - reference-signal plot"
@@ -383,7 +384,8 @@ testcase_7s() {
 
 }
 testcase_8s() {
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
 
   TESTCASE=8.1
   info "testcase:$TESTCASE - reference-signal plot"
@@ -522,7 +524,8 @@ testcase_9s() {
 
 }
 testcase_10s() {
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
 
   TESTCASE=10.1
   info "testcase:$TESTCASE - reference-signal plot"
@@ -548,6 +551,16 @@ testcase_10s() {
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
   ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="--region chr1:6811404-6811443"
+  python src/plot.py --fixed_width ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=10.4
+  info "testcase:$TESTCASE - reference-signal plot sam"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT=10
   REGION="--region chr1:6811404-6811443"

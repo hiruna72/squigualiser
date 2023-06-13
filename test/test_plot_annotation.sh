@@ -49,7 +49,8 @@ testcase_40s() {
   python src/plot.py  ${BED} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.2
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA="-f ${GENOME}"
   SIGNAL="-s ${RAW_DIR}/f5c_eventalign/reads.blow5"
@@ -61,7 +62,8 @@ testcase_40s() {
   python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.3
-  GENOME="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA="-f ${GENOME}"
   SIGNAL="-s ${RAW_DIR}/f5c_eventalign/reads.blow5"
