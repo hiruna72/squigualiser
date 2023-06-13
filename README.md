@@ -309,6 +309,7 @@ Similar to IGV pileup view now you can view the signal pileup view. To create a 
 1. The plot is a signal to reference visualisation, not a signal to read.
 2. A genomic region should be specified using the argument `--region`
 
+First, create an alignment file by following the steps mentioned in [Signal to reference visualisation](#signal-to-reference-visualisation)
 ````
 REGION=chr1:6811011-6811198
 squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "pileup"
@@ -317,11 +318,11 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 
 ## Squigualiser website
 <details>
-<summary>Click to expand</summary>
+<summary>For GUI lovers, plots can be generated using a website running on localhost (http://localhost:8000/home)
+</summary>
 
 ![image](docs/figures/squigualiser_website.png)
 
-For GUI lovers, plots can be generated using a website running on localhost (http://localhost:8000/home)
 
 ````
 python src/server.py
@@ -346,9 +347,8 @@ User can shift the base sequence to right or left by `n` number of bases by prov
 
 ## Guppy move table explanation
 <details>
-<summary>Click to expand</summary>
+<summary>Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.</summary>
 
-Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.
 1. read_id
 2. basecalled fastq sequence length
 3. basecalled fastq sequence
