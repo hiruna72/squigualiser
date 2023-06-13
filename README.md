@@ -30,10 +30,7 @@ A simple tool to Visualise nanopore raw signal-base alignment
 
 
 ## Installation
-
-* using python environment (tested with python 3.9, should work with anything higher as well)
-<details>
-<summary>Click to expand</summary>
+<details open><summary>using python environment (tested with python 3.9, should work with anything higher as well)</summary>
 
 ````
 git clone https://github.com/hiruna72/squigualiser.git
@@ -49,9 +46,7 @@ squigualiser --help
 ````
 </details>
 
-* using conda environment
-<details>
-<summary>Click to expand</summary>
+<details><summary>using conda environment</summary>
 
 ````
 git clone https://github.com/hiruna72/squigualiser.git
@@ -326,7 +321,8 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 
 ![image](docs/figures/squigualiser_website.png)
 
-For GUI lovers, plots can be generated using a website running on localhost.
+For GUI lovers, plots can be generated using a website running on localhost (http://localhost:8000/home)
+
 ````
 python src/server.py
 ````
