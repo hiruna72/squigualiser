@@ -310,10 +310,10 @@ Similar to IGV pileup view now you can view the signal pileup view. To create a 
 2. A genomic region should be specified using the argument `--region`
 
 ````
-REGION=chr1:6811404-6811443
+REGION=chr1:6811011-6811198
 squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "pileup"
 ````
-[Here](https://hiruna72.github.io/squigualiser/docs/figures/fixed_with_region_specified_pileup.html) is an example pileup plot created using the [testcase 8.1](test/test_plot_signal_to_read.sh).
+[Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html) is an example pileup plot created using the [testcase 20.1](test/test_plot_pileup.sh).
 
 ## Squigualiser website
 <details>
