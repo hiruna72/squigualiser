@@ -30,12 +30,12 @@ A simple tool to Visualise nanopore raw signal-base alignment
 
 
 ## Installation
-<details open><summary>using python environment (tested with python 3.8.8, should work with anything higher as well)</summary>
+<details open><summary>using python environment (tested with python 3.8.0, should work with anything higher as well)</summary>
 
 ````
 git clone https://github.com/hiruna72/squigualiser.git
 cd squigualiser
-python3.9 -m venv venv3
+python3.8 -m venv venv3
 source venv3/bin/activate
 pip install --upgrade pip
 pip install --upgrade setuptools wheel
@@ -51,7 +51,7 @@ squigualiser --help
 ````
 git clone https://github.com/hiruna72/squigualiser.git
 cd squigualiser
-conda create -n squig python=3.8.8 -y
+conda create -n squig python=3.8.0 -y
 conda activate squig
 
 export PYSLOW5_ZSTD=1 # if your slow5 file uses zstd compression and you have zstd installed, set
