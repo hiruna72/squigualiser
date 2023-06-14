@@ -196,6 +196,9 @@ REF=genome.fa #reference
 MAPP_SAM=map_output.sam
 samtools fastq out.sam | minimap2 -ax map-ont ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
 
+For RNA
+samtools fastq out.sam | minimap2 -ax splice -uf -k14 ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
+
 ```
 
 4. Realign move array to reference
@@ -229,6 +232,10 @@ MAP_SAM=mapped.sam
 FASTQ=read.fastq
 samtools fastq basecaller_out.sam > ${FASTQ}
 minimap2 -ax map-ont ${REF} ${FASTQ} -t8 --secondary=no -o ${MAP_SAM}
+
+For RNA
+minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
+
 ```
 2. create f5c index
 ```
