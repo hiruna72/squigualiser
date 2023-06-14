@@ -113,7 +113,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details>
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 
-1. For r10 data, build [f5c r10 branch](https://github.com/hasindu2008/f5c/tree/r10) by following the instructions listed in [f5c README](https://github.com/hasindu2008/f5c/blob/r10/README.md). For r9 data, the [f5c binaries](https://github.com/hasindu2008/f5c#quick-start) are sufficient.
+1. Install f5c 1.2 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start).
 
 2. Run f5c resquiggle
 ```
@@ -277,7 +277,6 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 <details>
 
 <summary>Steps for using the signal simulation software (PAF output)</summary>
-Note that Squigulator also supports PAF output but SAM output is recommended.
 
 2. Simulate a signal (remember to provide -c and --paf-ref).
 ```
@@ -332,7 +331,7 @@ python src/server.py
 ## Notes
 
 1. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-2. The argument `KMER_MODEL` is optional. For r10.4.1 dna reads use [this](https://github.com/hasindu2008/f5c/blob/r10/test/r10-models/r10.4.1_400bps.nucleotide.9mer.template.model) model.
+2. The argument `KMER_MODEL` is optional..
 3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
 4. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 5. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
