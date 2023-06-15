@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS
 from bokeh.layouts import row
 from bokeh.colors import RGB
 import pyslow5
@@ -153,7 +153,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
             base_x.append(previous_location)
             base_y.append(label_position)
-            label = str(base) + "\t" + str(base_index + 1)
+            label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
             for j in range(0, n_samples):
@@ -168,7 +168,6 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
 
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
@@ -178,7 +177,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
-
+    
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
@@ -207,6 +206,12 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
+
+    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback)
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
@@ -332,7 +337,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
             base_x.append(previous_location)
             base_y.append(label_position)
-            label = str(base) + "\t" + str(base_index + 1)
+            label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
             for j in range(0, n_samples - num_samples_in_insertion):
@@ -349,7 +354,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
 
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
@@ -392,6 +396,12 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
+
+    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback)
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
