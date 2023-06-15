@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
+from bokeh.models import ColumnDataSource, LabelSet, CustomJS
 from bokeh.colors import RGB
 import argparse
 import re
@@ -15,6 +15,7 @@ import re
 # start_kmer is always 0based closed
 # end_kmer is always 0based open
 
+PLOT_X_RANGE = 750
 
 DEFAULT_NUM_BED_COLS = 3
 DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
@@ -185,8 +186,14 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
 
     # print(annotation_label)
     bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
-    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="6pt")
+    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="7pt")
     p.add_layout(bed_annotation_labels)
+
+    x_callback = CustomJS(args=dict(bed_annotation_labels=bed_annotation_labels, init_font_size=bed_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    bed_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback)
 
     return p
 def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit):
