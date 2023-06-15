@@ -509,6 +509,13 @@ def run(args):
 
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
+
+            if num_plots == 0 and args.bed and args.overlap_bottom is False:
+                draw_data['y_min'] = y_min
+                draw_data['y_max'] = y_max
+                draw_data['fixed_width'] = True
+                p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
                     p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
@@ -538,6 +545,11 @@ def run(args):
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
+        if args.bed and args.overlap_bottom is True:
+            draw_data['y_min'] = prev_y_min + y_shift
+            draw_data['y_max'] = prev_y_max + y_shift
+            draw_data['fixed_width'] = True
+            p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
     elif use_paf == 1 and plot_sig_ref_flag == 1:
         print("Info: Signal to reference method using PAF ...")
@@ -705,6 +717,13 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
+
+            if num_plots == 0 and args.bed and args.overlap_bottom is False:
+                draw_data['y_min'] = y_min
+                draw_data['y_max'] = y_max
+                draw_data['fixed_width'] = True
+                p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+
             if not args.no_overlap and not args.overlap_only:
                 if num_plots == 0:
                     p, location_plot, base_index = plot_function_fixed_width_pileup(read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data, p=previous_plot, num_plots=-1, y_shift=y_shift, y_min=y_min, y_max=y_max)
@@ -735,6 +754,12 @@ def run(args):
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
+        if args.bed and args.overlap_bottom is True:
+            draw_data['y_min'] = prev_y_min + y_shift
+            draw_data['y_max'] = prev_y_max + y_shift
+            draw_data['fixed_width'] = True
+            p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
