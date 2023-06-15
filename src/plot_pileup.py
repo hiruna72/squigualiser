@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS
 from bokeh.layouts import column
 from bokeh.colors import RGB
 import pyslow5
@@ -148,7 +148,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
                 base_x.append(prev_loc)
                 base_y.append(label_position+y_shift)
-                label = str(base) + "\t" + str(base_index + 1)
+                label = str(base) + "\n" + str(base_index + 1)
                 base_label.append(label)
 
                 prev_loc += draw_data["fixed_base_width"]
@@ -207,7 +207,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
             if num_plots == -1 or draw_data['overlap_only']:
                 base_x.append(previous_location)
                 base_y.append(label_position + y_shift)
-                label = str(base) + "\t" + str(base_index + 1)
+                label = str(base) + "\n" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('black')
             else:
@@ -232,7 +232,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="#8b4513", line_width=1, line_alpha=0.5)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="7pt", text_color='colors')
 
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
@@ -281,6 +281,13 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels)
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
+    
+    xcb = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    subplot_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', xcb)
 
     return p, location_plot, base_index
 def run(args):
@@ -804,9 +811,11 @@ def run(args):
 
         if max_location_plot > y_shift:
             if max_location_plot > PLOT_X_RANGE:
-                p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+                new_x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
             else:
-                p.x_range = Range1d(0, max_location_plot, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+                new_x_range = Range1d(0, max_location_plot, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+            new_x_range.js_property_callbacks = p.x_range.js_property_callbacks
+            p.x_range = new_x_range
 
         renderer = p.multi_line([[1, 1]], [[1, 1]], line_width=4, alpha=0.4, color='black')
         draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)

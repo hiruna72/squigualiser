@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, Text, CustomJS
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS
 from bokeh.layouts import row
 from bokeh.colors import RGB
 import pyslow5
@@ -188,7 +188,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
             base_x.append(previous_location)
             base_y.append(label_position)
-            label = str(base) + "\t" + str(base_index + 1)
+            label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
             for j in range(0, n_samples):
@@ -204,16 +204,16 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, angle=0.3, text_font_size="9pt", text_color='colors')
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
+
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
+    p.add_layout(base_annotation_labels)
     
-    base_annotation_labels_plt = p.add_glyph(base_annotation, base_annotation_labels)
-    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
-    toggle_bases.js_link('active', base_annotation_labels_plt, 'visible')
-
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
@@ -375,7 +375,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
             base_x.append(previous_location)
             base_y.append(label_position)
-            label = str(base) + "\t" + str(base_index + 1)
+            label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
             for j in range(0, n_samples - num_samples_in_insertion):
@@ -392,17 +392,17 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
-    base_annotation_labels = Text(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, angle=0.3, text_font_size="9pt", text_color='colors')
+    base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="9pt", text_color='colors')
+
+    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
+    toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
-
-    base_annotation_labels_plt = p.add_glyph(base_annotation, base_annotation_labels)
-    toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
-    toggle_bases.js_link('active', base_annotation_labels_plt, 'visible')
+    p.add_layout(base_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
