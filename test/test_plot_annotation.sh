@@ -86,12 +86,12 @@ testcase_40s() {
 
 }
 testcase_41s() {
-  RAW_DIR="${RAW_DIR}/rna/t0"
+  RAW_DIR_RNA="${RAW_DIR}/rna/t0"
   TESTCASE=41.0
   info "testcase:$TESTCASE - annotation RNA"
-  FASTA="${RAW_DIR}/sequin_reads.fastq"
-  SIGNAL="${RAW_DIR}/sequin_reads.blow5"
-  ALIGNMENT="${RAW_DIR}/resquiggle_move.paf"
+  FASTA="${RAW_DIR_RNA}/sequin_reads.fastq"
+  SIGNAL="${RAW_DIR_RNA}/sequin_reads.blow5"
+  ALIGNMENT="${RAW_DIR_RNA}/resquiggle_move.paf"
   REGION=""
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
@@ -102,7 +102,7 @@ testcase_41s() {
   TESTCASE=41.1
   info "testcase:$TESTCASE - annotation RNA"
   FASTA=${GENOME}
-  SIGNAL="${RAW_DIR}/sequin_reads.blow5"
+  SIGNAL="${RAW_DIR_RNA}/sequin_reads.blow5"
   ALIGNMENT="${REL_PATH}/data/raw/plot/realigned_RNA/one_read/sorted_test_1.5.bam"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   BED="--bed ${REL_PATH}/data/raw/plot/bed_files/RNA_2.bed"
@@ -167,7 +167,6 @@ testcase_42s() {
   python src/plot_pileup.py --overlap_bottom ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
 }
-
 testcase_40s #annotation DNA
 testcase_41s #annotation RNA
 testcase_42s #annotation DNA pileup
