@@ -36,7 +36,7 @@ testcase_40s() {
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
   BED="--bed ${RAW_DIR}/bed_files/DNA_1.bed"
-  python src/plot.py  ${BED} --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+  python src/plot.py  ${BED} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.1
   info "testcase:$TESTCASE - read-signal plot"
@@ -46,7 +46,7 @@ testcase_40s() {
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
   BED="--bed ${RAW_DIR}/bed_files/DNA_1.bed"
-  python src/plot.py  ${BED} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+  python src/plot.py  ${BED} --fixed_width ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.2
   [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
@@ -59,7 +59,7 @@ testcase_40s() {
   PLOT_LIMIT="--plot_limit 10"
   BED="--bed ${RAW_DIR}/bed_files/DNA_2.bed"
   REGION="--region chr1:6,811,011-6,811,198"
-  python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+  python src/plot.py  ${BED} ${REGION} --fixed_width ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.3
   [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
@@ -72,7 +72,7 @@ testcase_40s() {
   PLOT_LIMIT="--plot_limit 10"
   BED="--bed ${RAW_DIR}/bed_files/DNA_3.bed"
   REGION="--region chr1:6,811,011-6,811,198"
-  python src/plot.py  ${BED} ${REGION} --fixed_width --no_reverse ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
+  python src/plot.py  ${BED} ${REGION} --fixed_width ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=40.4
   info "testcase:$TESTCASE - reference-signal plot"

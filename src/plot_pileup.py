@@ -20,6 +20,7 @@ from pyfastx import Fastq
 import os
 import pysam
 import math
+import bed_annotation
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
@@ -84,7 +85,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         y = signal_tuple[2][eat_signal:]
         signal_tuple = (x, x_real, y)
         sig_algn_data['ss'] = moves
-
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
     x = signal_tuple[0]
