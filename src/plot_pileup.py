@@ -21,6 +21,7 @@ import os
 import pysam
 import math
 import bed_annotation
+import plot_utils
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
@@ -42,50 +43,7 @@ PLOT_X_PADDING = 100
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
-def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
-    if sig_algn_data["data_is_rna"]:
-        ref_region_start_diff = region_tuple[1] - region_tuple[3]
-    else:
-        ref_region_start_diff = region_tuple[2] + 1 - region_tuple[0]
-    ref_region_end_diff = region_tuple[2] + ref_seq_len - region_tuple[1]
-    # print("ref_region_start_diff: " + str(ref_region_start_diff))
-    moves = sig_algn_data['ss']
-    if ref_region_start_diff < 0:
-        # we have to remove part of the sequence until we get to the ref start
-        count_bases = 0
-        eat_signal = 0
-        count_moves = 0
-        prev_move = None
-        updated_move = []
-        for i in moves:
-            if count_bases == abs(ref_region_start_diff):
-                break
-            if count_bases > abs(ref_region_start_diff):
-                if not prev_move.find('D'):
-                    raise Exception("Error: a deletion move was expected. incorrect implementation. Please report with a minimal reproducible test")
-                updated_move = ["{}D".format(count_bases-abs(ref_region_start_diff))]
-                break
-            count_moves += 1
 
-            if 'D' in i:
-                i = re.sub('D', '', i)
-                count_bases += int(i)
-                # print(i+" D "+str(int(sam_record.reference_start) + 1 + count_bases))
-            elif 'I' in i:
-                i = re.sub('I', '', i)
-                eat_signal += int(i)
-                # print(i+" I "+str(int(sam_record.reference_start) + 1 + count_bases))
-            else:
-                eat_signal += int(i)
-                count_bases += 1
-            prev_move = i
-        moves = updated_move + moves[count_moves:]
-        x = signal_tuple[0][:-eat_signal]
-        x_real = signal_tuple[1][eat_signal:]
-        y = signal_tuple[2][eat_signal:]
-        signal_tuple = (x, x_real, y)
-        sig_algn_data['ss'] = moves
-    return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data, p, num_plots, y_shift, y_max, y_min):
     x = signal_tuple[0]
     x_real = signal_tuple[1]
@@ -555,7 +513,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
 
             y_min = math.floor(np.amin(y))
@@ -752,7 +710,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
             y_min = math.floor(np.amin(y))
             y_max = math.ceil(np.amax(y))
