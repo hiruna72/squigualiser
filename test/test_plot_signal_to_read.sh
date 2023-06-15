@@ -156,6 +156,14 @@ testcase_1s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
 
+  TESTCASE=1.15
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0.paf"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width   --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
+
 }
 testcase_2s() {
   TESTCASE=2.1

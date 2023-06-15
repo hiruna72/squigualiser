@@ -93,11 +93,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     x_real = signal_tuple[1]
     y = signal_tuple[2]
 
-    y_min = draw_data['y_min']
-    y_max = draw_data['y_max']
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
     label_position = np.percentile(y, 98)
+    y_min = draw_data['y_min']
+    y_max = draw_data['y_max']
 
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
@@ -108,6 +108,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     location_plot = 0
     initial_location = location_plot
 
+    x_coordinate = 0
+    initial_x_coordinate = x_coordinate
+
     base_shift_seq = 'N' * abs(draw_data['base_shift'])
     if draw_data["base_shift"] > 0:
         fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
@@ -116,20 +119,22 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     # draw moves
     moves = sig_algn_data["ss"]
-    base_box_details = {'left': [], 'right': [], 'fill_color': []}
     base_index = sig_algn_data["start_kmer"]
     num_Is = 0
     num_Ds = 0
     line_segment_x = []
+    base_box_details = {'left': [], 'right': [], 'fill_color': []}
     flag_base_index_bound = 0
 
     for i in moves:
         previous_location = location_plot
+        previous_x_coordinate = x_coordinate
         if 'D' in i:
             i = re.sub('D', '', i)
             n_samples = int(i)
 
             prev_loc = previous_location
+            prev_x_cord = previous_x_coordinate
             for j in range(0, n_samples):
                 base = fasta_sequence[base_index]
 
@@ -144,6 +149,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
                 base_label_colors.append('red')
 
                 prev_loc += draw_data["fixed_base_width"]
+                prev_x_cord += draw_data["fixed_base_width"]
                 base_index += 1
                 num_Ds += 1
                 if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -153,6 +159,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             if flag_base_index_bound == 1:
                 break
             location_plot = prev_loc
+            x_coordinate = prev_x_cord
 
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["fixed_base_width"]))
             y_add = np.concatenate((y[:previous_location], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
@@ -167,6 +174,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             n_samples = int(i)
             num_Is += n_samples
             location_plot += n_samples
+            x_coordinate += n_samples
             line_segment_x.append(location_plot)
             for j in range(0, n_samples):
                 sample_label_colors.append('purple')
@@ -179,6 +187,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
         else:
             n_samples = int(i)
             location_plot += n_samples
+            x_coordinate += n_samples
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
@@ -197,9 +206,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
             break
-        if location_plot - initial_location > draw_data["sig_plot_limit"]:
+        if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
-
     line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min]*len(line_segment_x), y1=[y_max]*len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
@@ -209,14 +217,14 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
-    source = ColumnDataSource(data=dict(x=x[:location_plot], y=y[:location_plot], x_real=x_real[:location_plot]))
+    source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
     
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(x[:location_plot], y[:location_plot], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
     toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -227,11 +235,10 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
-
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -289,7 +296,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     fixed_width_x = [0.0]
     line_segment_x = []
     base_box_details = {'left': [], 'right': [], 'fill_color': []}
-
     num_samples_in_insertion = 0
     flag_base_index_bound = 0
     for i in moves:
@@ -415,13 +421,11 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.renderers = p.select(name="sig_plot_line")
     hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
-
     indt = "\t\t\t\t\t\t\t\t"
-
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[location_plot - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
 
     p.title = plot_title
 
@@ -445,11 +449,37 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     layout_ = p, row(toggle_bases, toggle_samples)
     return layout_
+
+def adjust_bed_for_rna(bed_content, sig_algn_data):
+    ref_end = sig_algn_data["ref_end"]
+    new_bed_content = []
+    for i in bed_content:
+        bed_chrom_start = int(i[BED_CHROM_START])
+        bed_chrom_end = int(i[BED_CHROM_END])
+        i[BED_CHROM_START] = ref_end - bed_chrom_end
+        i[BED_CHROM_END] = ref_end - bed_chrom_start
+        if i[BED_CHROM_END] > 0:
+            new_bed_content.append(i)
+    return new_bed_content
 def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, track_shift, track_height):
-    bed_content.sort(key=lambda x: x[BED_CHROM_START])
     moves = sig_algn_data["ss"]
     base_index = sig_algn_data["start_kmer"]
     ref_start = sig_algn_data["ref_start"]
+    if sig_algn_data["data_is_rna"]:
+        ref_start = 1
+    ref_end = sig_algn_data["ref_end"]
+
+    if sig_algn_data["data_is_rna"]:
+        bed_content = adjust_bed_for_rna(bed_content, sig_algn_data)
+    else:
+        new_bed_content = []
+        for i in bed_content:
+            if int(i[BED_CHROM_END]) > base_index+ref_start:
+                new_bed_content.append(i)
+        bed_content = new_bed_content
+    if len(bed_content) == 0:
+        return p
+    bed_content.sort(key=lambda x: x[BED_CHROM_START])
     annotation_box_details = {'left': [], 'right': [], 'fill_color': []}
     annotation_label = []
     annotation_label_x = []
@@ -457,17 +487,17 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
     flag_base_index_bound = 0
-    bed_index = 0
 
+    bed_index = 0
     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
     bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
+
     flag_region_active = 1
     flag_interval_open = 0
     if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
         bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
     else:
         bed_region_color = DEFAULT_BED_ANNOTATION_COLOR
-
     for i in moves:
         previous_location = location_plot
         previous_x_coordinate = x_coordinate
@@ -487,6 +517,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                     annotation_box_details['right'].append(prev_loc)
                     annotation_box_details['fill_color'].append(bed_region_color)
                     bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
+                    if sig_algn_data["data_is_rna"]:
+                        bed_name = "{}-{} ".format(ref_end-bed_region_start, ref_end-bed_region_end+1)
                     if len(bed_content[bed_index]) >= BED_NAME + 1:
                         bed_name += bed_content[bed_index][BED_NAME]
                     annotation_label.append(bed_name)
@@ -500,7 +532,7 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                     bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
                     bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
                     if prev_bed_end > bed_region_start:
-                        raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                        raise Exception("Error: overlapping regions found in bed file")
                     if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
                         bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
                     else:
@@ -519,6 +551,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
+            location_plot += n_samples
+            x_coordinate += n_samples
         else:
             n_samples = int(i)
             if draw_data['fixed_width']:
@@ -534,6 +568,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                 annotation_box_details['right'].append(location_plot)
                 annotation_box_details['fill_color'].append(bed_region_color)
                 bed_name = "{}-{} ".format(bed_region_start+1, bed_region_end)
+                if sig_algn_data["data_is_rna"]:
+                    bed_name = "{}-{} ".format(ref_end-bed_region_start, ref_end-bed_region_end+1)
                 if len(bed_content[bed_index]) >= BED_NAME + 1:
                     bed_name += bed_content[bed_index][BED_NAME]
                 annotation_label.append(bed_name)
@@ -547,7 +583,7 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
                 bed_region_start = int(bed_content[bed_index][BED_CHROM_START])
                 bed_region_end = int(bed_content[bed_index][BED_CHROM_END])
                 if prev_bed_end > bed_region_start:
-                    raise Exception("Error: overlapping regions found at line {} in bed file".format(bed_index+1))
+                    raise Exception("Error: overlapping regions found in bed file")
                 if len(bed_content[bed_index]) >= BED_ITEM_RGB + 1:
                     bed_region_color = eval(bed_content[bed_index][BED_ITEM_RGB])
                 else:
@@ -567,6 +603,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         annotation_box_details['right'].append(location_plot)
         annotation_box_details['fill_color'].append(bed_region_color)
         bed_name = "{}- ".format(bed_region_start+1)
+        if sig_algn_data["data_is_rna"]:
+            bed_name = "{}- ".format(ref_end-bed_region_start)
         if len(bed_content[bed_index]) >= BED_NAME + 1:
             bed_name += bed_content[bed_index][BED_NAME]
         annotation_label.append(bed_name)
@@ -901,7 +939,7 @@ def run(args):
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
-            if sam_record.is_reverse and args.no_reverse:
+            if sam_record.is_reverse and args.plot_reverse is False:
                 continue
             if not sam_record.is_reverse and args.reverse_only:
                 continue
@@ -1095,7 +1133,7 @@ def run(args):
             #     continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if paf_record[STRAND] == "-" and args.no_reverse:
+            if paf_record[STRAND] == "-" and args.plot_reverse is False:
                 continue
             if paf_record[STRAND] == "+" and args.reverse_only:
                 continue
@@ -1268,7 +1306,7 @@ def argparser():
     parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
+    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")

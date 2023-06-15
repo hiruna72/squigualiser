@@ -43,8 +43,9 @@ def run(args):
         p.height = int(plot_heights[i])
         p.sizing_mode = 'scale_width'
 
-        if num_plots > 0:
+        if num_plots > 0 and args.shared_x:
             p.x_range = pileup[0].x_range
+            # p.y_range = pileup[0].y_range
         pileup.append(p)
         # output_file(args.output_dir+"/"+str(num_plots)+".html", title=num_plots)
         # save(p)
@@ -69,6 +70,7 @@ def argparser():
     parser.add_argument('-f', '--file', required=True, help="commands file")
     parser.add_argument('-o', '--output_dir', required=True, help="output dir")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
+    parser.add_argument('--shared_x', required=False, action='store_true', help="share x-axis so that all the plots move together")
     return parser
 
 if __name__ == "__main__":

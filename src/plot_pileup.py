@@ -348,8 +348,8 @@ def run(args):
     else:
         if not os.path.exists(args.output_dir):
             os.mkdir(args.output_dir)
-    if not args.loose_bound:
-        print("Warning: the alignments that are not completely within the specified region will be skipped. Please specify --loose_bound to keep")
+    # if not args.loose_bound:
+    #     print("Warning: the alignments that are not completely within the specified region will be skipped. Please specify --loose_bound to keep")
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -413,7 +413,7 @@ def run(args):
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
-            if sam_record.is_reverse and args.no_reverse:
+            if sam_record.is_reverse and args.plot_reverse is False:
                 continue
             if not sam_record.is_reverse and args.reverse_only:
                 continue
@@ -620,7 +620,7 @@ def run(args):
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if paf_record[STRAND] == "-" and args.no_reverse:
+            if paf_record[STRAND] == "-" and args.plot_reverse is False:
                 continue
             if paf_record[STRAND] == "+" and args.reverse_only:
                 continue
@@ -843,7 +843,7 @@ def argparser():
     parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=True, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('--no_reverse', required=False, action='store_true', help="skip plotting reverse mapped reads")
+    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot reverse mapped reads")
     parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     # parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")

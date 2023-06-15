@@ -8,7 +8,7 @@ test/data/out/plot_server/testcase_0.1
 
 TESTCASE=30.2
 [Sequence File, SLOW5 File, Alignment File, Output Directory, Region]
-/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa
+genome/hg38noAlt.fa
 test/data/raw/plot/f5c_eventalign/reads.blow5
 test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz
 test/data/out/plot_server/testcase_0.2
