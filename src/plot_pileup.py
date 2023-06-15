@@ -282,12 +282,12 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
     
-    xcb = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     subplot_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', xcb)
+    p.x_range.js_on_change('start', x_callback)
 
     return p, location_plot, base_index
 def run(args):
