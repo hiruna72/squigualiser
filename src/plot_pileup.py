@@ -228,6 +228,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     y_max = np.nanmax(y_plot)
     y_min = np.nanmin(y_plot)
     arrow = Arrow(end=NormalHead(fill_color="orange", size=10), x_start=-2, y_start=y_median, x_end=-1, y_end=y_median)
+    subplot_labels = None
     if num_plots != -1 and not draw_data['overlap_only']:
         sub_plot_y_shift = (y_max - y_min)/6
         source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1, y_median-sub_plot_y_shift*2], tags=[signal_region, indels, read_id, "plot: "+str(num_plots)]))
@@ -239,11 +240,16 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels)
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
+    if subplot_labels:
+        x_callback = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+        let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+        subplot_labels['text_font_size'] = String(xzoom) + 'pt';
+        """)
+        p.x_range.js_on_change('start', x_callback)
     
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
-    subplot_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback)
 
