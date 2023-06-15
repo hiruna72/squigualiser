@@ -318,12 +318,10 @@ def run(args):
     draw_data["overlap_only"] = args.overlap_only
     sig_algn_dic = {}
 
-    pileup = []
     y_shift = 0
     prev_y_max = 0
     prev_y_min = 0
     p = plot_utils.create_figure(args, plot_mode=1)
-
     previous_plot = p
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
@@ -348,8 +346,8 @@ def run(args):
         args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
         samfile = pysam.AlignmentFile(args.alignment, mode='rb')
-        if args.bed:
-            p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+        # if args.bed:
+        #     p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
             if args_ref_name != sam_record.reference_name:

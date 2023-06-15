@@ -109,8 +109,26 @@ testcase_41s() {
   python src/plot.py --rna ${BED} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
 }
+testcase_42s() {
+  TESTCASE=42.0
+  [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
+  GENOME="${HUMAN_GENOME}"
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA="-f ${GENOME}"
+  SIGNAL="-s ${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  BED="--bed ${RAW_DIR}/bed_files/DNA_2.bed"
+  REGION="--region chr1:6,811,011-6,811,198"
+  SCALING="--sig_scale znorm"
+  python src/plot_pileup.py ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+
+}
+
 testcase_40s #annotation DNA
 testcase_41s #annotation RNA
+#testcase_42s #annotation DNA pileup
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

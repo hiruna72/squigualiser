@@ -86,7 +86,7 @@ def create_figure(args, plot_mode):
         # tooltips=tool_tips)
         # p.yaxis.visible = False
         p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
-        p_default.toolbar.active_scroll = p.select_one(WheelZoomTool)
+        p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         p_default.toolbar.logo = None
     return p_default
 
