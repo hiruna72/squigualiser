@@ -606,7 +606,7 @@ def run(args):
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
                 draw_data['y_min'] = np.amin(y)
                 draw_data['y_max'] = np.amax(y)
-                p = plot_utils.create_figure(args)
+                p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
                     p = bed_annotation.plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
@@ -803,7 +803,7 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
-            p = plot_utils.create_figure(args)
+            p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
 
@@ -986,7 +986,7 @@ def run(args):
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
-            p = plot_utils.create_figure(args)
+            p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
             if args.fixed_width:

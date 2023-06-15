@@ -291,8 +291,10 @@ def run(args):
         base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
+    bed_dic = {}
     if args.bed:
         print(f'bed file: {args.bed}')
+        bed_dic = bed_annotation.create_bed_dic(args)
 
     if args.return_plot:
         print("Info: plots will be returned without saving")
@@ -320,19 +322,8 @@ def run(args):
     y_shift = 0
     prev_y_max = 0
     prev_y_min = 0
-    tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,reset,zoom_in,zoom_out'
-    p = figure(output_backend="webgl",
-                sizing_mode="stretch_both",
-               # sizing_mode="scale_width",
-               # sizing_mode="scale_height",
-               # height=PLOT_HEIGHT,
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show)
-    # tooltips=tool_tips)
-    # p.yaxis.visible = False
-    p.select(dict(type=WheelZoomTool)).maintain_focus = False
-    p.toolbar.active_scroll = p.select_one(WheelZoomTool)
-    p.toolbar.logo = None
+    p = plot_utils.create_figure(args, plot_mode=1)
+
     previous_plot = p
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
@@ -357,6 +348,8 @@ def run(args):
         args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
         samfile = pysam.AlignmentFile(args.alignment, mode='rb')
+        if args.bed:
+            p = bed_annotation.plot_bed_annotation(p=p, ref_id=args_ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
             if args_ref_name != sam_record.reference_name:

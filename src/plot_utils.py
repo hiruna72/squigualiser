@@ -55,24 +55,39 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 
-def create_figure(args):
-    y_axis_label = "signal value (raw)"
-    if args.no_pa:
-        y_axis_label = "signal value (pA)"
-    tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-    p_default = figure(x_axis_label='signal index',
-               y_axis_label=y_axis_label,
-               sizing_mode="stretch_width",
-               height=PLOT_HEIGHT,
-               output_backend="webgl",
-               x_range=(0, PLOT_X_RANGE),
-               tools=tools_to_show,
-               toolbar_location="below")
-    # tooltips=tool_tips)
-
-    p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
-    p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
-    p_default.toolbar.logo = None
+def create_figure(args, plot_mode):
+    p_defualt = None
+    if plot_mode == 0:
+        y_axis_label = "signal value (raw)"
+        if args.no_pa:
+            y_axis_label = "signal value (pA)"
+        tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
+        p_default = figure(x_axis_label='signal index',
+                   y_axis_label=y_axis_label,
+                   sizing_mode="stretch_width",
+                   height=PLOT_HEIGHT,
+                   output_backend="webgl",
+                   x_range=(0, PLOT_X_RANGE),
+                   tools=tools_to_show,
+                   toolbar_location="below")
+        # tooltips=tool_tips)
+        p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
+        p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
+        p_default.toolbar.logo = None
+    elif plot_mode == 1:
+        tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,reset,zoom_in,zoom_out'
+        p_default = figure(output_backend="webgl",
+                    sizing_mode="stretch_both",
+                   # sizing_mode="scale_width",
+                   # sizing_mode="scale_height",
+                   # height=PLOT_HEIGHT,
+                   x_range=(0, PLOT_X_RANGE),
+                   tools=tools_to_show)
+        # tooltips=tool_tips)
+        # p.yaxis.visible = False
+        p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
+        p_default.toolbar.active_scroll = p.select_one(WheelZoomTool)
+        p_default.toolbar.logo = None
     return p_default
 
 
