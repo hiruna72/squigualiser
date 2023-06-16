@@ -2,7 +2,7 @@
 
 A simple tool to Visualise nanopore raw signal-base alignment.
 
-Google Chrome is the recommended web browswer to visualise these plots.
+Google Chrome is the recommended web browser to visualise these plots.
 
 ![image](docs/figures/preview.png)
 
