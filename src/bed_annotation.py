@@ -199,7 +199,8 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
 def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit):
     if ref_id in bed_dic:
         plot_height = draw_data['y_max'] - draw_data['y_min']
-        track_height = plot_height/10
+        track_height = plot_height/5
+        # print("track_height: {}", track_height)
         track_count = 0
         for key in bed_dic[ref_id]:
             track_count += 1

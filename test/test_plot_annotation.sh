@@ -167,10 +167,37 @@ testcase_42s() {
   python src/plot_pileup.py --overlap_bottom ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
 }
-testcase_40s #annotation DNA
-testcase_41s #annotation RNA
+testcase_43s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/rnasequin_sequences_2.4.fa"
+
+  TESTCASE=43.0
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA="-f ${GENOME}"
+  SIGNAL="-s ${RAW_DIR}/f5c_eventalign/rna/reads.blow5"
+  ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/rna/sorted_eventalign.bam"
+  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  REGION="--region R1_92_1:245-284"
+#  SCALING="--sig_scale znorm"
+  BED="--bed ${RAW_DIR}/bed_files/RNA_3.bed"
+  python src/plot_pileup.py --rna ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
+
+  TESTCASE=43.1
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA="-f ${GENOME}"
+  SIGNAL="-s ${RAW_DIR}/f5c_eventalign/rna/reads.blow5"
+  ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/rna/sorted_eventalign.bam"
+  OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  REGION="--region R1_92_1:264-786"
+  SCALING="--sig_scale znorm"
+  BED="--bed ${RAW_DIR}/bed_files/RNA_3.bed"
+  python src/plot_pileup.py --rna ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
+}
+#testcase_40s #annotation DNA
+#testcase_41s #annotation RNA
 testcase_42s #annotation DNA pileup
-#testcase_42s #annotation RNA pileup
+testcase_43s #annotation RNA pileup
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
