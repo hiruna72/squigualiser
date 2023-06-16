@@ -170,6 +170,7 @@ testcase_42s() {
 testcase_40s #annotation DNA
 testcase_41s #annotation RNA
 testcase_42s #annotation DNA pileup
+#testcase_42s #annotation RNA pileup
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

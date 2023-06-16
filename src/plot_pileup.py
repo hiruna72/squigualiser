@@ -383,13 +383,14 @@ def run(args):
                 start_index = int(si_tag[SI_START_RAW])
                 end_index = int(si_tag[SI_END_RAW])
                 ref_seq_len = int(si_tag[SI_END_KMER]) - int(si_tag[SI_START_KMER])
-
+                reference_start = int(si_tag[SI_START_KMER])
                 if int(si_tag[SI_START_KMER]) > int(si_tag[SI_END_KMER]):  # if RNA start_kmer>end_kmer in paf
                     data_is_rna = 1
                     if not args.rna:
                         print("Info: data is detected as RNA")
                         raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                     ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
+                    reference_start = int(si_tag[SI_END_KMER])
 
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
@@ -398,15 +399,15 @@ def run(args):
                 base_limit = ref_seq_len
             else:
                 base_limit = BASE_LIMIT
-            sam_record_reference_end = sam_record.reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if args_ref_start < sam_record.reference_start + 1:
-                    continue
-                if args_ref_end > sam_record_reference_end:
-                    continue
+            sam_record_reference_end = reference_start + ref_seq_len #1based closed
+            # if not args.loose_bound:
+            #     if args_ref_start < reference_start + 1:
+            #         continue
+            #     if args_ref_end > sam_record_reference_end:
+            #         continue
 
             ref_name = sam_record.reference_name
-            ref_start = sam_record.reference_start + 1
+            ref_start = reference_start + 1
             ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
             if args_ref_start > ref_start:
                 ref_start = args_ref_start
@@ -504,7 +505,7 @@ def run(args):
                     raise Exception("Error: data is rna and sam record is reverse mapped. This is not implemented yet. Please report")
 
             signal_tuple = (x, x_real, y)
-            region_tuple = (ref_start, ref_end, sam_record.reference_start, sam_record.reference_start+ref_seq_len)
+            region_tuple = (ref_start, ref_end, reference_start, reference_start+ref_seq_len)
 
             sig_algn_dic['start_kmer'] = 0
             sig_algn_dic['ref_start'] = ref_start
@@ -610,11 +611,11 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if args_ref_start < reference_start + 1:
-                    continue
-                if args_ref_end > paf_record_reference_end:
-                    continue
+            # if not args.loose_bound:
+            #     if args_ref_start < reference_start + 1:
+            #         continue
+            #     if args_ref_end > paf_record_reference_end:
+            #         continue
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
