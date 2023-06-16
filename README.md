@@ -13,6 +13,8 @@ Google Chrome is the recommended web browser to visualise these plots.
 
 [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
 
+[This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
+
 # Table of Contents
 1. [Installation](#installation)
 2. [Signal to read visualisation](#signal-to-read-visualisation)
