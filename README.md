@@ -114,7 +114,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details>
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 
-1. Install f5c 1.2 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start).
+1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).
 
 2. Run f5c resquiggle
 ```
@@ -224,7 +224,8 @@ squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} 
 <details>
 <summary>Steps for using f5c eventalign</summary>
 
-1. Align reads to reference genome
+1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).   
+2. Align reads to reference genome
 ```
 REF=genome.fa #reference
 MAP_SAM=mapped.sam
@@ -237,12 +238,12 @@ minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
 
 ```
   
-2. create f5c index
+3. create f5c index
 ```
 SIGNAL=reads.blow5
 f5c index ${FASTQ} --slow5 ${SIGNAL}
 ```
-3. f5c eventalign
+4. f5c eventalign
 ```
 ALIGNMENT=eventalign.bam
 f5c eventalign -b ${MAP_SAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -a -o eventalign.sam
@@ -250,7 +251,7 @@ samtools sort eventalign.sam -o ${ALIGNMENT}
 samtools index ${ALIGNMENT}
 
 ```
-4. Plot signal to reference alignment.
+5. Plot signal to reference alignment.
 ````
 OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
