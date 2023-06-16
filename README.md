@@ -130,26 +130,26 @@ f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNME
 * Refer [Note(3)](#notes) for more information about RNA.
 
 3. Plot signal to read alignment
-````
+```
 OUTPUT_DIR=output_dir
 squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} # to plot a selected read ID, you can provide -r 'READ_ID'.
-````
+```
 </details>
 
 #### Option 3 - Squigulator signal simulation
 <details>
 <summary>Steps for using Squigulator signal simulation software</summary>
 
-1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
+1.  Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -q and -c options).
 ```
-REF=ref.fasta #reference
-READ=sim.fasta
-ALIGNMENT=sim.paf
-SIGNAL_FILE=sim.blow5
+REF=ref.fasta          #reference
+READ=sim.fasta         #simulated reads
+ALIGNMENT=sim.paf      #contains signal-read alignment
+SIGNAL_FILE=sim.blow5  #simultated raw signal data
 
-squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT}
+squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT} # instead of dna-r10-prom, you can specify any other profile
 ```
 
 3. Plot signal to read alignment.
@@ -216,8 +216,6 @@ REGION=chr1:6811404-6811443
 SIGNAL_FILE=read.blow5
 OUTPUT_DIR=output_dir
 
-# use samtools fasta command to create .fasta file from SAM/BAM file
-samtools fasta out.sam > ${FASTA_FILE}
 # plot
 squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR} --region ${REGION} --tag_name "optionA"
 
@@ -240,6 +238,7 @@ For RNA
 minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
 
 ```
+  
 2. create f5c index
 ```
 SIGNAL=reads.blow5
@@ -265,7 +264,7 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 <details>
 <summary>Steps for using the signal simulation software (SAM output, recommended)</summary>
 
-1.  Build the latest commit of [squigulator](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -a).
 ```
