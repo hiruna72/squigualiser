@@ -22,11 +22,12 @@ A simple tool to Visualise nanopore raw signal-base alignment
    2. [Option 2 - Using f5c eventalign](#option-2-f5c-eventalign)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
 4. [Pileup view](#pileup-view)
-5. [Squigualiser GUI](#Squigualiser-gui)
-6. [Notes](#notes)
-7. [Guppy move table explanation](#guppy-move-table-explanation)
-8. [Base shift](#base-shift)
-9. [Example](#example)
+5. [BED annotations](#bed-annotations)
+6. [Squigualiser GUI](#Squigualiser-gui)
+7. [Notes](#notes)
+8. [Guppy move table explanation](#guppy-move-table-explanation)
+9. [Base shift](#base-shift)
+10. [Example](#example)
 
 
 ## Installation
@@ -308,8 +309,8 @@ tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 </details>
 
 ## Pileup view
-![image](docs/figures/igv.png)
-![image](docs/figures/pileup_plot_fixed_width.png)
+![image](docs/figures/pileup/igv.png)
+![image](docs/figures/pileup/pileup_plot.png)
 
 Similar to IGV pileup view now you can view the signal pileup view. To create a pileup view the following conditions should be met.
 1. The plot is a signal to reference visualisation, not a signal to read.
@@ -320,7 +321,13 @@ First, create an alignment file by following the steps mentioned in [Signal to r
 REGION=chr1:6811011-6811198
 squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "pileup"
 ````
-[Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html) is an example pileup plot created using the [testcase 20.1](test/test_plot_pileup.sh).
+[Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html) is an example DNA pileup plot created using the [testcase 20.1](test/test_plot_pileup.sh).
+[Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-43.1.html) is an example RNA pileup plot created using the [testcase 43.1](test/test_plot_pileup.sh).
+
+## BED annotations
+Plots support BED file annotations. Use argument `--bed [BED FILE]` to provide the bed file to the plot command.
+
+[Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-43.1.html) is an example RNA pileup plot created using the [testcase 43.1](test/test_plot_pileup.sh) that supports bed annotations.
 
 ## Squigualiser GUI
 <details>

@@ -189,13 +189,13 @@ testcase_43s() {
   ALIGNMENT="-a ${RAW_DIR}/f5c_eventalign/rna/sorted_eventalign.bam"
   OUTPUT="-o ${OUTPUT_DIR}/testcase_${TESTCASE}"
   PLOT_LIMIT="--plot_limit 10"
-  REGION="--region R1_92_1:264-786"
+  REGION="--region R1_92_1:264-500"
   SCALING="--sig_scale znorm"
   BED="--bed ${RAW_DIR}/bed_files/RNA_3.bed"
   python src/plot_pileup.py --rna ${BED} ${REGION} ${FASTA} ${SIGNAL} ${ALIGNMENT} ${OUTPUT} ${PLOT_LIMIT} ${SCALING} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 }
-#testcase_40s #annotation DNA
-#testcase_41s #annotation RNA
+testcase_40s #annotation DNA
+testcase_41s #annotation RNA
 testcase_42s #annotation DNA pileup
 testcase_43s #annotation RNA pileup
 
