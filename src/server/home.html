@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Squigualiser</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/src/server/style.css">
+    <script type="text/javascript" src="/src/server/script.js"></script>
+</head>
+
+<body onload="change_command_type()">
+    <div class="container mt-5">
+        <h1 class="text-left title">Squigualiser</h1>
+        <hr>
+        <div class="alert alert-danger hide" role="alert" id="error_msg"></div>
+        <div class="row" id="plot_command_pane">
+            <div class="col-md-12">
+                <div class="form-group row">
+                    <label for="file" class="col-sm-3 col-form-label">Sequence File:</label>
+                    <div class="col-sm-9">
+                        <input id="file" type="text" class="form-control" name="file">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="slow5" class="col-sm-3 col-form-label">SLOW5 File:</label>
+                    <div class="col-sm-9">
+                        <input id="slow5" type="text" class="form-control" name="slow5">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="alignment" class="col-sm-3 col-form-label">Alignment File:</label>
+                    <div class="col-sm-9">
+                        <input id="alignment" type="text" class="form-control" name="alignment">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="output_dir" class="col-sm-3 col-form-label">Output Directory:</label>
+                    <div class="col-sm-9">
+                        <input id="output_dir" type="text" class="form-control" name="output_dir">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="region" class="col-sm-3 col-form-label">Region:</label>
+                    <div class="col-sm-9">
+                        <input id="region" type="text" class="form-control" name="region">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="fullcmd" class="col-sm-3 col-form-label">Full Command:</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">
+                                    <input type="checkbox" id="use_fullcmd" name="use_fullcmd"
+                                        onclick="change_command_type();">
+                                </div>
+                            </div>
+                            <input id="fullcmd" type="text" class="form-control" name="fullcmd">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-9 offset-sm-3">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="use_pileup" name="use_pileup">
+                            <label class="custom-control-label" for="use_pileup">Pile-up view</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <button class="btn btn-info" id="plot_btn" onClick="generate_plots();">Generate Plots</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group row">
+                    <label for="dir_path" class="col-sm-3 col-form-label">Directory Path:</label>
+                    <div class="input-group col-sm-9">
+                        <input id="dir_path" type="text" class="form-control dir-path" name="dir_path">
+                        <span class="fixed-text">[webroot]</span>
+                        <div class="input-group-append">
+                            <button id="list_files" class="btn btn-info" onClick="change_dir();">List Files</button>
+                        </div>
+                    </div>
+                </div>
+                <iframe id="dir_listing" src="/" class="dir-listing w-100 rounded"
+                    onLoad="change_dir_path(this.contentWindow.location.pathname);"></iframe>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                Command History:
+                <ol id="command_history" class="command-history" reversed>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

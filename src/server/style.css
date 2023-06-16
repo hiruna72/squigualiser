@@ -1,0 +1,45 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Adjusted", "Segoe UI", "Liberation Sans", sans-serif;
+}
+
+hr {
+    border-color: #a4a7aa !important;
+}
+
+.title {
+    margin-top: -30px;
+}
+
+.command-history {
+    font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.command-history li {
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+.dir-listing {
+    height: 300px;
+    border: 1px solid #ced4da;
+}
+
+.dir-path {
+    padding-left: 80px;
+}
+
+.fixed-text {
+    position: absolute;
+    display: block;
+    left: 25px;
+    top: 7px;
+    z-index: 9;
+    color: #212529;
+    font-size: 17px;
+}
+
+.hide {
+    display: none;
+}

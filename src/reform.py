@@ -35,6 +35,7 @@ def run(args):
     stride = DNA_STRIDE
     if args.rna:
         stride = RNA_STRIDE
+    print("Info: Default stride: {}".format(stride))
 
     samfile = pysam.AlignmentFile(args.bam, mode='r', check_sq=False)
     fout = open(args.output, "w")
@@ -68,12 +69,8 @@ def run(args):
             exit(1)
 
         if mv[0] != stride:
-            if args.rna:
-                print("Info: Using a stride of {} for RNA".format(stride))
-            else:
-                print("Info: Using a stride of {} for DNA".format(stride))
-            print("expected stride of {} is missing.".format(stride))
-            exit(1)
+            print("Info: Found stride to be {}, this value will be used.".format(mv[0]))
+        stride = int(mv[0])
         if not args.c:
             move_count = 0
             i = 1
