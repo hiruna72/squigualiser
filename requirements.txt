@@ -5,3 +5,5 @@ readpaf
 pyfaidx
 pyfastx
 pysam
+bed_annotation
+plot-utils
