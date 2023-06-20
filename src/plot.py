@@ -19,8 +19,8 @@ from pyfaidx import Fasta
 from pyfastx import Fastq
 import os
 import pysam
-import bed_annotation
-import plot_utils
+from src import bed_annotation
+from src import plot_utils
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
@@ -443,7 +443,7 @@ def run(args):
             raise Exception("Error: please provide the alignment file with correct extension")
 
     if use_paf == 0 and use_fasta == 0:
-        print("please provide a .fasta or .fa file when using SAM/BAM")
+        raise Exception("Error: please provide a .fasta or .fa file when using SAM/BAM")
 
     if args.base_limit:
         base_limit = args.base_limit
