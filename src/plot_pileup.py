@@ -20,8 +20,8 @@ from pyfastx import Fastq
 import os
 import pysam
 import math
-import bed_annotation
-import plot_utils
+from src import bed_annotation
+from src import plot_utils
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
