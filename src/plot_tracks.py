@@ -55,9 +55,12 @@ def run(args):
         exit(1)
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
-    pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
+    plot_title = "track"
+    if args.tag_name:
+        plot_title = args.tag_name
+    pileup_output_file_name = args.output_dir + "/" + plot_title + ".html"
     pileup_fig = column(pileup, sizing_mode='stretch_both')
-    output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+    output_file(pileup_output_file_name, title=plot_title)
     save(pileup_fig)
     print(f'output file: {os.path.abspath(pileup_output_file_name)}')
 
