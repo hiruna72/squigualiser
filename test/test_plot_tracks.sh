@@ -41,6 +41,11 @@ testcase_20s() {
   info "testcase:$TESTCASE - plot tracks"
   COMMAND_FILE="${RAW_DIR}/t_20.2.txt"
   python src/plot_tracks.py -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.3
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_20.3.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} || die "testcase:$TESTCASE failed"
 }
 testcase_20s #pileup
 

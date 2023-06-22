@@ -439,7 +439,8 @@ def run(args):
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-                    fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
+                    # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
+                    fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
@@ -646,7 +647,8 @@ def run(args):
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-                    fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
+                    # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
+                    fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
