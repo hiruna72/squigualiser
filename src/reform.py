@@ -9,19 +9,15 @@ DNA_STRIDE = 5
 RNA_STRIDE = 10
 def run(args):
     if args.kmer_length < 1:
-        print("kmer length must be a positive integer")
-        exit(1)
+        raise Exception("Error: kmer length must be a positive integer")
     if args.sig_move_offset < 0:
-        print("signal move offset must not be less than zero")
-        exit(1)
+        raise Exception("Error: signal move offset must not be less than zero")
 
     if args.kmer_length <= args.sig_move_offset:
-        print("signal move offset value must be smaller than the kmer length.")
-        exit(1)
+        raise Exception("Error: signal move offset value must be smaller than the kmer length.")
 
     if (args.c and args.output[-4:] != ".paf") or (not args.c and args.output[-4:] != ".tsv"):
-        print("error please provide the output file with correct extension (.tsv/.paf)")
-        exit(1)
+        raise Exception("Error: please provide the output file with correct extension (.tsv/.paf)")
 
     print("kmer_length: " + str(args.kmer_length))
     print("sig_move_offset: " + str(args.sig_move_offset))
@@ -46,14 +42,11 @@ def run(args):
         len_seq = len(sam_record.get_forward_sequence()) - args.kmer_length + 1 # to get the number of kmers
 
         if not sam_record.has_tag("ns"):
-            print("tag '{}' is not found. Please check your input SAM/BAM file.".format("ns"))
-            exit(1)
+            raise Exception("Error: tag '{}' is not found. Please check your input SAM/BAM file.".format("ns"))
         if not sam_record.has_tag("ts"):
-            print("tag '{}' is not found. Please check your input SAM/BAM file.".format("ts"))
-            exit(1)
+            raise Exception("Error: tag '{}' is not found. Please check your input SAM/BAM file.".format("ts"))
         if not sam_record.has_tag("mv"):
-            print("tag '{}' is not found. Please check your input SAM/BAM file.".format("mv"))
-            exit(1)
+            raise Exception("Error: tag '{}' is not found. Please check your input SAM/BAM file.".format("mv"))
 
         ns = int(sam_record.get_tag("ns"))
         ts = int(sam_record.get_tag("ts"))
@@ -65,8 +58,7 @@ def run(args):
 
         len_mv = len(mv)
         if len_mv == 0:
-            print("mv array length is 0.")
-            exit(1)
+            raise Exception("Error: mv array length is 0.")
 
         if mv[0] != stride:
             print("Info: Found stride to be {}, this value will be used.".format(mv[0]))
@@ -114,8 +106,7 @@ def run(args):
                 end_idx = end_idx + stride
                 i += 1
             if len_seq != 0:
-                print("Error in the implementation. Please report the command with minimal reproducible data. Read_id: {}".format(sam_record.query_name));
-                exit(1)
+                raise Exception("Error: error in the implementation. Please report the command with minimal reproducible data. Read_id: {}".format(sam_record.query_name));
 
         # write paf format
         else:
@@ -175,16 +166,14 @@ def run(args):
                     len_seq -= 1
                 if len_seq > 0 and i == len_mv-1:
                     if (ns - ((i-1) * stride + ts)) < 0:
-                        print("Error in calcuation. (ns - ((i-1)*EXPECTED_STRIDE + ts)) > 0 is not valid")
-                        exit(1)
+                        raise Exception("Error: error in calcuation. (ns - ((i-1)*EXPECTED_STRIDE + ts)) > 0 is not valid")
                     len_seq -= 1
                     l_duration = ((i-start_idx) * stride) + (ns - ((i - 1) * stride + ts))
                     fout.write("{},".format(l_duration))  # ss
                 i += 1
 
             if len_seq != 0:
-                print("Error in the implementation. Please report the command with minimal reproducible data. Read_id: {}".format(sam_record.query_name));
-                exit(1)
+                raise Exception("Error: error in the implementation. Please report the command with minimal reproducible data. Read_id: {}".format(sam_record.query_name));
 
             fout.write("{}".format("\n"))  # newline
         processed_sam_record_count += 1
@@ -210,5 +199,8 @@ def argparser():
 if __name__ == "__main__":
     parser = argparser()
     args = parser.parse_args()
-    run(args)
-
+    try:
+        run(args)
+    except Exception as e:
+        print(str(e))
+        exit(1)

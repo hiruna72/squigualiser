@@ -23,11 +23,9 @@ def run(args):
         if args.c:
             fout = open(args.output, "w")
         else:
-            print("Error: please provide argument '-c' to write in PAF format")
-            exit(1)
+            raise Exception("Error: please provide argument '-c' to write in PAF format")
     else:
-        print("Error: please provide the output file with correct extension")
-        exit(1)
+        raise Exception("Error: please provide the output file with correct extension")
 
     # inefficient
     paf_file = open(args.paf, "r")
@@ -43,28 +41,24 @@ def run(args):
         #     continue
         sam_read_id = sam_record.query_name
         if sam_read_id not in paf_dic:
-            print("Error: associated paf record is missing for the read id: {}".format(sam_read_id))
-            exit(1)
+            raise Exception("Error: associated paf record is missing for the read id: {}".format(sam_read_id))
         paf_read_id = paf_dic[sam_read_id].query_name
         if paf_read_id != sam_read_id:
-            print("Error: sam and paf read ids do not match")
-            exit(1)
+            raise Exception("Error: sam and paf read ids do not match")
 
         data_is_rna = False
         if paf_dic[sam_read_id].target_start > paf_dic[sam_read_id].target_end:  # if RNA start_kmer>end_kmer in paf
             data_is_rna = True
             if not args.rna:
                 print("Info: data is detected as RNA")
-                print("Error: data is not specified as RNA. Please provide the argument --rna ")
-                exit(1)
+                raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
 
         # print(sam_read_id)
         # print("sam_read.pos: " + str(sam_read.pos+1))
         # print(sam_read.cigarstring)
         cigar_t = sam_record.cigartuples
         if cigar_t is None:
-            print("Error: cigartuples for sam record {} is an empty object".format(sam_read_id))
-            exit(1)
+            raise Exception("Error: cigartuples for sam record {} is an empty object".format(sam_read_id))
         # print(cigar_t)
 
         moves_string = paf_dic[sam_read_id].tags['ss'][2].rstrip(',').split(',')
@@ -87,8 +81,7 @@ def run(args):
         count_bases_seq = 0
 
         if len(sam_record.query_sequence) != len(moves_string):
-            print("Error: the sequence length does not match the number of moves")
-            exit(1)
+            raise Exception("Error: the sequence length does not match the number of moves")
 
         op_count = 0
         for a in cigar_t:
@@ -135,9 +128,7 @@ def run(args):
             elif cig_op == BAM_CREF_SKIP:
                 continue
             else:
-                print(sam_read_id)
-                print("Error: cigar operation [" + str(cig_op) + "]is not handled yet")
-                exit(1)
+                raise Exception("Error: cigar operation [" + str(cig_op) + "]is not handled yet found in read : " + sam_read_id)
             op_count += 1
 
         kmer_start = sam_record.reference_start
@@ -184,4 +175,8 @@ def argparser():
 if __name__ == "__main__":
     parser = argparser()
     args = parser.parse_args()
-    run(args)
+    try:
+        run(args)
+    except Exception as e:
+        print(str(e))
+        exit(1)
