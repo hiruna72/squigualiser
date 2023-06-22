@@ -778,12 +778,11 @@ def run(args):
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
     print("Number of plots: {}".format(num_plots))
-
     if num_plots > 0:
         if sig_algn_dic["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]{indt}num reads:{num_plots}'
         else:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]{indt}num reads:{num_plots}'
         p.title = plot_title
         p.legend.click_policy = "hide"
         # p.legend.location = 'top_left'
