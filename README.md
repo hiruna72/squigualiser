@@ -332,6 +332,7 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 </summary>
 
 For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward and reverse mapped reads on two separate tracks on the same webpage.
+
 The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input. 
 
 The input file describes the number of commands, the dimension of each track, and the pileup commands.
