@@ -331,17 +331,19 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 <summary>For in depth analysis the user can visualize multiple plots in the same web page.
 </summary>
 
-For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward mapped and revverse mapped reads on two separate tracks but on same web page.
-`plot_tracks` only supports pileup views and it takes a `command_file.txt` file as the input. 
+For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward and reverse mapped reads on two separate tracks on the same webpage.
+The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input. 
 
-The .txt file describes the dimension of each track and the pileup commands.
+The input file describes the number of commands, the dimension of each track, and the pileup commands.
 
 The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
+
+Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads.
 ```
 num_commands=2
 plot_heights=900,200
 python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
-python plot_pileup.py --plot_reverse --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "reverse_mapped"
+python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "reverse_mapped --plot_reverse"
 ```
 
 Then the `plot_tracks` command is as below,
