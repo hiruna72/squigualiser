@@ -308,7 +308,8 @@ def run(args):
     if args.bed:
         print(f'bed file: {args.bed}')
         bed_dic = bed_annotation.create_bed_dic(args)
-
+    if args.plot_reverse:
+        print("Info: reads mapped to the reverse strand will be plotted")
     if args.return_plot:
         print("Info: plots will be returned without saving")
     else:
@@ -368,9 +369,9 @@ def run(args):
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
-            if sam_record.is_reverse and args.plot_reverse is False:
+            if args.plot_reverse is True and sam_record.is_reverse is False:
                 continue
-            if not sam_record.is_reverse and args.reverse_only:
+            if args.plot_reverse is False and sam_record.is_reverse is True:
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
@@ -427,16 +428,21 @@ def run(args):
             # print("ref_seq_len: {}".format(ref_seq_len))
             # print("{}".format(sam_record.cigarstring))
             # print("base_limit: {}".format(base_limit))
+            if sam_record.is_reverse and data_is_rna == 1:
+                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
 
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if sam_record.is_reverse:
-                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+                    fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
 
             x = []
             x_real = []
@@ -479,17 +485,6 @@ def run(args):
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
 
-            # if data_is_rna == 0 and args.reverse_signal:
-            #     raise Exception("Error: the signal will be reversed only in RNA plots")
-
-            if sam_record.is_reverse and data_is_rna == 1:
-                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
-
-            # if data_is_rna == 1 and args.reverse_signal:
-            #     x_real.reverse()
-            #     y = np.flip(y)
-            #     moves.reverse()
-            #     strand_dir = "(RNA 3'->5')"
             if data_is_rna == 0:
                 strand_dir = "(DNA +)"
                 if sam_record.is_reverse:
@@ -588,9 +583,9 @@ def run(args):
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if paf_record[STRAND] == "-" and args.plot_reverse is False:
+            if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
-            if paf_record[STRAND] == "+" and args.reverse_only:
+            if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
 
             data_is_rna = 0
@@ -642,18 +637,19 @@ def run(args):
             if paf_record[STRAND] == "-":
                 record_is_reverse = 1
             if record_is_reverse and data_is_rna == 1:
-                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
+                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if record_is_reverse:
-                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
-                                                                                     read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+                    fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end,
-                                                                                     read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
 
             x = []
             x_real = []
@@ -823,8 +819,7 @@ def argparser():
     parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=True, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot reverse mapped reads")
-    parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
+    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     # parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     # parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")

@@ -730,12 +730,12 @@ def run(args):
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if sam_record.is_reverse:
-                    print("plot (DNA 3'->5' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
@@ -778,9 +778,9 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             if data_is_rna == 0:
-                strand_dir = "(DNA 5'->3')"
+                strand_dir = "(+)"
                 if sam_record.is_reverse:
-                    strand_dir = "(DNA 3'->5')"
+                    strand_dir = "(-)"
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
@@ -910,12 +910,12 @@ def run(args):
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if record_is_reverse:
-                    print("plot (DNA 3'->5' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
@@ -963,9 +963,9 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             if data_is_rna == 0:
-                strand_dir = "(DNA 5'->3')"
+                strand_dir = "(+)"
                 if record_is_reverse:
-                    strand_dir = "(DNA 3'->5')"
+                    strand_dir = "(-)"
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
