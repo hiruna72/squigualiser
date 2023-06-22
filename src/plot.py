@@ -963,9 +963,9 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             if data_is_rna == 0:
-                strand_dir = "(+)"
+                strand_dir = "(DNA +)"
                 if record_is_reverse:
-                    strand_dir = "(-)"
+                    strand_dir = "(DNA -)"
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()

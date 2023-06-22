@@ -38,7 +38,7 @@ PLOT_X_RANGE = 750
 PLOT_Y_MARGIN = 1
 SUBPLOT_X = -100
 PLOT_BASE_SHIFT = 0
-PLOT_X_PADDING = 100
+PLOT_X_PADDING = 200
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
@@ -778,9 +778,14 @@ def run(args):
     print("Number of plots: {}".format(num_plots))
     if num_plots > 0:
         if sig_algn_dic["data_is_rna"] == 1:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]{indt}num reads:{num_plots}'
+            sig_dir = " ->"
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
         else:
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]{indt}num reads:{num_plots}'
+            if args.plot_reverse:
+                sig_dir = " <-"
+            else:
+                sig_dir = " ->"
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
         p.title = plot_title
         p.legend.click_policy = "hide"
         # p.legend.location = 'top_left'
