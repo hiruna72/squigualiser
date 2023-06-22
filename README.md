@@ -342,8 +342,8 @@ Note that the only difference between the two commands is that the second comman
 ```
 num_commands=2
 plot_heights=900,200
-python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
-python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
+python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
+python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
 ```
 
 Then the `plot_tracks` command is as below,
