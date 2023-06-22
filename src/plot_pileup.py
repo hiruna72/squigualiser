@@ -210,7 +210,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         if num_plots != -1:
             p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     if not draw_data['no_overlap']:
-        leg_lable = "plot_" + str(num_plots)
+        leg_lable = "read_" + str(num_plots+1)
         if num_plots != -1:
             p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable)
 
@@ -231,7 +231,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     subplot_labels = None
     if num_plots != -1 and not draw_data['overlap_only']:
         sub_plot_y_shift = (y_max - y_min)/6
-        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1, y_median-sub_plot_y_shift*2], tags=[signal_region, indels, read_id, "plot: "+str(num_plots)]))
+        source_subplot_labels = ColumnDataSource(data=dict(x=[SUBPLOT_X, SUBPLOT_X, SUBPLOT_X, SUBPLOT_X], y=[y_median+sub_plot_y_shift*1, y_median, y_median-sub_plot_y_shift*1, y_median-sub_plot_y_shift*2], tags=[signal_region, indels, read_id, "read: "+str(num_plots+1)]))
         subplot_labels = LabelSet(x='x', y='y', text='tags', text_font_size="7pt", x_offset=5, y_offset=5, source=source_subplot_labels)
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
