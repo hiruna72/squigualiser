@@ -7,8 +7,8 @@ from bokeh.plotting import output_file, save
 from bokeh.layouts import column
 import argparse
 import os
-import plot
-import plot_pileup
+# import plot
+from src import plot_pileup
 
 def run(args):
     print(args)
@@ -84,4 +84,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(str(e))
         exit(1)
-

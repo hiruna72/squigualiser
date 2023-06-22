@@ -24,12 +24,13 @@ A simple tool to Visualise nanopore raw signal-base alignment
    2. [Option 2 - Using f5c eventalign](#option-2-f5c-eventalign)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
 4. [Pileup view](#pileup-view)
-5. [BED annotations](#bed-annotations)
-6. [Squigualiser GUI](#Squigualiser-gui)
-7. [Notes](#notes)
-8. [Guppy move table explanation](#guppy-move-table-explanation)
-9. [Base shift](#base-shift)
-10. [Example](#example)
+5. [Plot multiple tracks](#plot-multiple-tracks)
+6. [BED annotations](#bed-annotations)
+7. [Squigualiser GUI](#Squigualiser-gui)
+8. [Notes](#notes)
+9. [Guppy move table explanation](#guppy-move-table-explanation)
+10. [Base shift](#base-shift)
+11. [Example](#example)
 
 
 ## Installation
@@ -324,6 +325,31 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 ````
 [Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html) is an example DNA pileup plot created using the [testcase 20.1](test/test_plot_pileup.sh).
 [Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-43.1.html) is an example RNA pileup plot created using the [testcase 43.1](test/test_plot_pileup.sh).
+
+## Plot multiple tracks
+<details>
+<summary>For in depth analysis the user can visualize multiple plots in the same web page.
+</summary>
+
+For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward mapped and revverse mapped reads on two separate tracks but on same web page.
+`plot_tracks` only supports pileup views and it takes a `command_file.txt` file as the input. 
+
+The .txt file describes the dimension of each track and the pileup commands.
+
+The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
+```
+num_commands=2
+plot_heights=900,200
+python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
+python plot_pileup.py --plot_reverse --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a eventalign.bam --tag_name "reverse_mapped"
+```
+
+Then the `plot_tracks` command is as below,
+```
+COMMAND_FILE="command_file.txt"
+squigualiser plot_tracks --shared_x -f ${COMMAND_FILE} -o output_dir
+```
+</details>
 
 ## BED annotations
 Plots support BED file annotations. Use argument `--bed [BED FILE]` to provide the bed file to the plot command.
