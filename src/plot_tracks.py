@@ -12,6 +12,7 @@ from src import plot_pileup
 
 PLOT_HEIGHT_SCALE = 1000
 def run(args):
+    print("Info: commands file: {}".format(args.file))
     commands_file = open(args.file, "r")
     num_commands = int(commands_file.readline().strip().split('=')[1])
     print("Info: no. of commands: {}".format(num_commands))
@@ -31,7 +32,7 @@ def run(args):
     total_plots = 0
 
     for i in range(0, num_commands):
-        line_ = commands_file.readline().strip().split(' ')
+        line_ = commands_file.readline().strip().split()
         tool = str(line_[1])
         # print(tool)
         use_pileup = 0
