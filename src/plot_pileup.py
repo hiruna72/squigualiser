@@ -457,25 +457,10 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                scaling_str = args.sig_scale
-                draw_data["plot_y_margin"] = 0.1
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
                 scaling_str = args.sig_scale
                 draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
@@ -493,7 +478,6 @@ def run(args):
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
@@ -665,25 +649,10 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                scaling_str = args.sig_scale
-                draw_data["plot_y_margin"] = 0.1
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
                 scaling_str = args.sig_scale
                 draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
@@ -706,7 +675,6 @@ def run(args):
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]

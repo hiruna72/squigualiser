@@ -6,6 +6,7 @@ hiruna@unsw.edu.au
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
 import re
+import numpy as np
 
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
@@ -54,7 +55,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         signal_tuple = (x, x_real, y)
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-
 def create_figure(args, plot_mode):
     p_defualt = None
     if plot_mode == 0:
@@ -89,5 +89,23 @@ def create_figure(args, plot_mode):
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         p_default.toolbar.logo = None
     return p_default
-
-
+def scale_signal(y, sig_scale):
+    if sig_scale == "medmad":
+        arr = np.ma.array(y).compressed()
+        read_median = np.median(arr)
+        if read_median == np.nan:
+            raise Exception("Error: calculated median is NaN")
+        mad = np.median(np.abs(arr - read_median))
+        if mad == np.nan:
+            raise Exception("Error: calculated mad is NaN")
+        read_mad = mad * 1.4826
+        if read_mad < 1.0:
+            read_mad = 1.0
+        y = (y - read_mad) / read_mad
+    elif sig_scale == "znorm":
+        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+        # Calculate the z-score from scratch
+        y = (y - np.mean(y)) / np.std(y)
+    elif not sig_scale == "":
+        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
+    return y

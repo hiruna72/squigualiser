@@ -192,9 +192,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -379,9 +379,9 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.mode = 'mouse'
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
 
     p.title = plot_title
 
@@ -473,6 +473,9 @@ def run(args):
     draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
     draw_data["fixed_width"] = args.fixed_width
+    draw_data["sig_dir"] = "->"
+    if args.plot_reverse:
+        draw_data["sig_dir"] = "<-"
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -560,34 +563,15 @@ def run(args):
                     x = list(range(1, end_index - start_index + 1))
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
-                if args.sig_scale == "medmad":
-                    arr = np.ma.array(y).compressed()
-                    read_median = np.median(arr)
-                    if read_median == np.nan:
-                        raise Exception("Error: calculated median is NaN")
-                    mad = np.median(np.abs(arr - read_median))
-                    if mad == np.nan:
-                        raise Exception("Error: calculated mad is NaN")
-                    read_mad = mad * 1.4826
-                    if read_mad < 1.0:
-                        read_mad = 1.0
-                    y = (y - read_mad) / read_mad
-                    args.tag_name += " scale:medmad"
-                elif args.sig_scale == "znorm":
-                    # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                    # Calculate the z-score from scratch
-                    y = (y - np.mean(y)) / np.std(y)
-                    args.tag_name += " scale:znorm"
+
+                y = plot_utils.scale_signal(y, args.sig_scale)
+                scaling_str = "no scaling"
+                if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                    scaling_str = args.sig_scale
                 elif not args.sig_scale == "":
                     raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
                 strand_dir = "(DNA 5'->3')"
-
-                # if data_is_rna == 1 and args.reverse_signal:
-                #     x_real.reverse()
-                #     y = np.flip(y)
-                #     moves.reverse()
-                #     strand_dir = "(RNA 3'->5')"
                 if data_is_rna == 1:
                     fasta_seq = fasta_seq[:ref_end]
                     fasta_seq = fasta_seq[::-1]
@@ -606,9 +590,9 @@ def run(args):
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 if args.fixed_width:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
                 else:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: "
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
 
                 moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)
@@ -751,24 +735,11 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                args.tag_name += " scale:medmad"
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
-                args.tag_name += " scale:znorm"
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
+            scaling_str = "no scaling"
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -778,13 +749,12 @@ def run(args):
             moves = re.split(r',+', moves_string)
 
             if data_is_rna == 0:
-                strand_dir = "(+)"
+                strand_dir = "(DNA +)"
                 if sam_record.is_reverse:
-                    strand_dir = "(-)"
+                    strand_dir = "(DNA -)"
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
@@ -801,9 +771,9 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
@@ -931,24 +901,11 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                args.tag_name += " scale:medmad"
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
-                args.tag_name += " scale:znorm"
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
+            scaling_str = "no scaling"
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -969,7 +926,6 @@ def run(args):
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
@@ -985,10 +941,9 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(
-                    args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
