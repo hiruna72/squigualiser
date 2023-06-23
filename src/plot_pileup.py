@@ -772,7 +772,7 @@ def run(args):
         draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
         p.add_tools(draw_tool)
         if args.return_plot:
-            return p
+            return p, num_plots
         else:
             pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
             output_file(pileup_output_file_name, title="pileup_" + args.tag_name)

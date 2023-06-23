@@ -341,6 +341,8 @@ The input file describes the number of commands, the dimension of each track, an
 
 The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
 
+Use the argument `--auto_height` and set `plot_heights=*` to automatically adjust the track height depending on the number of plots in each track.
+
 Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads.
 ```
 num_commands=2

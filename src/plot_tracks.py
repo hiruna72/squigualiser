@@ -10,6 +10,7 @@ import os
 # import plot
 from src import plot_pileup
 
+PLOT_HEIGHT_SCALE = 1000
 def run(args):
     print(args)
     commands_file = open(args.file, "r")
@@ -17,42 +18,56 @@ def run(args):
     print("Info: no. of commands: {}".format(num_commands))
     plot_heights = commands_file.readline().strip().split('=')[1].split(',')
     print("Info: specified plot heights: {}".format(str(plot_heights)))
-    num_plots = 0
+    num_tracks = 0
     # Strips the newline character
     pileup = []
+    num_plots = []
+    total_plots = 0
     for i in range(0, num_commands):
         line_ = commands_file.readline().strip().split(' ')
         tool = str(line_[1])
         print(tool)
         use_pileup = 0
-        if tool == 'plot_pileup' or tool == 'plot_pileup.py':
+
+        if 'plot_pileup' in tool:
             use_pileup = 1
         else:
-            print("Error: {} is not suported in tracks. Please report on github if you want this feature.".format(tool))
-            exit(1)
+            raise Exception("Error: {} is not suported in tracks. Please report on github if you want this feature.".format(tool))
         command = line_[2:]
         if '--return_plot' not in command:
-            print("Error: please specify --return_plot for each command")
-            exit(1)
+            raise Exception("Error: please specify --return_plot for each command")
         # print(command)
 
         args_tool = plot_pileup.argparser().parse_args(command)
-        p = plot_pileup.run(args_tool)
+        p, n_plot = plot_pileup.run(args_tool)
         if p is None:
             continue
-        p.height = int(plot_heights[i])
         p.sizing_mode = 'scale_width'
+        num_plots.append(n_plot)
+        total_plots += n_plot
 
-        if num_plots > 0 and args.shared_x:
+        if num_tracks > 0 and args.shared_x:
             p.x_range = pileup[0].x_range
             # p.y_range = pileup[0].y_range
         pileup.append(p)
-        # output_file(args.output_dir+"/"+str(num_plots)+".html", title=num_plots)
+        # output_file(args.output_dir+"/"+str(num_tracks)+".html", title=num_tracks)
         # save(p)
-        num_plots += 1
+        num_tracks += 1
     if len(pileup) == 0:
-        print("Error: no plots to plot")
-        exit(1)
+        raise Exception("Error: no plots to plot")
+
+    if args.auto_height:
+        j = 0
+        for p in pileup:
+            # print(num_plots[j],(num_plots[j]/total_plots)*PLOT_HEIGHT_SCALE)
+            p.height = int((num_plots[j]/total_plots)*PLOT_HEIGHT_SCALE)
+            j += 1
+    else:
+        j = 0
+        for p in pileup:
+            p.height = int(plot_heights[i])
+            j += 1
+
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
     plot_title = "track"
@@ -74,6 +89,7 @@ def argparser():
     parser.add_argument('-o', '--output_dir', required=True, help="output dir")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--shared_x', required=False, action='store_true', help="share x-axis so that all the plots move together")
+    parser.add_argument('--auto_height', required=False, action='store_true', help="adjust track height automatically")
     return parser
 
 if __name__ == "__main__":
