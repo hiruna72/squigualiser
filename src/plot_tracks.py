@@ -12,31 +12,42 @@ from src import plot_pileup
 
 PLOT_HEIGHT_SCALE = 1000
 def run(args):
-    print(args)
     commands_file = open(args.file, "r")
     num_commands = int(commands_file.readline().strip().split('=')[1])
     print("Info: no. of commands: {}".format(num_commands))
+
     plot_heights = commands_file.readline().strip().split('=')[1].split(',')
-    print("Info: specified plot heights: {}".format(str(plot_heights)))
+    if plot_heights[0] == '*' or args.auto_height:
+        args.auto_height = True
+        print("Info: track heights will be set automatically.")
+    if not args.auto_height:
+        if len(plot_heights) != num_commands:
+            raise Exception("Error: number of commands ({}) does not match the number of heights specified ({})".format(num_commands, len(plot_heights)))
+        print("Info: specified plot heights: {}".format(str(plot_heights)))
+
     num_tracks = 0
-    # Strips the newline character
     pileup = []
     num_plots = []
     total_plots = 0
+
     for i in range(0, num_commands):
         line_ = commands_file.readline().strip().split(' ')
         tool = str(line_[1])
-        print(tool)
+        # print(tool)
         use_pileup = 0
-
         if 'plot_pileup' in tool:
             use_pileup = 1
         else:
             raise Exception("Error: {} is not suported in tracks. Please report on github if you want this feature.".format(tool))
+
         command = line_[2:]
-        if '--return_plot' not in command:
-            raise Exception("Error: please specify --return_plot for each command")
-        # print(command)
+        if '-o' in command:
+            idx = command.index("-o")
+            del command[idx:idx+2]
+        if '--output_dir' in command:
+            idx = command.index("--output_dir")
+            del command[idx:idx+2]
+        command.append('--return_plot')
 
         args_tool = plot_pileup.argparser().parse_args(command)
         p, n_plot = plot_pileup.run(args_tool)

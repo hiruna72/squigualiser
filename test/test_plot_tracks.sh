@@ -52,8 +52,13 @@ testcase_30s() {
   COMMAND_FILE="${RAW_DIR}/t_30.4.txt"
   python src/plot_tracks.py --shared_x --auto_height -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
 
+  TESTCASE=30.5
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.5.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
 }
-testcase_30s #pileup
+testcase_30s #plot_tracks
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

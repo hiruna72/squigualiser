@@ -30,7 +30,9 @@ A simple tool to Visualise nanopore raw signal-base alignment
 8. [Notes](#notes)
 9. [Guppy move table explanation](#guppy-move-table-explanation)
 10. [Base shift](#base-shift)
-11. [Example](#example)
+11. [Signal scaling](#signal-scaling)
+12. [Plot conventions](#conventions-not-finalised)
+13. [Example](#example)
 
 
 ## Installation
@@ -341,17 +343,17 @@ The input file describes the number of commands, the dimension of each track, an
 
 The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
 
-Use the argument `--auto_height` and set `plot_heights=*` to automatically adjust the track height depending on the number of plots in each track.
+Setting `plot_heights=*` in the `command_file.txt` or providing the argument `--auto_height` will automatically adjust the track height depending on the number of plots in each track.
 
-Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads.
+Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads. And `-o` or `--output_dir` argument is not necessary (ignored).
 ```
 num_commands=2
 plot_heights=900,200
-python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
-python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
+python plot_pileup.py --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
+python plot_pileup.py --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
 ```
 
-Then the `plot_tracks` command is as below,
+Then use the `plot_tracks` command as below (remember to provide `-o`),
 ```
 COMMAND_FILE="command_file.txt"
 squigualiser plot_tracks --shared_x -f ${COMMAND_FILE} -o output_dir
@@ -391,6 +393,10 @@ samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 
 ## Base shift
 User can shift the base sequence to right or left by `n` number of bases by providing the argument `--base_shift n` to the `plot` command. This is helpful to correct the signal level to the base. A positive `n` value will shift the base sequence to the right. A negative `n` value will shift the base sequence to the left.
+
+## Signal scaling
+The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+
 
 ## Guppy move table explanation
 <details>

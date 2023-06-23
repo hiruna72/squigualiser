@@ -1,4 +1,4 @@
 num_commands=2
-plot_heights=*
-python plot_pileup.py --region chr1:6,811,011-6,811,198 --return_plot -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "forward_mapped" --base_shift 0
-python plot_pileup.py --plot_reverse --region chr1:6,811,011-6,811,198 --return_plot -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "reverse_mapped" --base_shift 0
+plot_heights=700,200
+python plot_pileup.py --region chr1:6,811,011-6,811,198 -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "forward_mapped" --base_shift 0
+python plot_pileup.py --plot_reverse --region chr1:6,811,011-6,811,198 -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "reverse_mapped" --base_shift 0
