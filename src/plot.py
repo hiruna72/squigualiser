@@ -506,10 +506,7 @@ def run(args):
                 else:
                     fasta_seq = sequence_reads[read_id].seq
                     if len(fasta_seq) < paf_record.target_length:
-                        print(
-                            "Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(
-                                args.file))
-                        exit(1)
+                        raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
 
                 ref_start = -1
                 ref_end = -1

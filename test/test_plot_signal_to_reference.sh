@@ -35,7 +35,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -44,7 +44,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780309-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -53,7 +53,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780311-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -62,7 +62,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780309-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -71,7 +71,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780311-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -80,7 +80,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780301-92780308"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -89,7 +89,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780571-92780579"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -98,7 +98,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780565-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -107,7 +107,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780308-92780570"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -116,7 +116,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780308-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -125,7 +125,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780311-92780571"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -134,7 +134,7 @@ testcase_4s() {
   info "testcase:$TESTCASE - reference-signal plot"
   FASTA=${GENOME}
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
-  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m1.bam"
+  ALIGNMENT="${RAW_DIR}/one_read/realign/realigned_r1k1m0.bam"
   REGION="chr1:92780311-92780569"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
@@ -597,13 +597,13 @@ testcase_11s() {
 }
 
   testcase_4s #basic
-#  testcase_5s #signal-reference squigulator ideal signals
-#  testcase_6s #signal-reference squigulator DNA
-#  testcase_7s #signal-reference squigulator RNA
-#  testcase_8s #signal-reference realigned DNA
-#  testcase_9s #signal-reference realigned RNA
-#  testcase_10s #signal-reference f5c eventalign DNA
-#  testcase_11s #signal-reference base shift tests
+  testcase_5s #signal-reference squigulator ideal signals
+  testcase_6s #signal-reference squigulator DNA
+  testcase_7s #signal-reference squigulator RNA
+  testcase_8s #signal-reference realigned DNA
+  testcase_9s #signal-reference realigned RNA
+  testcase_10s #signal-reference f5c eventalign DNA
+  testcase_11s #signal-reference base shift tests
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
