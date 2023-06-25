@@ -2,6 +2,8 @@
 
 A simple tool to Visualise nanopore raw signal-base alignment
 
+signals (**squig**gles) + vis**ualiser** = **squigualiser**
+
 ![image](docs/figures/preview.png)
 
 1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
