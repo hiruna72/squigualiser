@@ -562,6 +562,7 @@ def run(args):
                     y = read['signal'][start_index:end_index]
 
                 y = plot_utils.scale_signal(y, args.sig_scale)
+
                 scaling_str = "no scaling"
                 if args.sig_scale == "medmad" or args.sig_scale == "znorm":
                     scaling_str = args.sig_scale
@@ -576,6 +577,11 @@ def run(args):
                 else:
                     fasta_seq = fasta_seq[ref_start-1:]
 
+                moves_string = paf_record.tags['ss'][2]
+                moves_string = re.sub('D', 'D,', moves_string)
+                moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+                moves = re.split(r',+', moves_string)
+
                 signal_tuple = (x, x_real, y)
                 region_tuple = (ref_start, ref_end, 0, seq_len)
 
@@ -586,18 +592,20 @@ def run(args):
                 sig_algn_dic['use_paf'] = use_paf
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
-                if args.fixed_width:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
-                else:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
-
-                moves_string = paf_record.tags['ss'][2]
-                moves_string = re.sub('D', 'D,', moves_string)
-                moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-                moves = re.split(r',+', moves_string)
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+                if args.auto_base_shift:
+                    print(101)
+                    draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
+                    print(draw_data["base_shift"])
+
+                if args.fixed_width:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
+                else:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
+
                 draw_data['y_min'] = np.amin(y)
                 draw_data['y_max'] = np.amax(y)
                 p = plot_utils.create_figure(args, plot_mode=0)
@@ -768,9 +776,9 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
@@ -938,9 +946,9 @@ def run(args):
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
             if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(args.base_shift) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
@@ -992,6 +1000,7 @@ def argparser():
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
+    parser.add_argument('--auto_base_shift', required=False, action='store_true', help="calculate base_shift automatically and adjust the signal-base alignment")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")

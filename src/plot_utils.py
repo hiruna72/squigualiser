@@ -11,6 +11,11 @@ import numpy as np
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+#base_shift related
+KMER_LENGTH = 9
+SIG_MOVE_OFFSET = 0
+BASE_INDEX = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'U': 3}
+
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
@@ -109,3 +114,87 @@ def scale_signal(y, sig_scale):
     elif not sig_scale == "":
         raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
     return y
+
+def calculate_offset_values(moves, sequence, raw_signal, kmer_length, sig_move_offset):
+    print("sig_move_offset: {}".format(sig_move_offset))
+    print("kmer_length: {}".format(kmer_length))
+    len_seq = len(sequence)
+    test_array = []
+    for offset in range(0, kmer_length):
+        freq = [[], [], [], []]
+        start_raw = 0
+        for j in range(0, sig_move_offset):
+            start_raw += int(moves[j])
+        for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
+            end_raw = start_raw + int(moves[i + sig_move_offset])
+            value = raw_signal[start_raw: end_raw]
+            start_raw = end_raw
+            freq[BASE_INDEX[sequence[i + offset]]].append(np.median(value))
+        test_array.append(freq)
+    return test_array
+
+def clean_signal(y, fasta_seq, moves):
+    new_moves = []
+    new_y = []
+    new_fasta_seq = ""
+    signal_index = 0
+    base_index = 0
+    print(len(fasta_seq))
+    print(len(moves))
+    print(fasta_seq)
+    print(moves)
+    for i in moves:
+        if base_index >= len(fasta_seq):
+            break
+        if 'D' in i:
+            i = re.sub('D', '', i)
+            count_bases = int(i)
+            base_index += count_bases
+            print(base_index)
+
+        elif 'I' in i:
+            i = re.sub('I', '', i)
+            eat_signal = int(i)
+            signal_index += eat_signal
+        else:
+            eat_signal = int(i)
+            count_bases = 1
+            new_moves.append(i)
+            for j in y[signal_index:signal_index+eat_signal]:
+                new_y.append(j)
+            new_fasta_seq += fasta_seq[base_index]
+            base_index += count_bases
+            signal_index += eat_signal
+    print(102)
+    return new_y, new_fasta_seq, new_moves
+def calculate_base_shift(y, fasta_seq, moves):
+    base_shift = 0
+    kmer_length = KMER_LENGTH
+    sig_move_offset = SIG_MOVE_OFFSET
+    y, fasta_seq, moves = clean_signal(y, fasta_seq, moves)
+    test_array = calculate_offset_values(moves, fasta_seq, y, kmer_length, sig_move_offset)
+    start_offset = 0
+    end_offset = kmer_length
+    offset_dist = []
+    for offset in range(start_offset, end_offset):
+        max_mean = -1
+        min_mean = 10000
+        for base in test_array[offset]:
+            mean = np.median(base)
+            if mean < min_mean:
+                min_mean = mean
+            if mean > max_mean:
+                max_mean = mean
+        offset_dist.append(max_mean-min_mean)
+
+    max_dist = -1
+    max_offset = 0
+    for offset in range(start_offset, end_offset):
+        print(offset)
+        print(offset_dist[offset])
+        if offset_dist[offset] > max_dist:
+            max_offset = offset
+            max_dist = offset_dist[offset]
+    print("max_offset: {}".format(max_offset))
+    base_shift = -1*max_offset + sig_move_offset
+    return base_shift
