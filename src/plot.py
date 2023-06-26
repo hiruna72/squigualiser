@@ -774,14 +774,20 @@ def run(args):
             sig_algn_dic['ref_end'] = ref_end
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+            if args.auto_base_shift:
+                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
+                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+            if args.fixed_width:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            else:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
+
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
@@ -944,14 +950,20 @@ def run(args):
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
+            sig_algn_dic['ss'] = moves
+
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+            if args.auto_base_shift:
+                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
+                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
-            sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.amin(y)
             draw_data['y_max'] = np.amax(y)
