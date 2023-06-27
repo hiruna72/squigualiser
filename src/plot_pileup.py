@@ -22,7 +22,7 @@ import pysam
 import math
 from src import bed_annotation
 from src import plot_utils
-
+import cProfile, pstats, io
 # ref_start is always 1based closed
 # ref_end is always 1based closed
 # start_kmer is always 0based closed
@@ -255,6 +255,10 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     return p, location_plot, base_index
 def run(args):
+    if args.cprofile:
+        pr = cProfile.Profile()
+        pr.enable()
+
     if args.read_id != "":
         args.plot_limit = 1
 
@@ -780,6 +784,15 @@ def run(args):
             save(p)
 
     s5.close()
+
+    if args.cprofile:
+        pr.disable()
+        s = io.StringIO()
+        sort_by = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sort_by)
+        ps.print_stats()
+        with open("cprofile_run.log", 'w') as f:
+            print(s.getvalue(), file=f)
 def argparser():
     # parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(
@@ -813,6 +826,7 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
+    parser.add_argument('--cprofile', required=False, action='store_true', help="run cProfile for benchmarking")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-o', '--output_dir', help="output dir")
     group.add_argument('--return_plot', action='store_true', help="return plot object without saving to output")
