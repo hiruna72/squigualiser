@@ -193,6 +193,7 @@ def calculate_offset_distance(kmer_length, test_array):
     return offset_dist
 def calculate_base_shift(y, fasta_seq, moves):
     best_base_shift = 0
+    best_kmer_length = 0
     best_max_dist = 0
     sig_move_offset = 0
     y, fasta_seq, moves = clean_signal(y, fasta_seq, moves)
@@ -213,4 +214,7 @@ def calculate_base_shift(y, fasta_seq, moves):
         if best_max_dist < max_dist:
             best_max_dist = max_dist
             best_base_shift = -1*max_dist_idx + sig_move_offset
+            best_kmer_length = kmer_length
+    # print("best_max_dist: {}".format(best_max_dist))
+    # print("best_kmer_length: {}".format(best_kmer_length))
     return best_base_shift

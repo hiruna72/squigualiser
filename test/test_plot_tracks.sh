@@ -59,7 +59,7 @@ testcase_30s() {
 
   TESTCASE=30.6
   info "testcase:$TESTCASE - plot tracks"
-  COMMAND_FILE="${RAW_DIR}/t_30.5.txt"
+  COMMAND_FILE="${RAW_DIR}/t_30.6.txt"
   python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
 
 }
