@@ -11,6 +11,12 @@ import numpy as np
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+#base_shift related
+SIG_SAMPLES_LIMIT = 5000
+MIN_KMER_LENGTH = 5
+MAX_KMER_LENGTH = 9
+BASE_INDEX = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'U': 3}
+
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
@@ -109,3 +115,106 @@ def scale_signal(y, sig_scale):
     elif not sig_scale == "":
         raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
     return y
+def calculate_offset_values(moves, sequence, raw_signal, kmer_length, sig_move_offset):
+    # print("sig_move_offset: {}".format(sig_move_offset))
+    # print("kmer_length: {}".format(kmer_length))
+    len_seq = len(sequence)
+    test_array = []
+    for offset in range(0, kmer_length):
+        freq = [[], [], [], []]
+        start_raw = 0
+        for j in range(0, sig_move_offset):
+            start_raw += int(moves[j])
+        for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
+            end_raw = start_raw + int(moves[i + sig_move_offset])
+            value = raw_signal[start_raw: end_raw]
+            start_raw = end_raw
+            freq[BASE_INDEX[sequence[i + offset]]].append(np.median(value))
+        test_array.append(freq)
+    return test_array
+def clean_signal(y, fasta_seq, moves):
+    new_moves = []
+    new_y = []
+    new_fasta_seq = ""
+    signal_index = 0
+    base_index = 0
+    for i in moves:
+        if base_index >= len(fasta_seq):
+            break
+        if signal_index >= SIG_SAMPLES_LIMIT:
+            break
+        if 'D' in i:
+            i = re.sub('D', '', i)
+            count_bases = int(i)
+            base_index += count_bases
+
+        elif 'I' in i:
+            i = re.sub('I', '', i)
+            eat_signal = int(i)
+            signal_index += eat_signal
+        else:
+            eat_signal = int(i)
+            count_bases = 1
+            new_moves.append(i)
+            for j in y[signal_index:signal_index+eat_signal]:
+                new_y.append(j)
+            new_fasta_seq += fasta_seq[base_index]
+            base_index += count_bases
+            signal_index += eat_signal
+    return new_y, new_fasta_seq, new_moves
+def calculate_offset_distance(kmer_length, test_array):
+    start_offset = 0
+    end_offset = kmer_length
+    # offset_dist = []
+    # for offset in range(start_offset, end_offset):
+    #     max_mean = -1
+    #     min_mean = 10000
+    #     for base in test_array[offset]:
+    #         mean = np.median(base)
+    #         if mean < min_mean:
+    #             min_mean = mean
+    #         if mean > max_mean:
+    #             max_mean = mean
+    #     offset_dist.append(max_mean-min_mean)
+
+    offset_dist = []
+    for offset in range(start_offset, end_offset):
+        base_dist = []
+        for base in test_array[offset]:
+            median = np.median(base)
+            base_dist.append(median)
+        base_dist.sort()
+        base_diff = [base_dist[n]-base_dist[n-1] for n in range(1, len(base_dist))]
+        total_diff = 0
+        for diff in base_diff:
+            total_diff += diff
+        offset_dist.append(total_diff)
+
+    return offset_dist
+def calculate_base_shift(y, fasta_seq, moves):
+    best_base_shift = 0
+    best_kmer_length = 0
+    best_max_dist = 0
+    sig_move_offset = 0
+    y, fasta_seq, moves = clean_signal(y, fasta_seq, moves)
+    for kmer_length in range(MIN_KMER_LENGTH, MAX_KMER_LENGTH+1):
+        test_array = calculate_offset_values(moves, fasta_seq, y, kmer_length, sig_move_offset)
+        offset_dist = calculate_offset_distance(kmer_length, test_array)
+
+        start_offset = 0
+        end_offset = kmer_length
+        max_dist = -1
+        max_dist_idx = 0
+        for offset in range(start_offset, end_offset):
+            # print(offset)
+            # print(offset_dist[offset])
+            if offset_dist[offset] > max_dist:
+                max_dist_idx = offset
+                max_dist = offset_dist[offset]
+        if best_max_dist < max_dist:
+            best_max_dist = max_dist
+            best_base_shift = -1*max_dist_idx + sig_move_offset
+            best_kmer_length = kmer_length
+    # print("best_max_dist: {}".format(best_max_dist))
+    # print("best_kmer_length: {}".format(best_kmer_length))
+    return best_base_shift
