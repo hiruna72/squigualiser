@@ -51,7 +51,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
-    label_position = np.percentile(y, 98)
+    label_position = np.nanpercentile(y, 98)
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
@@ -66,12 +66,6 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
-
-    base_shift_seq = 'N' * abs(draw_data['base_shift'])
-    if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
-    else:
-        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -222,7 +216,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
-    label_position = np.percentile(y, 98)
+    label_position = np.nanpercentile(y, 98)
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
@@ -237,12 +231,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
-
-    base_shift_seq = 'N' * abs(draw_data['base_shift'])
-    if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
-    else:
-        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -600,13 +588,26 @@ def run(args):
                     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
                     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
+                if draw_data["base_shift"] < 0:
+                    abs_base_shift = abs(draw_data["base_shift"])
+                    x = signal_tuple[0]
+                    x_real = signal_tuple[1]
+                    y = signal_tuple[2]
+                    y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                    y = np.concatenate((y_prefix, y), axis=0)
+                    x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                    x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                    signal_tuple = (x, x_real, y)
+                    moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                    sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
                 if args.fixed_width:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
                 else:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
 
-                draw_data['y_min'] = np.amin(y)
-                draw_data['y_max'] = np.amax(y)
+                draw_data['y_min'] = np.nanmin(y)
+                draw_data['y_max'] = np.nanmax(y)
                 p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
                     p = bed_annotation.plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
@@ -783,14 +784,27 @@ def run(args):
                 draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
                 print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.amin(y)
-            draw_data['y_max'] = np.amax(y)
+            draw_data['y_min'] = np.nanmin(y)
+            draw_data['y_max'] = np.nanmax(y)
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
@@ -958,6 +972,19 @@ def run(args):
                 draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
                 print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
             else:
@@ -965,8 +992,8 @@ def run(args):
             # print(len(moves))
             # print(fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.amin(y)
-            draw_data['y_max'] = np.amax(y)
+            draw_data['y_min'] = np.nanmin(y)
+            draw_data['y_max'] = np.nanmax(y)
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )

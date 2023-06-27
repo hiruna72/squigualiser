@@ -64,12 +64,6 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
 
-    base_shift_seq = 'N' * abs(draw_data['base_shift'])
-    if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
-    else:
-        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
-
     # draw moves
     moves = sig_algn_data["ss"]
     base_index = sig_algn_data["start_kmer"]
@@ -502,10 +496,24 @@ def run(args):
             if args.auto_base_shift and num_plots == 0:
                 draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
                 print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
-            y_min = math.floor(np.amin(y))
-            y_max = math.ceil(np.amax(y))
+            y_min = math.floor(np.nanmin(y))
+            y_max = math.ceil(np.nanmax(y))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
@@ -700,11 +708,25 @@ def run(args):
             if args.auto_base_shift and num_plots == 0:
                 draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
                 print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             # print(len(sig_algn_dic['ss']))
-            y_min = math.floor(np.amin(y))
-            y_max = math.ceil(np.amax(y))
+            y_min = math.floor(np.nanmin(y))
+            y_max = math.ceil(np.nanmax(y))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
