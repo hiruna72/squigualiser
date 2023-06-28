@@ -164,6 +164,18 @@ testcase_21s() {
   BASE_SHIFT="--base_shift -6"
   python src/plot_pileup.py --rna ${BASE_SHIFT} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
 
+  TESTCASE=21.3
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/rna/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/rna/sorted_eventalign.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  REGION="R1_92_1:264-786"
+  SCALING="--sig_scale znorm"
+  BASE_SHIFT="--base_shift -6"
+  python src/plot_pileup.py --cprofile --rna ${BASE_SHIFT} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
+
 }
 testcase_20s #pileup DNA
 testcase_21s #pileup RNA
