@@ -57,6 +57,12 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     base_y = []
     base_label = []
     base_label_colors = []
+
+    move_x = []
+    move_y = []
+    move_label = []
+    move_label_colors = []
+
     sample_label_colors_match = []
     sample_label_colors_insert = []
     location_plot = 0
@@ -164,11 +170,15 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
                 base_label_colors.append('black')
             else:
                 if num_samples_in_insertion > 0:
-                    base_x.append(previous_location)
-                    base_y.append(label_position + y_shift)
-                    label = str(num_samples_in_insertion)
-                    base_label.append(label)
-                    base_label_colors.append('purple')
+                    move_x.append(previous_location)
+                    move_y.append(label_position + y_shift)
+                    move_label.append(str(num_samples_in_insertion))
+                    move_label_colors.append('purple')
+                move_x.append(previous_location+draw_data["fixed_base_width"]/3)
+                move_y.append(label_position + y_shift)
+                move_label.append(str(n_samples))
+                move_label_colors.append('black')
+
             for j in range(0, n_samples - num_samples_in_insertion):
                 sample_label_colors_match.append('red')
                 sample_label_colors_insert.append('None')
@@ -186,6 +196,9 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     base_annotation = ColumnDataSource(data=dict(base_x=base_x, base_y=base_y, base_label=base_label, colors=base_label_colors))
     base_annotation_labels = LabelSet(x='base_x', y='base_y', text='base_label', x_offset=5, y_offset=5, source=base_annotation, text_font_size="7pt", text_color='colors')
 
+    move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
+    move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="5pt", text_color='colors', visible=True)
+
     fixed_width_x = fixed_width_x[1:]
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
@@ -193,6 +206,14 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
         p.add_glyph(line_segment_source, glyph)
         p.add_layout(base_annotation_labels)
+        if draw_data["plot_num_samples"]:
+            p.add_layout(move_annotation_labels)
+            x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=move_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+            let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+            move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+            """)
+            p.x_range.js_on_change('start', x_callback_move_annotation)
+
     if num_plots != -1:
         if num_plots == 0:
             sample_label_colors_insert[0] = 'purple'
@@ -235,17 +256,17 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
     if subplot_labels:
-        x_callback = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+        x_callback_subplot_labels = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
         let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
         subplot_labels['text_font_size'] = String(xzoom) + 'pt';
         """)
-        p.x_range.js_on_change('start', x_callback)
+        p.x_range.js_on_change('start', x_callback_subplot_labels)
     
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', x_callback)
+    p.x_range.js_on_change('start', x_callback_base_annotation)
 
     return p, location_plot, base_index
 def run(args):
@@ -328,6 +349,7 @@ def run(args):
     draw_data["base_shift"] = args.base_shift
     draw_data["no_overlap"] = args.no_overlap
     draw_data["overlap_only"] = args.overlap_only
+    draw_data["plot_num_samples"] = args.plot_num_samples
     sig_algn_dic = {}
 
     y_shift = 0
@@ -838,6 +860,7 @@ def argparser():
     parser.add_argument('--region', required=True, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
+    parser.add_argument('--plot_num_samples', required=False, action='store_true', help="plot number of samples for each move")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     # parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     # parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")

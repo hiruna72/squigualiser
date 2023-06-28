@@ -65,7 +65,10 @@ def run(args):
         total_plots += n_plot
 
         if num_tracks > 0 and args.shared_x:
-            p.x_range = pileup[0].x_range
+            if len(p.x_range.js_property_callbacks) > 1:
+                raise Exception("Error: more than the expected number of callbacks found ({}). please report on github with a minimal dataset to reproduce this error.".format(len(p.x_range.js_property_callbacks)))
+            pileup[num_tracks-1].x_range.js_property_callbacks['change:start'] += p.x_range.js_property_callbacks['change:start']
+            p.x_range = pileup[num_tracks-1].x_range
             # p.y_range = pileup[0].y_range
         pileup.append(p)
         # output_file(args.output_dir+"/"+str(num_tracks)+".html", title=num_tracks)

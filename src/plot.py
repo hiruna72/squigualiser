@@ -180,7 +180,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
     move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
 
-    toggle_moves = Toggle(label="move", button_type="primary", active=False, height=30, width=60)
+    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
     toggle_moves.js_link('active', move_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
@@ -192,7 +192,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
-    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
@@ -383,7 +383,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
     move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
 
-    toggle_moves = Toggle(label="move", button_type="primary", active=False, height=30, width=60)
+    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
     toggle_moves.js_link('active', move_annotation_labels, 'visible')
 
     fixed_width_x = fixed_width_x[1:]
@@ -397,7 +397,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
-    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip

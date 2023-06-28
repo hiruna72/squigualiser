@@ -62,6 +62,11 @@ testcase_30s() {
   COMMAND_FILE="${RAW_DIR}/t_30.6.txt"
   python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
 
+  TESTCASE=30.7
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.7.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
 }
 testcase_30s #plot_tracks
 
