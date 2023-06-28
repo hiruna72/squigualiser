@@ -62,7 +62,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     base_label_colors = []
     sample_label_colors = []
     location_plot = 0
-    initial_location = location_plot
+
+    move_x = []
+    move_y = []
+    move_label = []
+    move_label_colors = []
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
@@ -129,11 +133,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             for j in range(0, n_samples):
                 sample_label_colors.append('purple')
 
-            base_x.append(previous_location)
-            base_y.append(label_position/2)
-            label = str(n_samples)
-            base_label.append(label)
-            base_label_colors.append('purple')
+            move_x.append(previous_location)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('purple')
+
         else:
             n_samples = int(i)
             location_plot += n_samples
@@ -152,6 +156,12 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             base_label_colors.append('black')
             for j in range(0, n_samples):
                 sample_label_colors.append('red')
+
+            move_x.append(previous_location)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('black')
+
             base_index += 1
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -167,11 +177,18 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
+    move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
+
+    toggle_moves = Toggle(label="move", button_type="primary", active=False, height=30, width=60)
+    toggle_moves.js_link('active', move_annotation_labels, 'visible')
+
     source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
-    
+    p.add_layout(move_annotation_labels)
+
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
@@ -201,13 +218,19 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', x_callback)
+    p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    layout_ = p, row(toggle_bases, toggle_samples)
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_move_annotation)
+
+    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
     return layout_
 def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
@@ -226,8 +249,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     base_label = []
     base_label_colors = []
     sample_label_colors = []
+
+    move_x = []
+    move_y = []
+    move_label = []
+    move_label_colors = []
+
     location_plot = 0
-    initial_location = location_plot
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
@@ -317,17 +345,22 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             line_segment_x.append(location_plot)
 
             if num_samples_in_insertion > 0:
-                base_x.append(previous_location)
-                base_y.append(label_position/2)
-                label = str(num_samples_in_insertion)
-                base_label.append(label)
-                base_label_colors.append('purple')
+                move_x.append(previous_location)
+                move_y.append(label_position/2)
+                move_label.append(str(num_samples_in_insertion))
+                move_label_colors.append('purple')
 
             base_x.append(previous_location)
             base_y.append(label_position)
             label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
+
+            move_x.append(previous_location+draw_data["fixed_base_width"]/2)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('black')
+
             for j in range(0, n_samples - num_samples_in_insertion):
                 sample_label_colors.append('red')
             base_index += 1
@@ -347,12 +380,19 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
+    move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
+
+    toggle_moves = Toggle(label="move", button_type="primary", active=False, height=30, width=60)
+    toggle_moves.js_link('active', move_annotation_labels, 'visible')
+
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
+    p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
@@ -385,14 +425,21 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', x_callback)
+    p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    layout_ = p, row(toggle_bases, toggle_samples)
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_move_annotation)
+
+    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
     return layout_
+
 def run(args):
     if args.read_id != "":
         args.plot_limit = 1
