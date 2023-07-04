@@ -92,9 +92,9 @@ def run(args):
             cig_op = a[0]
             cig_count = a[1]
             if cig_op == BAM_CMATCH:
-                # if total_cig_count_seq + cig_count > len_moves:
-                #     cig_count = len_moves - total_cig_count_seq
-                # total_cig_count_seq += cig_count
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 for i in range(0, cig_count):
                     ss_string = ss_string + moves_string[idx] + ","
                     idx = idx + 1
@@ -105,9 +105,9 @@ def run(args):
                 count_bases += cig_count
                 # print(str(cig_count) + " D " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CINS:
-                # if total_cig_count_seq + cig_count > len_moves:
-                #     cig_count = len_moves - total_cig_count_seq
-                # total_cig_count_seq += cig_count
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 signal_skip = 0
                 for i in range(0, cig_count):
                     signal_skip = signal_skip + int(moves_string[idx])
@@ -116,24 +116,18 @@ def run(args):
                 count_bases_seq += cig_count
                 # print(str(signal_skip) + " I BAM_CINS " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CSOFT_CLIP:
-                # if total_cig_count_seq + cig_count > len_moves:
-                #     cig_count = len_moves - total_cig_count_seq
-                # total_cig_count_seq += cig_count
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 signal_skip = 0
                 for i in range(0, cig_count):
                     # print(str(idx) + " " + moves_string[idx])
                     signal_skip = signal_skip + int(moves_string[idx])
                     idx = idx + 1
-                if sam_record.is_reverse:
-                    if op_count == 0:
-                        raw_end -= signal_skip
-                    else:
-                        raw_start += signal_skip
+                if op_count == 0:
+                    raw_start += signal_skip
                 else:
-                    if op_count == 0:
-                        raw_start += signal_skip
-                    else:
-                        raw_end -= signal_skip
+                    raw_end -= signal_skip
                 # ss_string = ss_string + str(signal_skip) + "I"
                 # print(str(signal_skip) + " I BAM_CSOFT_CLIP " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CHARD_CLIP:
