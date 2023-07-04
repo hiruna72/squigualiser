@@ -8,6 +8,10 @@ from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSour
 import re
 import numpy as np
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
+
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
@@ -16,6 +20,7 @@ SIG_SAMPLES_LIMIT = 5000
 MIN_KMER_LENGTH = 5
 MAX_KMER_LENGTH = 9
 BASE_INDEX = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'U': 3}
+BASE_MAP = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
@@ -115,21 +120,13 @@ def scale_signal(y, sig_scale):
     elif not sig_scale == "":
         raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
     return y
-def calculate_offset_values(moves, sequence, raw_signal, kmer_length, sig_move_offset):
-    # print("sig_move_offset: {}".format(sig_move_offset))
-    # print("kmer_length: {}".format(kmer_length))
-    len_seq = len(sequence)
+def calculate_offset_values(model, kmer_length):
     test_array = []
     for offset in range(0, kmer_length):
         freq = [[], [], [], []]
-        start_raw = 0
-        for j in range(0, sig_move_offset):
-            start_raw += int(moves[j])
-        for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
-            end_raw = start_raw + int(moves[i + sig_move_offset])
-            value = raw_signal[start_raw: end_raw]
-            start_raw = end_raw
-            freq[BASE_INDEX[sequence[i + offset]]].append(np.median(value))
+        for kmer, value in model.items():
+            freq[BASE_INDEX[kmer[offset]]].append(value)
+
         test_array.append(freq)
     return test_array
 def clean_signal(y, fasta_seq, moves):
@@ -191,23 +188,77 @@ def calculate_offset_distance(kmer_length, test_array):
         offset_dist.append(total_diff)
 
     return offset_dist
-def calculate_base_shift(y, fasta_seq, moves):
+
+
+def create_kmer_model(moves, sequence, raw_signal, kmer_length, sig_move_offset):
+    KMER_CURRENT_LEVEL_THRESHOLD = 10
+    model = {}
+    start_raw = 0
+    len_seq = len(sequence)
+    for j in range(0, sig_move_offset):
+        start_raw += int(moves[j])
+
+    for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
+        end_raw = start_raw + int(moves[i + sig_move_offset])
+        value = np.median(raw_signal[start_raw: end_raw])
+        start_raw = end_raw
+        key = sequence[i:i+kmer_length]
+        if key not in model:
+            model[key] = value
+        else:
+            # if model[key] - value > KMER_CURRENT_LEVEL_THRESHOLD:
+                # print(key, value, model[key])
+            model[key] = value
+    # print("num kmers present in the signal: {}".format(len(model)))
+    return model
+
+
+def plot_distributions(kmer_length, test_array, num_kmers, pp):
+    start_offset = 0
+    end_offset = kmer_length
+    f, axes = plt.subplots(nrows=end_offset-start_offset, ncols=1, figsize=(12,9))
+    for offset in range(start_offset, end_offset):
+        i = 0
+        for base in test_array[offset]:
+            if kmer_length == 1:
+                # sns.distplot(base, bins=10, label=BASE_MAP[i], hist=False, kde=True, norm_hist=False, kde_kws={'shade': True, 'linewidth': 3}, hist_kws = {'edgecolor': 'black'})
+               sns.kdeplot(base, label=BASE_MAP[i])
+            else:
+                # sns.distplot(base, bins=10, label=BASE_MAP[i], hist=False, kde=True, norm_hist=False, kde_kws={'shade': True, 'linewidth': 3}, hist_kws = {'edgecolor': 'black'}, ax=axes[offset-start_offset])
+                sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset])
+            i += 1
+        if kmer_length == 1:
+            axes.set_title('base offset: {}'.format(offset))
+        else:
+            axes[offset-start_offset].set_title('base offset: {}'.format(offset))
+    plt.legend(prop={'size': 10}, title='Base')
+    plt.suptitle("kmer_length: {} num kmers in the signal: {}/{}".format(kmer_length, num_kmers, 4**kmer_length), size=16)
+    plt.draw()
+    plt.savefig(pp, format='pdf')
+
+def calculate_base_shift(y, fasta_seq, moves, args):
+    # fasta_seq = fasta_seq[6:]
     best_base_shift = 0
     best_kmer_length = 0
     best_max_dist = 0
     sig_move_offset = 0
     y, fasta_seq, moves = clean_signal(y, fasta_seq, moves)
+    pp = PdfPages('base_shift_distributions_{}.pdf'.format(args.tag_name))
     for kmer_length in range(MIN_KMER_LENGTH, MAX_KMER_LENGTH+1):
-        test_array = calculate_offset_values(moves, fasta_seq, y, kmer_length, sig_move_offset)
+        print("kmer_length: {}".format(kmer_length))
+        kmer_model = create_kmer_model(moves, fasta_seq, y, kmer_length, sig_move_offset)
+        test_array = calculate_offset_values(kmer_model, kmer_length)
         offset_dist = calculate_offset_distance(kmer_length, test_array)
+
+        plot_distributions(kmer_length, test_array, len(kmer_model), pp)
 
         start_offset = 0
         end_offset = kmer_length
         max_dist = -1
         max_dist_idx = 0
         for offset in range(start_offset, end_offset):
-            # print(offset)
-            # print(offset_dist[offset])
+            print(offset)
+            print(offset_dist[offset])
             if offset_dist[offset] > max_dist:
                 max_dist_idx = offset
                 max_dist = offset_dist[offset]
@@ -215,6 +266,7 @@ def calculate_base_shift(y, fasta_seq, moves):
             best_max_dist = max_dist
             best_base_shift = -1*max_dist_idx + sig_move_offset
             best_kmer_length = kmer_length
-    # print("best_max_dist: {}".format(best_max_dist))
-    # print("best_kmer_length: {}".format(best_kmer_length))
+    print("best_max_dist: {}".format(best_max_dist))
+    print("best_kmer_length: {}".format(best_kmer_length))
+    pp.close()
     return best_base_shift

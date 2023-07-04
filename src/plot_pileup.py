@@ -519,9 +519,9 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            if args.auto_base_shift and num_plots == 0:
-                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
-                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+            # if args.auto_base_shift and num_plots == 0:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
@@ -598,8 +598,8 @@ def run(args):
         args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
-            if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
-                raise Exception("Error: this paf file is a signal to read mapping.")
+            # if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
+            #     raise Exception("Error: this paf file is a signal to read mapping.")
             if args_ref_name != paf_record[SEQUENCE_ID]:
                 raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + ref_name + "]")
             read_id = paf_record[READ_ID]
@@ -731,9 +731,9 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-            if args.auto_base_shift and num_plots == 0:
-                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
-                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+            # if args.auto_base_shift and num_plots == 0:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
@@ -803,13 +803,13 @@ def run(args):
     if num_plots > 0:
         if sig_algn_dic["data_is_rna"] == 1:
             sig_dir = " ->"
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]}-{sig_algn_dic["ref_end"] - max_base_index + 1}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_end"]:,}-{sig_algn_dic["ref_end"] - max_base_index + 1:,}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
         else:
             if args.plot_reverse:
                 sig_dir = " <-"
             else:
                 sig_dir = " ->"
-            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]}-{sig_algn_dic["ref_start"] + max_base_index - 1}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
+            plot_title = f'{sig_algn_dic["tag_name"]}[{sig_algn_dic["ref_start"]:,}-{sig_algn_dic["ref_start"] + max_base_index - 1:,}]{indt}num reads:{num_plots}{indt}signal dir:{sig_dir}'
         p.title = plot_title
         p.legend.click_policy = "hide"
         # p.legend.location = 'top_left'
@@ -834,6 +834,8 @@ def run(args):
             output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
             print(f'output file: {os.path.abspath(pileup_output_file_name)}')
             save(p)
+    elif num_plots == 0 and args.return_plot:
+        return None, num_plots
 
     s5.close()
 

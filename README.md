@@ -394,7 +394,9 @@ samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
 
 ## Base shift
-User can shift the base sequence to right or left by `n` number of bases by providing the argument `--base_shift n` to the `plot` command. This is helpful to correct the signal level to the base. A positive `n` value will shift the base sequence to the right. A negative `n` value will shift the base sequence to the left.
+User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left. 
+
+Optionally, the user can provide `--auto_base_shift` to programmatically determine the base shift. More information can be found in [base shift calculation](docs/base_shift_calculation.md)
 
 ## Signal scaling
 The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.

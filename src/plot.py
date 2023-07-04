@@ -203,9 +203,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -407,9 +407,9 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.mode = 'mouse'
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
 
     p.title = plot_title
 
@@ -631,9 +631,9 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-                if args.auto_base_shift:
-                    draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
-                    print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+                # if args.auto_base_shift:
+                #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+                #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
                 if draw_data["base_shift"] < 0:
                     abs_base_shift = abs(draw_data["base_shift"])
@@ -827,9 +827,9 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-            if args.auto_base_shift:
-                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
-                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+            # if args.auto_base_shift:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
@@ -1015,9 +1015,9 @@ def run(args):
 
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-            if args.auto_base_shift:
-                draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'])
-                print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+            # if args.auto_base_shift:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
