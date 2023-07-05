@@ -52,6 +52,8 @@ def run(args):
             if not args.rna:
                 print("Info: data is detected as RNA")
                 raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
+        if not data_is_rna and args.rna:
+            raise Exception("Error: data is not not detected as RNA but the user specified as RNA. Please remove the argument --rna and check dataset")
 
         # print(sam_read_id)
         # print("sam_read.pos: " + str(sam_read.pos+1))
@@ -83,7 +85,7 @@ def run(args):
         # print(paf_dic[sam_read_id].target_end)
         # print(paf_dic[sam_read_id].target_start)
         # print(len(sam_record.query_sequence))
-        # if len(sam_record.query_sequence) != len(moves_string) + paf_dic[sam_read_id].target_end - paf_dic[sam_read_id].target_start:
+        # if len(sam_record.query_sequence) != len(moves_string):
         #     raise Exception("Error: the sequence length does not match the number of moves")
         len_moves = len(moves_string)
         op_count = 0
