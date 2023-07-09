@@ -33,7 +33,7 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 
 ![image](figures/base_shift/plot_tracks_base_shift_6.png)
 *Figure 4: base shift -6, -2 [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.6.html)*
-)
+
 
 ## Example 3
 dna_r9.4.1_450bps
