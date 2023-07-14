@@ -33,7 +33,6 @@ def create_kmer_model(moves, sequence, raw_signal, kmer_length, sig_move_offset)
         else:
             model[sequence[i:i+kmer_length]] = np.median(value)
     return model
-
 def calculate_offset_values(model, kmer_length):
     test_array = []
     for offset in range(0, kmer_length):
@@ -43,7 +42,6 @@ def calculate_offset_values(model, kmer_length):
 
         test_array.append(freq)
     return test_array
-
 def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     start_offset = 0
     end_offset = kmer_length
@@ -64,7 +62,6 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     plt.suptitle("{}".format(plt_title), size=16)
     plt.draw()
     plt.savefig(output_pdf, format='pdf')
-
 def calculate_distance(kmer_length, test_array):
     start_offset = 0
     end_offset = kmer_length
@@ -170,7 +167,6 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
                 break
     index = np.argsort(max_offset_arr)[len(max_offset_arr)//2]
     return max_offset_arr[index], max_dist_arr[index]
-
 def run(args):
     if args.kmer_length < 1:
         raise Exception("Error: kmer length must be a positive integer")

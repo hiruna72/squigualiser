@@ -18,8 +18,11 @@ profile_dic = {
 
 def list_profiles():
     # print(profile_dic)
+    print("{}\t{}\t{}".format("name", "kmer_length", "sig_move_offset"))
     for profile in profile_dic:
-        print(profile)
+        print("{}\t{}\t{}".format(profile, profile_dic[profile][0], profile_dic[profile][1]))
+    print("If the profile you wanted is not listed here, please refer calculate_offsets.md on github to learn how to generate these values for your new data.")
+
 def search_for_profile(profile):
     if profile in profile_dic:
         return profile_dic[profile]
@@ -226,7 +229,7 @@ def argparser():
     parser.add_argument('-b', '--bam', required=False, default="", type=str, help="input SAM/BAM file produced by the basecaller")
     parser.add_argument('-o', '--output', required=False, default="", type=str, help="output .tsv/.paf file")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
-    parser.add_argument('--profile', required=False, default="", type=str, help="specify for RNA reads")
+    parser.add_argument('--profile', required=False, default="", type=str, help="determine -k and -m values using preset values")
     parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
     return parser
 

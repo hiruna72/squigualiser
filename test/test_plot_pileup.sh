@@ -147,8 +147,8 @@ testcase_20s() {
   PLOT_LIMIT=10
   REGION="chr1:6,811,011-6,811,198"
   SCALING="znorm"
-  BASE_SHIFT="--auto_base_shift"
-  python src/plot_pileup.py ${BASE_SHIFT} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+  PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
+  python src/plot_pileup.py ${PROFILE} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
 
 }

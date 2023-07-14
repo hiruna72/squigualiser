@@ -27,7 +27,7 @@ Please note that the current values in the `dna_r10.4.1_e8.2_260bps` model above
 sigtk pa -n dna_r10.4.1_e8.2_260bps_reads.blow5 | cut -f3 | sed 's/,/\n/g' | datamash mean 1 sstdev 1
 pA_value = normalized_value * std + mean
 ````
-sigtk can be found [here](https://github.com/hasindu2008/sigtk)`option 1`
+sigtk can be found [here](https://github.com/hasindu2008/sigtk)
 
 ![image](figures/pore_model/r9.4_450bps.nucleotide.5mer.template.model.png)
 
@@ -45,21 +45,23 @@ sigtk can be found [here](https://github.com/hasindu2008/sigtk)`option 1`
 
 *Figure 4: dna_r10.4.1_e8.2_400bps_9_mer*
 
-In DNA models, looking at the current densities for each nucleotide of the most contributing base index we can see that the median current of a nucleotide is in the order A < C < G < T, i.e., the median current value of T and A are the maximum and minimum respectively.
+In DNA models, looking at the current densities for each nucleotide of the most contributing base index, we can see that the median current of a nucleotide is in the order A < C < G < T, i.e., the median current value of T and A are the maximum and minimum respectively.
 
 
 The code to generate above plots is given below,
-If the user want to generate above plots for a new kmer model the following command can be used. More information about this command can be found at [calculate offsets](calculate_offsets.md).
+If the user want to generate such plots for a new kmer model the following command can be used. More information about this command can be found at [calculate offsets](calculate_offsets.md).
 
 ````
-python calculate_offsets --use_model --model ${MODEL_PATH} -o ${OUTPUT_PDF_PATH}
+squigualiser calculate_offsets --use_model --model ${MODEL_PATH} -o ${OUTPUT_PDF_PATH}
 ````
-The following is a pseudo code for plotting density plots
+The following is the pseudo code for plotting density plots
 ````
-for base_index in kmer_length:
-    assume base index is the most significant base
-    bin current values to four bins A,C,G and T
-    draw four density plots each for base
+for base_index_i in kmer_length:
+    assume base_index_i is the most significant base
+    for kmer, current_level in kmer_model:
+        bin current_level to one of the four bins A,C,G and T. 
+        The bin is chosen looking at the base_index_i position of the kmer.
+    draw four density plots one each for base in a subplot
 ````
 
 The differences between maximum and the minimum medians for each base index is calculated.

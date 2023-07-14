@@ -441,6 +441,19 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     return layout_
 
 def run(args):
+    if args.list_profile:
+        plot_utils.list_profiles_base_shift()
+        return
+    else:
+        if args.file == "":
+            raise Exception("Error: the following argument is required: -f/--file")
+        if args.slow5 == "":
+            raise Exception("Error: the following argument is required: -s/--slow5")
+        if args.alignment == "":
+            raise Exception("Error: the following argument is required: -a/--alignment")
+        if args.output_dir == "":
+            raise Exception("Error:the following argument is required: -o/--output_dir")
+
     if args.read_id != "":
         args.plot_limit = 1
 
@@ -505,12 +518,20 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
-    draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
     draw_data["fixed_width"] = args.fixed_width
     draw_data["sig_dir"] = "->"
     if args.plot_reverse:
         draw_data["sig_dir"] = "<-"
+
+    if args.profile == "":
+        draw_data["base_shift"] = args.base_shift
+    else:
+        if args.plot_reverse:
+            draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
+        else:
+            draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
+
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -1068,11 +1089,11 @@ def argparser():
         add_help=False
     )
 
-    parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz sequence file")
+    parser.add_argument('-f', '--file', required=False, help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('-s', '--slow5', required=False, help="slow5 file")
+    parser.add_argument('-a', '--alignment', required=False, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
@@ -1085,12 +1106,13 @@ def argparser():
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
-    parser.add_argument('--auto_base_shift', required=False, action='store_true', help="calculate base_shift automatically and adjust the signal-base alignment")
+    parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
+    parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
-    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+    parser.add_argument('-o', '--output_dir', required=False, help="output dir")
     return parser
 
 if __name__ == "__main__":

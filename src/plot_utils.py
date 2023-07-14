@@ -120,153 +120,25 @@ def scale_signal(y, sig_scale):
     elif not sig_scale == "":
         raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
     return y
-def calculate_offset_values(model, kmer_length):
-    test_array = []
-    for offset in range(0, kmer_length):
-        freq = [[], [], [], []]
-        for kmer, value in model.items():
-            freq[BASE_INDEX[kmer[offset]]].append(value)
-
-        test_array.append(freq)
-    return test_array
-def clean_signal(y, fasta_seq, moves):
-    new_moves = []
-    new_y = []
-    new_fasta_seq = ""
-    signal_index = 0
-    base_index = 0
-    for i in moves:
-        if base_index >= len(fasta_seq):
-            break
-        if signal_index >= SIG_SAMPLES_LIMIT:
-            break
-        if 'D' in i:
-            i = re.sub('D', '', i)
-            count_bases = int(i)
-            base_index += count_bases
-
-        elif 'I' in i:
-            i = re.sub('I', '', i)
-            eat_signal = int(i)
-            signal_index += eat_signal
-        else:
-            eat_signal = int(i)
-            count_bases = 1
-            new_moves.append(i)
-            for j in y[signal_index:signal_index+eat_signal]:
-                new_y.append(j)
-            new_fasta_seq += fasta_seq[base_index]
-            base_index += count_bases
-            signal_index += eat_signal
-    return new_y, new_fasta_seq, new_moves
-def calculate_offset_distance(kmer_length, test_array):
-    start_offset = 0
-    end_offset = kmer_length
-    # offset_dist = []
-    # for offset in range(start_offset, end_offset):
-    #     max_mean = -1
-    #     min_mean = 10000
-    #     for base in test_array[offset]:
-    #         mean = np.median(base)
-    #         if mean < min_mean:
-    #             min_mean = mean
-    #         if mean > max_mean:
-    #             max_mean = mean
-    #     offset_dist.append(max_mean-min_mean)
-
-    offset_dist = []
-    for offset in range(start_offset, end_offset):
-        base_dist = []
-        for base in test_array[offset]:
-            median = np.median(base)
-            base_dist.append(median)
-        base_dist.sort()
-        base_diff = [base_dist[n]-base_dist[n-1] for n in range(1, len(base_dist))]
-        total_diff = 0
-        for diff in base_diff:
-            total_diff += diff
-        offset_dist.append(total_diff)
-
-    return offset_dist
-
-
-def create_kmer_model(moves, sequence, raw_signal, kmer_length, sig_move_offset):
-    KMER_CURRENT_LEVEL_THRESHOLD = 10
-    model = {}
-    start_raw = 0
-    len_seq = len(sequence)
-    for j in range(0, sig_move_offset):
-        start_raw += int(moves[j])
-
-    for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
-        end_raw = start_raw + int(moves[i + sig_move_offset])
-        value = np.median(raw_signal[start_raw: end_raw])
-        start_raw = end_raw
-        key = sequence[i:i+kmer_length]
-        if key not in model:
-            model[key] = value
-        else:
-            # if model[key] - value > KMER_CURRENT_LEVEL_THRESHOLD:
-                # print(key, value, model[key])
-            model[key] = value
-    # print("num kmers present in the signal: {}".format(len(model)))
-    return model
-
-
-def plot_distributions(kmer_length, test_array, num_kmers, pp):
-    start_offset = 0
-    end_offset = kmer_length
-    f, axes = plt.subplots(nrows=end_offset-start_offset, ncols=1, figsize=(12,9))
-    for offset in range(start_offset, end_offset):
-        i = 0
-        for base in test_array[offset]:
-            if kmer_length == 1:
-                # sns.distplot(base, bins=10, label=BASE_MAP[i], hist=False, kde=True, norm_hist=False, kde_kws={'shade': True, 'linewidth': 3}, hist_kws = {'edgecolor': 'black'})
-               sns.kdeplot(base, label=BASE_MAP[i])
-            else:
-                # sns.distplot(base, bins=10, label=BASE_MAP[i], hist=False, kde=True, norm_hist=False, kde_kws={'shade': True, 'linewidth': 3}, hist_kws = {'edgecolor': 'black'}, ax=axes[offset-start_offset])
-                sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset])
-            i += 1
-        if kmer_length == 1:
-            axes.set_title('base offset: {}'.format(offset))
-        else:
-            axes[offset-start_offset].set_title('base offset: {}'.format(offset))
-    plt.legend(prop={'size': 10}, title='Base')
-    plt.suptitle("kmer_length: {} num kmers in the signal: {}/{}".format(kmer_length, num_kmers, 4**kmer_length), size=16)
-    plt.draw()
-    plt.savefig(pp, format='pdf')
-
-def calculate_base_shift(y, fasta_seq, moves, args):
-    # fasta_seq = fasta_seq[6:]
-    best_base_shift = 0
-    best_kmer_length = 0
-    best_max_dist = 0
-    sig_move_offset = 0
-    y, fasta_seq, moves = clean_signal(y, fasta_seq, moves)
-    pp = PdfPages('base_shift_distributions_{}.pdf'.format(args.tag_name))
-    for kmer_length in range(MIN_KMER_LENGTH, MAX_KMER_LENGTH+1):
-        print("kmer_length: {}".format(kmer_length))
-        kmer_model = create_kmer_model(moves, fasta_seq, y, kmer_length, sig_move_offset)
-        test_array = calculate_offset_values(kmer_model, kmer_length)
-        offset_dist = calculate_offset_distance(kmer_length, test_array)
-
-        plot_distributions(kmer_length, test_array, len(kmer_model), pp)
-
-        start_offset = 0
-        end_offset = kmer_length
-        max_dist = -1
-        max_dist_idx = 0
-        for offset in range(start_offset, end_offset):
-            print(offset)
-            print(offset_dist[offset])
-            if offset_dist[offset] > max_dist:
-                max_dist_idx = offset
-                max_dist = offset_dist[offset]
-        if best_max_dist < max_dist:
-            best_max_dist = max_dist
-            best_base_shift = -1*max_dist_idx + sig_move_offset
-            best_kmer_length = kmer_length
-    print("best_max_dist: {}".format(best_max_dist))
-    print("best_kmer_length: {}".format(best_kmer_length))
-    pp.close()
-    return best_base_shift
+profile_dic_base_shift = {
+        "kmer_model_dna_r9.4.1_450bps_5_mer": [-2, -2],
+        "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
+        "kmer_model_rna_r9.4.1_70bps_5_mer": [-1, -3],
+        "kmer_model_dna_r10.4.1_e8.2_400bps_9_mer": [-6, -2],
+        "guppy_dna_r9.4.1_450bps_fast_prom": [0, 0],
+        "guppy_dna_r9.4.1_450bps_hac_prom": [0, 0],
+        "guppy_dna_r9.4.1_450bps_sup_prom": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_fast": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_hac": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_sup": [0, 0]}
+def list_profiles_base_shift():
+    # print(profile_dic)
+    print("{}\t{}\t{}".format("name", "base_shift_forward", "base_shift_reverse"))
+    for profile in profile_dic_base_shift:
+        print("{}\t{}\t{}".format(profile, profile_dic_base_shift[profile][0], profile_dic_base_shift[profile][1]))
+    print("If the profile you wanted is not listed here, please refer calculate_offsets.md on github to learn how to generate base shift values for your new data.")
+def search_for_profile_base_shift(profile):
+    if profile in profile_dic_base_shift:
+        return profile_dic_base_shift[profile]
+    else:
+        raise Exception("Error: specified profile ({}) is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset.".format(profile))
