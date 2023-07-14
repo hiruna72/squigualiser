@@ -5,12 +5,12 @@ A more generalised format is documented [here](https://hasindu2008.github.io/f5c
 Squigualiser uses this format as the input to generate plots.
 Hence, before proceeding to create plots the move table has to be converted to the required format.
 This is done using the tool `reform`.
-The two important parameters `reform` takes are `kmer_length or k` and `sig_move_offset or s`.
+The two important parameters `reform` takes are `kmer_length or k` and `sig_move_offset or m`.
 This determines the base colour adjustment to the signal jumps. More information is discussed in [pore_model document](pore_model.md) and [using base shift](base_shift_and_eventalignment.md).
 
 The user can provide `--profile` argument to deteremine the kmer  length and the signal move offset using preset values.
-Optionally the user can also provide `-k` and `-s` values.
-The argument  `--profile` will override `-k` and/or `-s` values if all are provided.
+Optionally the user can also provide `-k` and `-m` values.
+The argument  `--profile` will override `-k` and/or `-m` values if all are provided.
 
 ```
 ALIGNMENT=reform_output.paf

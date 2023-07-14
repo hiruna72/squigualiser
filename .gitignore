@@ -11,3 +11,4 @@ build
 venv3
 test/data/outplot
 cprofile_run.log
+test/data/raw/pipelines/pipeline_0/r9.4_450bps.nucleotide/RUN01_dna_r9.4.1_450bps_fast_prom.cfg

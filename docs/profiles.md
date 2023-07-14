@@ -18,6 +18,7 @@ These profiles are used in `reform` tool. More information can be found at [refo
 ## Precomputed forward and reverse base shift values
 The following precomputed forward and reverse base shift are available as profiles.
 These profiles are used in `plot` and `plot_pileup` tool. More information can be found at [pore_model](pore_model.md), [calculate_offsets](calculate_offsets.md), [base_shift_of_reverse_mapped_reads](base_shift_of_reverse_mapped_reads.md), and [base_shift_and_eventalignment](base_shift_and_eventalignment.md).
+Note that the default base_shift is 0. Hence, it is not necessary to provide the argument `--profile [name]` where base shift is 0. 
 
 | name                                     | base_shift_forward | base_shift_reverse |
 |------------------------------------------|--------------------|--------------------|

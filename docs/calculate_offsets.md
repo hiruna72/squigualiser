@@ -35,3 +35,25 @@ The following density plots were generated using [Option 2](#option-2) for a spe
 | guppy_dna_r10.4.1_e8.2_400bps_fast | [pdf](density_plots/35142bde-548d-4f55-bf50-21c4cdd254da_dna_r10.4.1_e8.2_400bps_fast.cfg.pdf) |
 | guppy_dna_r10.4.1_e8.2_400bps_hac  |  [pdf](density_plots/35142bde-548d-4f55-bf50-21c4cdd254da_dna_r10.4.1_e8.2_400bps_hac.cfg.pdf) |
 | guppy_dna_r10.4.1_e8.2_400bps_sup  |  [pdf](density_plots/35142bde-548d-4f55-bf50-21c4cdd254da_dna_r10.4.1_e8.2_400bps_sup.cfg.pdf) |
+
+The following image and the pseudo code should help in understanding how appropriate the most significant base index is determined in [Option 3](#option-3)
+````
+for base_index_i in kmer_length:
+    assume base_index_i is the most significant base
+    for kmer, current_level in kmer_model:
+        bin current_level to one of the four bins A,C,G and T. 
+        The bin is chosen looking at the base_index_i position of the kmer.
+    draw four density plots one each for base in a subplot
+````
+The differences between maximum and the minimum medians for each base index is calculated.
+The maximum difference is taken as the maximum distance and the corresponding base index is considered the significant base index. 
+
+The following image and the pseudo code should help in understanding how appropriate kmer_length and sig_move_offset values are determined in [Option 1](#option-1)
+````
+for k in range(5,10):
+    for m in range(0,k):
+        
+````
+
+
+![image](figures/calculate_offsets/calculate_offsets.png)
