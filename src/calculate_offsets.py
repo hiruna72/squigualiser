@@ -165,6 +165,8 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
             num_reads += 1
             if num_reads == args.read_limit:
                 break
+    if num_reads == 0:
+        raise Exception("Error: no reads were processed. Check the dataset and the read_id if provided.")
     index = np.argsort(max_offset_arr)[len(max_offset_arr)//2]
     return max_offset_arr[index], max_dist_arr[index]
 def run(args):

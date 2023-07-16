@@ -3,6 +3,7 @@
 Here we will go through each step from the raw signals file (slow5) to generating plots.
 
 For this we will use `r9.4_450bps.nucleotide` DNA dataset. The dataset is at `test/data/raw/pipelines/pipeline_0/r9.4_450bps.nucleotide`.
+Note that the script must be executed inside the virtual environment where squigualiser is installed.
 
 ## Pipeline variables
 The following variables must be changed before running the bash script.
@@ -50,3 +51,5 @@ Each step listed in the bash script `run.sh` is discussed below.
 | plot_eventalign_forward_reverse | Similar to step `plot_eventalign_forward_reverse` but this time using `realign` data instead of `f5c` eventalignment. Hence, profile name is not required.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 You can use this basic pipeline script as a start and do the necessary changes to support your analysis.
+
+A similar pipeline is available for `dna_r10.4.1_e8.2_400bps` data at `test/data/raw/pipelines/pipeline_0/dna_r10.4.1_e8.2_400bps`.
