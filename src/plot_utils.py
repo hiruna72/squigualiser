@@ -15,13 +15,6 @@ import seaborn as sns
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
-#base_shift related
-SIG_SAMPLES_LIMIT = 5000
-MIN_KMER_LENGTH = 5
-MAX_KMER_LENGTH = 9
-BASE_INDEX = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'U': 3}
-BASE_MAP = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
-
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]

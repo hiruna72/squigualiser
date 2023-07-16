@@ -295,7 +295,7 @@ plot_realign_forward_reverse() {
 # plot_realign_and_sim
 # f5c_eventalign
 # plot_eventalign_and_sim
-plot_eventalign_forward_reverse
+# plot_eventalign_forward_reverse
 # plot_realign_forward_reverse
 
 info "success"

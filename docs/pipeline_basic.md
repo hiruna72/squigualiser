@@ -1,4 +1,4 @@
-# Quick start
+# Pipeline basic
 
 Here we will go through each step from the raw signals file (slow5) to generating plots.
 

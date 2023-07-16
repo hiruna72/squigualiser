@@ -36,6 +36,7 @@ PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 PLOT_BASE_SHIFT = 0
 PLOT_X_PADDING = 100
+PLOT_LIMIT = 1000
 
 DEFAULT_NUM_BED_COLS = 3
 DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
@@ -1108,9 +1109,8 @@ def argparser():
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
     parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
-    parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
+    parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
-    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('-o', '--output_dir', required=False, help="output dir")
     return parser

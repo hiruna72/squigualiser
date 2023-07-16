@@ -48,10 +48,10 @@ PROFILE_TO_DETERMINE_BASE_SHIFT="kmer_model_dna_r9.4.1_450bps_6_mer"
 SIGNAL_FILE="reads.blow5"
 
 READ_ID="8e1a33c4-af69-471c-a115-6428c8bf63df"
-READ_REGION=${READ_ID}:1-1000
+READ_REGION=${READ_ID}:1-500
 REF_REGION="chr16:46,389,459-46,390,388"
 # REF_REGION="chr1:92,781,684-92,782,120"
-SIM_REGION="sim_ref:1-200"
+SIM_REGION="sim_ref:1-500"
 SIG_SCALE="--sig_scale znorm"
 
 # variable the user can change end here
