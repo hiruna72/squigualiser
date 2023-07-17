@@ -18,10 +18,6 @@ R10_MODEL_FAST="dna_r10.4.1_e8.2_400bps_fast.cfg"
 R10_MODEL_HAC="dna_r10.4.1_e8.2_400bps_hac.cfg"
 R10_MODEL_SUP="dna_r10.4.1_e8.2_400bps_sup.cfg"
 
-R9_MODEL_FAST="dna_r9.4.1_450bps_fast_prom.cfg"
-R9_MODEL_HAC="dna_r9.4.1_450bps_hac_prom.cfg"
-R9_MODEL_SUP="dna_r9.4.1_450bps_sup_prom.cfg"
-
 REFORM_TOOL="squigualiser reform"
 REALIGN_TOOL="squigualiser realign"
 PLOT_TRACK_TOOL="squigualiser plot_tracks"

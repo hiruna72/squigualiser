@@ -35,6 +35,8 @@ For more information refer [reform](reform.md).
    (optional) write move table in paf format. [default is tsv]
 *  `--rna`:<br/>
    (optional) Specify if RNA reads are used. By default, only DNA is accepted [default value: false].
+   The tool will not error out if the data is RNA but if the user failed to specify it.
+   It will still generate an incorrect output.
 *  `--profile STR`:<br/>
    (optional) This is used to determine -k and -m values using preset values. The available profiles can be listed using `--list_profile`  
 *  `--list_profile`:<br/>
@@ -244,3 +246,7 @@ A utility program to calculate the most significant base index given a kmer mode
    Output file can be used in `--use_model` mode or when a read id is specified (`--read_id`).
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot
+*  `--rna`:<br/>
+   (optional) Specify if RNA reads are used. By default, only DNA is accepted [default value: false].
+   The tool will not error out if the data is RNA but if the user failed to specify it.
+   It will still generate an incorrect output.

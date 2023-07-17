@@ -373,6 +373,10 @@ def run(args):
         else:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
 
+    kmer_correction = 0
+    if args.profile != "":
+        kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
+
     sig_algn_dic = {}
 
     y_shift = 0
@@ -434,7 +438,7 @@ def run(args):
                         print("Info: data is detected as RNA")
                         raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                     ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
-                    reference_start = int(si_tag[SI_END_KMER])
+                    reference_start = int(si_tag[SI_END_KMER]) + kmer_correction
 
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
@@ -445,8 +449,12 @@ def run(args):
                 base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
             if not args.loose_bound:
-                if args_ref_start < reference_start + 1:
-                    continue
+                if data_is_rna == 1:
+                    if args_ref_start < reference_start + 1 - kmer_correction:
+                        continue
+                else:
+                    if args_ref_start < reference_start + 1:
+                        continue
                 if args_ref_end > sam_record_reference_end:
                     continue
 
@@ -619,7 +627,8 @@ def run(args):
         args_ref_name = args_region.split(":")[0]
         args_ref_start = int(args_region.split(":")[1].split("-")[0])
         args_ref_end = int(args_region.split(":")[1].split("-")[1])
-
+        args_ref_start = None
+        args_ref_end = None
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             # if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
             #     raise Exception("Error: this paf file is a signal to read mapping.")
@@ -644,7 +653,7 @@ def run(args):
                     print("Info: data is detected as RNA")
                     raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
-                reference_start = int(paf_record[END_KMER])
+                reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
@@ -652,8 +661,12 @@ def run(args):
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
             if not args.loose_bound:
-                if args_ref_start < reference_start + 1:
-                    continue
+                if data_is_rna == 1:
+                    if args_ref_start < reference_start + 1 - kmer_correction:
+                        continue
+                else:
+                    if args_ref_start < reference_start + 1:
+                        continue
                 if args_ref_end > paf_record_reference_end:
                     continue
 
@@ -877,11 +890,11 @@ def argparser():
         add_help=False
     )
 
-    parser.add_argument('-f', '--file', required=False, help="fasta/fa/fastq/fq/fq.gz sequence file")
+    parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('-s', '--slow5', required=False, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=False, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
+    parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
@@ -903,7 +916,7 @@ def argparser():
     parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('--cprofile', required=False, action='store_true', help="run cProfile for benchmarking")
     group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument('-o', '--output_dir', help="output dir")
+    group.add_argument('-o', '--output_dir', type=str, default="", help="output dir")
     group.add_argument('--return_plot', action='store_true', help="return plot object without saving to output")
     return parser
 

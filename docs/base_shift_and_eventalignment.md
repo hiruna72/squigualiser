@@ -4,8 +4,6 @@ For the basic idea about the base shift please refer [here](https://github.com/h
 
 Motivated from the idea presented in [pore_model document](pore_model.md) about the most contributing base to the current level, we can programmatically calculate a `base_shift` to nicely align the signal to the base (color).
 
-Provide the argument `--auto_base_shift` to automatically calculate the base shift. 
-
 The calculation is implemented [here](https://github.com/hiruna72/squigualiser/blob/2389379fa8898bf78fd695b3bddac982213ea951/src/plot_utils.py#L194)
 
 ## Example 1
@@ -34,9 +32,12 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 ![image](figures/base_shift/plot_tracks_base_shift_6.png)
 *Figure 4: base shift -6, -2 [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.6.html)*
 
-
 ## Example 3
-dna_r9.4.1_450bps
+
+Fig. 5 shows the forward and reverse mapped pileups generated using f5c eventalign for `dna_r9.4.1_450bps` data. F5c used the 6mer model ([more information](pore_model.md)).
+
+![image](figures/base_shift/dna_r9.4.1_450bps_fast_forward_reverse.png)
+*Figure 5: base shift -2, -3
 
 ## Example 4
 rna_r9.4.1_70bps

@@ -14,6 +14,7 @@ These profiles are used in `reform` tool. More information can be found at [refo
 | guppy_dna_r10.4.1_e8.2_400bps_fast |           1 |               0 |
 | guppy_dna_r10.4.1_e8.2_400bps_hac  |           1 |               0 |
 | guppy_dna_r10.4.1_e8.2_400bps_sup  |           1 |               0 |
+| guppy_rna_r9.4.1_70bps_fast_prom   |           1 |               0 |
 
 ## Precomputed forward and reverse base shift values
 The following precomputed forward and reverse base shift are available as profiles.
@@ -24,7 +25,7 @@ Note that the default base_shift is 0. Hence, it is not necessary to provide the
 |------------------------------------------|--------------------|--------------------|
 | kmer_model_dna_r9.4.1_450bps_5_mer       |         -2         |         -2         |
 | kmer_model_dna_r9.4.1_450bps_6_mer       |         -2         |         -3         |
-| kmer_model_rna_r9.4.1_70bps_5_mer        |         -1         |         -3         |
+| kmer_model_rna_r9.4.1_70bps_5_mer        |         -3         |         -1         |
 | kmer_model_dna_r10.4.1_e8.2_400bps_9_mer |         -6         |         -2         |
 | guppy_dna_r9.4.1_450bps_fast_prom        |          0         |          0         |
 | guppy_dna_r9.4.1_450bps_hac_prom         |          0         |          0         |

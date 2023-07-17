@@ -149,6 +149,14 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
                 y = read['signal'][start_index:end_index]
             moves_string = paf_record.tags['ss'][2]
             moves = re.split(r',+', moves_string)
+            if not 'T' in fasta_seq and 'A' in fasta_seq and 'C' in fasta_seq and 'G' in fasta_seq:
+                if 'N' in fasta_seq:
+                    fasta_seq = fasta_seq.replace('N', 'T')
+                elif 'U' in fasta_seq:
+                    fasta_seq = fasta_seq.replace('U', 'T')
+            if args.rna:
+                fasta_seq = fasta_seq[::-1]
+
             kmer_model = create_kmer_model(moves, fasta_seq, y, kmer_length, sig_move_offset)
             test_array = calculate_offset_values(kmer_model, kmer_length)
 
@@ -275,6 +283,7 @@ def argparser():
     parser.add_argument('-p', '--paf', required=False, type=str, default="", help="input read-signal alignment .paf file")
     parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
+    parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--model', required=False, type=str, default="",help="model file")
     parser.add_argument('--read_limit', required=False, type=int, default=100, help="limit the number of reads considered")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
