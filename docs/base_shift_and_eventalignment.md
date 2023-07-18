@@ -15,9 +15,11 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 * F5c uses the `dna_r10.4.1_e8.2_400bps` pore model to align the signals. As discussed in [pore_model document](pore_model.md) the most contributing base index is `-6`.
 
 ![image](figures/base_shift/testcase_20.8_base_shift_0.png)
+
 *Figure 1: base shift 0 [link](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.8.html)*
 
 ![image](figures/base_shift/testcase_20.1_base_shift_6.png)
+
 *Figure 2: base shift -6 [link](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html)*
 
 ## Example 2
@@ -27,9 +29,11 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 * In Fig. 4, both pileups have the signals going from low to high when a base `T` is met. 
 
 ![image](figures/base_shift/plot_tracks_base_shift_0.png)
+
 *Figure 3: base shift 0, 0 [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html)*
 
 ![image](figures/base_shift/plot_tracks_base_shift_6.png)
+
 *Figure 4: base shift -6, -2 [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.6.html)*
 
 ## Example 3
@@ -37,7 +41,12 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 Fig. 5 shows the forward and reverse mapped pileups generated using f5c eventalign for `dna_r9.4.1_450bps` data. F5c used the 6mer model ([more information](pore_model.md)).
 
 ![image](figures/base_shift/dna_r9.4.1_450bps_fast_forward_reverse.png)
-*Figure 5: base shift -2, -3
+*Figure 5: base shift -2, -3*
 
 ## Example 4
-rna_r9.4.1_70bps
+
+Fig. 6 shows the forward mapped pileups generated using f5c eventalign for `rna_r9.4.1_70bps` data. F5c used the rna 5mer model ([more information](pore_model.md)).
+Note that `squigualiser` always plot the RNA reads in its correct sequencing direction (reverse mapped RNA reads are skipped; reverse mapped RNA reads exist if a genome was used as the reference instead of a transcriptome).
+
+![image](figures/base_shift/rna_r9.4.1_70bps_forward_eventalign.png)
+*Figure 6: base shift -3*
