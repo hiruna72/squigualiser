@@ -53,3 +53,4 @@ Each step listed in the bash script `run.sh` is discussed below.
 You can use this basic pipeline script as a start and do the necessary changes to support your analysis.
 
 A similar pipeline is available for `dna_r10.4.1_e8.2_400bps` data at `test/data/raw/pipelines/pipeline_0/dna_r10.4.1_e8.2_400bps`.
+A similar pipeline is available for `rna_r9.4.1_70bps` data at `test/data/raw/pipelines/pipeline_0/rna_r9.4.1_70bps`.

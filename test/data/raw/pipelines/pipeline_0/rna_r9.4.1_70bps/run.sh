@@ -20,6 +20,7 @@ R9_RNA_MODEL_HAC="rna_r9.4.1_70bps_hac_prom.cfg"
 REFORM_TOOL="squigualiser reform"
 REALIGN_TOOL="squigualiser realign"
 PLOT_TRACK_TOOL="squigualiser plot_tracks"
+PLOT_TOOL="squigualiser plot"
 CALCULATE_OFFSETS_TOOL="squigualiser calculate_offsets"
 
 ## variable the user can change start here
@@ -137,6 +138,17 @@ re_reform() {
 	tabix -0 -b 9 -e 8 -s 6 ${RE_REFORMAT_PAF_GZ}
 }
 
+plot_real_signal() {
+	info "plotting real signal"
+	
+	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
+	
+	TESTCASE="${MODEL_TO_USE}_real_plot"
+	OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+	${PLOT_TOOL} --rna -f ${SEQUENCE_FILE} -s ${SIGNAL_FILE} -a ${RE_REFORMAT_PAF} --tag_name ${TESTCASE} --plot_limit 1 --read_id ${READ_ID} -o ${OUTPUT} || die "real signal plot failed"
+
+}
+
 simulate_read_signal() {
 	info "simulating using ${SIMULATING_PROFILE}"
 
@@ -147,6 +159,18 @@ simulate_read_signal() {
 	${SQUIGULATOR} --seed 1 --full-contigs --ideal-time --amp-noise 0 -x ${SIMULATING_PROFILE} ${SIMULATE_READ_DIR}/ref.fasta -o ${SIMULATE_READ_DIR}/sim.slow5 -c ${SIMULATE_READ_DIR}/sim.paf -a ${SIMULATE_READ_DIR}/sim.sam -q ${SIMULATE_READ_DIR}/sim.fasta || die "squigulator failed"
 	${SAMTOOLS} sort ${SIMULATE_READ_DIR}/sim.sam -o ${SIMULATE_READ_DIR}/sim.bam || die "samtools sort failed"
 	${SAMTOOLS} index ${SIMULATE_READ_DIR}/sim.bam || die "samtools index failed"
+
+}
+
+plot_sim_signal() {
+	set -x
+	info "plotting sim signal"
+	
+	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
+	
+	TESTCASE="${MODEL_TO_USE}_sim_plot"
+	OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+	${PLOT_TOOL} --rna -f ${SIMULATE_READ_DIR}/ref.fasta -s ${SIMULATE_READ_DIR}/sim.slow5 -a ${SIMULATE_READ_DIR}/sim.bam --tag_name ${TESTCASE} --plot_limit 1 -o ${OUTPUT} --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} || die "sim signal plot failed"
 
 }
 
@@ -180,6 +204,8 @@ realign() {
 	${REALIGN_TOOL} --rna --bam ${MAPPED_BAM} --paf ${RE_REFORMAT_PAF} -o ${REALIGN_BAM} || die "realign failed"
 	${SAMTOOLS} index ${REALIGN_BAM} || die "samtools index failed"
 }
+
+
 
 simulate_ref_signal() {
 	info "simulating using ${SIMULATING_PROFILE}"
@@ -272,16 +298,21 @@ plot_realign_and_eventalign() {
 # basecall
 # reform_move_table
 
-## stage 2 (optional)
+## stage 2
 
 # calculate_offsets
 # calculate_offsets_read_id
 # re_reform
 
-## stage 3 (optional)
+## stage 3
 
+# plot_real_signal
 # simulate_read_signal
-plot_sim_and_real_signal
+# plot_sim_signal
+# plot_sim_and_real_signal
+
+## stage 4
+
 # minimap2_align
 # realign
 # simulate_ref_signal

@@ -532,6 +532,9 @@ def run(args):
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
         else:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
+    kmer_correction = 0
+    if args.profile != "":
+        kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
 
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
@@ -747,7 +750,7 @@ def run(args):
                         print("Info: data is detected as RNA")
                         raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                     ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
-                    reference_start = int(si_tag[SI_END_KMER])
+                    reference_start = int(si_tag[SI_END_KMER]) + kmer_correction
 
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
@@ -934,7 +937,7 @@ def run(args):
                     print("Info: data is detected as RNA")
                     raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
-                reference_start = int(paf_record[END_KMER])
+                reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len

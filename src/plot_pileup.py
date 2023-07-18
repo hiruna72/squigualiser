@@ -627,8 +627,6 @@ def run(args):
         args_ref_name = args_region.split(":")[0]
         args_ref_start = int(args_region.split(":")[1].split("-")[0])
         args_ref_end = int(args_region.split(":")[1].split("-")[1])
-        args_ref_start = None
-        args_ref_end = None
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             # if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
             #     raise Exception("Error: this paf file is a signal to read mapping.")
