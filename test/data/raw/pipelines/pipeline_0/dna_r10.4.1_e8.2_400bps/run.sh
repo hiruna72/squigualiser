@@ -26,13 +26,15 @@ CALCULATE_OFFSETS_TOOL="squigualiser calculate_offsets"
 ## variable the user can change start here
 SQUIGULATOR=squigulator
 SAMTOOLS=samtools
+SLOW5TOOLS=slow5tools
+SAMTOOLS=samtools
 MINIMAP2=minimap2
 GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
 BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
 REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
 
-MODEL_TO_USE=${R10_MODEL_FAST}
+MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
 
 SIMULATING_PROFILE="dna-r10-prom"
@@ -71,6 +73,7 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 
 [ "${SQUIGULATOR}" ] || die "edit the executable path of squigulator (variable SQUIGULATOR) in the script"
 [ "${SAMTOOLS}" ] || die "edit the executable path of samtools (variable SAMTOOLS) in the script"
+[ "${SLOW5TOOLS}" ] || die "edit the executable path of slow5tools (variable SLOW5TOOLS) in the script"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
 [ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
@@ -95,17 +98,29 @@ create_output_dir() {
 	mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 }
 
-basecall() {
+basecall_eel() {
 	info "basecalling using ${MODEL_TO_USE}"
 	test -d "${BASECALL_DIR}" && rm -r "${BASECALL_DIR}"
 	mkdir "${BASECALL_DIR}" || die "Failed creating ${BASECALL_DIR}"
 	export CUDA_VISIBLE_DEVICES=0
 	source ${BUTTERY_EEL_ENV_PATH}/bin/activate || die "could not activate buttery-eel venv"
-	buttery-eel -g ${GUPPY} --config ${MODEL_TO_USE} -i ${SIGNAL_FILE} -o ${BASECALL_DIR}/moves.sam --log ${OUTPUT_DIR} --moves_out --port 5558 --use_tcp || die "buttery-eel failed"
+	CUDA_LAUNCH_BLOCKING=1 buttery-eel ${CHUNK_SIZE} -x cuda:0 -g ${GUPPY} --config ${MODEL_TO_USE} -i ${SIGNAL_FILE} -o ${BASECALL_DIR}/moves.sam --log ${OUTPUT_DIR} --moves_out --port 5558 --use_tcp || die "buttery-eel failed"
 	${SAMTOOLS} view ${BASECALL_DIR}/moves.sam -o ${MOVES_BAM}  || die "samtools view failed"
 	${SAMTOOLS} fastq ${MOVES_BAM} > ${SEQUENCE_FILE}  || die "samtools fastq failed"
 	${SAMTOOLS} index ${MOVES_BAM}  || die "samtools index failed"
 	deactivate
+}
+
+basecall_fast5() {
+	set -x
+	info "basecalling using ${MODEL_TO_USE}"
+	test -d "${BASECALL_DIR}" && rm -r "${BASECALL_DIR}"
+	mkdir "${BASECALL_DIR}" || die "Failed creating ${BASECALL_DIR}"
+	${SLOW5TOOLS} s2f ${SIGNAL_FILE} -o ${OUTPUT_DIR}/reads.fast5
+	export CUDA_VISIBLE_DEVICES=0
+	${GUPPY}/guppy_basecaller ${CHUNK_SIZE} -x cuda:0 --config ${MODEL_TO_USE} -i ${OUTPUT_DIR} -s ${BASECALL_DIR} --moves_out --bam_out || die "guppy_basecaller failed"
+	cat ${BASECALL_DIR}/pass/*.fastq > ${SEQUENCE_FILE} || die "cat fastq together failed"
+	${SAMTOOLS} merge -f ${BASECALL_DIR}/pass/*.bam -o ${MOVES_BAM}  || die "samtools merge failed"
 }
 
 reform_move_table() {
@@ -281,26 +296,27 @@ plot_realign_forward_reverse() {
 ## stage 1
 
 # create_output_dir
-# basecall
+# basecall_eel
+# basecall_fast5
 # reform_move_table
 
-## stage 2 (optional)
+# stage 2 (optional)
 
 # calculate_offsets
 # calculate_offsets_read_id
-re_reform
+# re_reform
 
-## stage 3 (optional)
+# stage 3 (optional)
 
-simulate_read_signal
-plot_sim_and_real_signal
+# simulate_read_signal
+# plot_sim_and_real_signal
 # minimap2_align
 # realign
-simulate_ref_signal
-plot_realign_and_sim
-f5c_eventalign
-plot_eventalign_and_sim
-plot_eventalign_forward_reverse
-plot_realign_forward_reverse
+# simulate_ref_signal
+# plot_realign_and_sim
+# f5c_eventalign
+# plot_eventalign_and_sim
+# plot_eventalign_forward_reverse
+# plot_realign_forward_reverse
 
 info "success"
