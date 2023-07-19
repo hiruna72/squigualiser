@@ -50,16 +50,16 @@ The reads that jump up correspond with the SNV and this can be confirmed with th
 *Figure 3*
 
 Apart from the signal variations observed at the two SNVs, there are couple more variations.
-One is at 37th base `C`. This might be a methylation. 
-The other is at 44th base `T`. This could be a different type of methylation or an error in the `eventalign` tool.
+One is at base `C37`. This might be a methylation. 
+The other is at base `T44`. This could be a different type of methylation or an error in the `eventalign` tool.
 `Squigualiser` makes it possible to closely study these regions of interest that could uncover new information.
 
 Fig. 4 & 5 illustrate reverse mapped reads aligned using `eventalign` and `realign` respectively.
 Looking at the simulated signals, it is evident that SNV 2 does not affect the signal shape.
 Hence, the signal shapes at SNV 2 on the reverse strand are almost similar making it difficult to visualise SNV 2 on reverse strand.
-In contrast, SNV 1 has caused the signal shape to be very different between the two simulated signals.\
-Hence, this should be obvious in the real signals as well. However, it is not on `eventalign` alignment in Fig. 4.
-The reason is that `eventalign` has pulled forward (sequencing direction is from right to left) the true signal jump that happens at `T12` to `T141`.
+In contrast, SNV 1 has caused the signal shape to be very different between the two simulated signals.
+Hence, this should be obvious in the real signals as well. However, it is not visible on `eventalign` alignment in Fig. 4.
+The reason is that `eventalign` has pulled forward (sequencing direction is from right to left) the true signal jump that happens at `T12` to `T14`.
 However, `realign` does not refine move boundaries. Hence, SNV 1 is visible on `realign` alignment in Fig. 5.
 Given that `f5c eventalign` tries its best to align the signal to the reference the above observation is sensible.
 However, to limit such false event annotations at true variants it is good practice to apply the variants to the reference before running `f5c eventalign`. 
@@ -69,7 +69,7 @@ However, to limit such false event annotations at true variants it is good pract
 
 *Figure 4*
 
-![image](figures/variants/real_variant_event_reverse.png)
+![image](figures/variants/real_variant_realign_reverse.png)
 
 *Figure 5*
 
