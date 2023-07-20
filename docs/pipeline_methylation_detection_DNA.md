@@ -14,7 +14,7 @@ Methylated cites are present at `chr1:92,779,423`, `chr1:92,779,428`, and `chr1:
 
 *Figure 1*
 
-The pipeline data is at `test/data/raw/pipelines/pipeline_2/real_variant/dna_r10.4.1_e8.2_400bps`.
+The pipeline data is at `test/data/raw/pipelines/pipeline_2/dna_r10.4.1_e8.2_400bps`.
 
 Note that the pipeline must be executed inside the virtual environment where squigualiser is installed.
 The bash script `run.sh` is very similar to the pipeline explained [here](pipeline_basic.md).
