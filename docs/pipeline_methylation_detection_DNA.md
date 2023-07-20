@@ -1,7 +1,5 @@
 # Pipeline methylation detection DNA
 
-## A real variant
-
 In this example three cpg methylations are found in humangenome hg38.fa in the region `chr1:92,779,392-92,779,445`.
 This is the same region that we used in the [variant calling pipeline](pipeline_variant_detection_real.md)
 
@@ -10,7 +8,7 @@ The first track is the bam file containing alignment track.
 The second track is the high confidence variants vcf file (`subset.vcf.gz`).
 The third track is the methylated cpg sites based on `f5c methylation-call` tool (`meth_freq.bigwig`).
 The last track shows the aligned reads.
-Methylated cites are present at chr1:92,779,423, chr1:92,779,428, and chr1:92,779,436.
+Methylated cites are present at `chr1:92,779,423`, `chr1:92,779,428`, and `chr1:92,779,436`.
 
 ![image](figures/methylation/dna_methylation_cpg_igv.png)
 

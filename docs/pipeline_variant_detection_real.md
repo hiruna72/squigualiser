@@ -1,7 +1,5 @@
 # Pipeline variant detection
 
-## A real variant
-
 In this example let's look at two variants found in humangenome hg38.fa in the region `chr1:92,779,392-92,779,440`.
 
 Fig. 1 shows a screenshot of IGV.
