@@ -29,6 +29,7 @@ SAMTOOLS=samtools
 SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
+F5C=f5c
 GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
 BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
@@ -75,6 +76,7 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 [ "${SAMTOOLS}" ] || die "edit the executable path of samtools (variable SAMTOOLS) in the script"
 [ "${SLOW5TOOLS}" ] || die "edit the executable path of slow5tools (variable SLOW5TOOLS) in the script"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
+[ "${F5C}" ] || die "edit the executable path of f5c (variable F5C) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
 [ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
 
@@ -243,8 +245,8 @@ plot_realign_and_sim() {
 f5c_eventalign() {
 	info "f5c eventalign..."
 	
-	f5c index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
-	f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	${F5C} index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
+	${F5C} eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
 	${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
 
 }

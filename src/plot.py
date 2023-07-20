@@ -522,6 +522,7 @@ def run(args):
     draw_data["plot_dims"] = {}
     draw_data["fixed_width"] = args.fixed_width
     draw_data["sig_dir"] = "->"
+    draw_data["bed_labels"] = args.print_bed_labels
     if args.plot_reverse:
         draw_data["sig_dir"] = "<-"
 
@@ -1115,6 +1116,7 @@ def argparser():
     parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
+    parser.add_argument('--print_bed_labels',  required=False, action='store_true', help="draw bed annotations with labels")
     parser.add_argument('-o', '--output_dir', required=False, help="output dir")
     return parser
 

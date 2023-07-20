@@ -364,6 +364,7 @@ def run(args):
     draw_data["no_overlap"] = args.no_overlap
     draw_data["overlap_only"] = args.overlap_only
     draw_data["plot_num_samples"] = args.plot_num_samples
+    draw_data["bed_labels"] = args.print_bed_labels
 
     if args.profile == "":
         draw_data["base_shift"] = args.base_shift
@@ -912,6 +913,7 @@ def argparser():
     parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
+    parser.add_argument('--print_bed_labels',  required=False, action='store_true', help="draw bed annotations with labels")
     parser.add_argument('--cprofile', required=False, action='store_true', help="run cProfile for benchmarking")
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-o', '--output_dir', type=str, default="", help="output dir")

@@ -185,15 +185,16 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
     p.quad(top=draw_data['y_max']+track_shift+track_height, bottom=draw_data['y_max']+track_shift, left=annotation_box_details['left'], right=annotation_box_details['right'], color=annotation_box_details['fill_color'], alpha=0.75)
 
     # print(annotation_label)
-    bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
-    bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="7pt")
-    p.add_layout(bed_annotation_labels)
+    if draw_data["bed_labels"]:
+        bed_annotation = ColumnDataSource(data=dict(base_x=annotation_label_x, base_label=annotation_label))
+        bed_annotation_labels = LabelSet(x='base_x', y=draw_data['y_max']+track_shift, text='base_label', source=bed_annotation, text_font_size="7pt")
+        p.add_layout(bed_annotation_labels)
 
-    x_callback = CustomJS(args=dict(bed_annotation_labels=bed_annotation_labels, init_font_size=bed_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
-    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
-    bed_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
-    """)
-    p.x_range.js_on_change('start', x_callback)
+        x_callback = CustomJS(args=dict(bed_annotation_labels=bed_annotation_labels, init_font_size=bed_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+        let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+        bed_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+        """)
+        p.x_range.js_on_change('start', x_callback)
 
     return p
 def plot_bed_annotation(p, ref_id, bed_dic, sig_algn_data, draw_data, base_limit):

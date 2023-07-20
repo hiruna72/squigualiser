@@ -51,8 +51,9 @@ The reads that jump up correspond with the SNV and this can be confirmed with th
 
 Apart from the signal variations observed at the two SNVs, there are couple more variations.
 One is at base `C37`. This might be a methylation. 
-The other is at base `T44`. This could be a different type of methylation or an error in the `eventalign` tool.
+The other is at base `C45`. This could also be a methylation or an error in the `eventalign` tool.
 `Squigualiser` makes it possible to closely study these regions of interest that could uncover new information.
+Actually, after executing the [methylation detection pipeline](pipeline_methylation_detection_DNA.md) we found that these are methylated cites (including the `C` at SNV 2).
 
 Fig. 4 & 5 illustrate reverse mapped reads aligned using `eventalign` and `realign` respectively.
 Looking at the simulated signals, it is evident that SNV 2 does not affect the signal shape.
@@ -65,6 +66,7 @@ Given that `f5c eventalign` tries its best to align the signal to the reference 
 However, to limit such false event annotations at true variants it is good practice to apply the variants to the reference before running `f5c eventalign`. 
 Fig. 6 shows how the events are properly aligned at SNV1. In this case a reference with SNV 1 and SNV 2 applied was used for `f5c eventalign`.
 Since SNV 2 only appeared in some reads (Fig. 1) the events at SNV 2 is not as good as Fig. 4.
+Also note that reference cite `C` at SNV2 is methylated ([methylation detection pipeline](pipeline_methylation_detection_DNA.md)).
 
 ![image](figures/variants/real_variant_event_reverse.png)
 
