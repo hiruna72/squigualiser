@@ -63,7 +63,8 @@ The reason is that `eventalign` has pulled forward (sequencing direction is from
 However, `realign` does not refine move boundaries. Hence, SNV 1 is visible on `realign` alignment in Fig. 5.
 Given that `f5c eventalign` tries its best to align the signal to the reference the above observation is sensible.
 However, to limit such false event annotations at true variants it is good practice to apply the variants to the reference before running `f5c eventalign`. 
-
+Fig. 6 shows how the events are properly aligned at SNV1. In this case a reference with SNV 1 and SNV 2 applied was used for `f5c eventalign`.
+Since SNV 2 only appeared in some reads (Fig. 1) the events at SNV 2 is not as good as Fig. 4.
 
 ![image](figures/variants/real_variant_event_reverse.png)
 
@@ -72,6 +73,10 @@ However, to limit such false event annotations at true variants it is good pract
 ![image](figures/variants/real_variant_realign_reverse.png)
 
 *Figure 5*
+
+![image](figures/variants/real_variant_event_reverse_SNV_added.png)
+
+*Figure 6*
 
 
 

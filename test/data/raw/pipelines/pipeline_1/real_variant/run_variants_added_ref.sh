@@ -12,7 +12,7 @@ info "$(date)"
 
 # set -x
 
-RUN_NO="RUN01"
+RUN_NO="RUN02"
 
 R10_MODEL_FAST="dna_r10.4.1_e8.2_400bps_fast.cfg"
 R10_MODEL_HAC="dna_r10.4.1_e8.2_400bps_hac.cfg"
@@ -28,11 +28,12 @@ SQUIGULATOR=squigulator
 SAMTOOLS=samtools
 SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
+BCFTOOLS=bcftools
 MINIMAP2=minimap2
 GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
 BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
-REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+ORIGINAL_REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -58,6 +59,7 @@ BASECALL_DIR="${OUTPUT_DIR}/basecall_${MODEL_TO_USE}"
 SIMULATE_READ_DIR="${OUTPUT_DIR}/simulate_read"
 SIMULATE_REF_DIR="${OUTPUT_DIR}/simulate_ref"
 SQUIG_PLOT_DIR="${OUTPUT_DIR}/squig_plot_reads"
+REFERENCE=${OUTPUT_DIR}/ref.fa
 
 REFORMAT_PAF="${OUTPUT_DIR}/reform.paf"
 RE_REFORMAT_PAF="${OUTPUT_DIR}/re_reform.paf"
@@ -74,6 +76,7 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 [ "${SQUIGULATOR}" ] || die "edit the executable path of squigulator (variable SQUIGULATOR) in the script"
 [ "${SAMTOOLS}" ] || die "edit the executable path of samtools (variable SAMTOOLS) in the script"
 [ "${SLOW5TOOLS}" ] || die "edit the executable path of slow5tools (variable SLOW5TOOLS) in the script"
+[ "${BCFTOOLS}" ] || die "edit the executable path of bcftools (variable BCFTOOLS) in the script"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
 [ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
@@ -308,6 +311,14 @@ plot_realign_reverse() {
 
 }
 
+apply_variant_to_ref() {
+	${BCFTOOLS} consensus -f ${ORIGINAL_REFERENCE} subset.vcf.gz -o ${REFERENCE} || die "applying variatnt to genome failed"
+}
+
+delete_ref_with_variants() {
+	rm ${REFERENCE} || die "Could not delete the reference created by bcftools"
+}
+
 ## stage 1
 
 # create_output_dir
@@ -325,6 +336,7 @@ plot_realign_reverse() {
 
 # simulate_read_signal
 # plot_sim_and_real_signal
+# apply_variant_to_ref
 # minimap2_align
 # realign
 # simulate_ref_signal
@@ -333,5 +345,6 @@ plot_realign_reverse() {
 # plot_eventalign_and_sim
 plot_eventalign_reverse
 plot_realign_reverse
+delete_ref_with_variants
 
 info "success"
