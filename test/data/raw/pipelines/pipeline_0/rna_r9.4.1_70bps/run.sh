@@ -195,7 +195,7 @@ plot_sim_and_real_signal() {
 
 minimap2_align() {
 	info "aligning reads using minimap2..."
-	${MINIMAP2} -ax map-ont ${REFERENCE} -t32 --secondary=no ${SEQUENCE_FILE} | ${SAMTOOLS} sort -o ${MAPPED_BAM} || die "minimap2_align failed"
+	${MINIMAP2} -ax splice -uf -k14 ${REFERENCE} -t32 --secondary=no ${SEQUENCE_FILE} | ${SAMTOOLS} sort -o ${MAPPED_BAM} || die "minimap2_align failed"
 	${SAMTOOLS} index ${MAPPED_BAM} || die "samtools index failed"
 }
 
