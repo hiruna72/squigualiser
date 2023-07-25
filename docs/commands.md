@@ -139,9 +139,7 @@ squigualiser plot_pileup [OPTIONS] -f genome.fasta -s reads.slow5 -a realign.paf
 Plot reference - signal alignment pileups.
 
 * `-f, --file FILE`:<br/>
-   The sequence file in `fasta/fa/fastq/fq/fq.gz` format.
-* `-r, --read_id STR`
-   (optional) Plot only the read with the read id specified.
+	The sequence file in `fasta/fa/fastq/fq/fq.gz` format.
 * `-s, --slow5 FILE`
 	Path to slow5 file containing raw signals.
 * `-a, --alignment FILE`
@@ -151,7 +149,11 @@ Plot reference - signal alignment pileups.
 	For read-signal alignment eg:`100-200`.
 	For reference-signal alignment eg: `chr1:6811428-6811467` or `chr1:6,811,428-6,811,467`.
 *  `-o, --output_dir DIR `:<br/>
-   Specifies name/location of the output directory. A valid relative or absolute path can be provided. Data will be overwritten but the directory will not be recreated.
+	Specifies name/location of the output directory. A valid relative or absolute path can be provided. Data will be overwritten but the directory will not be recreated.
+* `-r, --read_id STR`
+	(optional) Plot only the read with the read id specified.
+* `-l, --read_list STR`
+	(optional) Path to a file containing a list of read_ids to plot only the reads listed.
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot
 * `--plot_reverse`
