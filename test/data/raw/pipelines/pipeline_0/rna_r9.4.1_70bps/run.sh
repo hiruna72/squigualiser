@@ -27,10 +27,10 @@ CALCULATE_OFFSETS_TOOL="squigualiser calculate_offsets"
 SQUIGULATOR=squigulator
 SAMTOOLS=samtools
 MINIMAP2=minimap2
-GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
-BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
-REFERENCE="/media/hiruna/data/basecalling_work/pore_model_results/RNA/R01/rnasequin_sequences_2.4.fa"
+GUPPY=
+BUTTERY_EEL_ENV_PATH=
+REFERENCE=
 
 MODEL_TO_USE=${R9_RNA_MODEL_FAST}
 CHUNK_SIZE="--chunk_size 500"

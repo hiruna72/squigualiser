@@ -29,13 +29,12 @@ SAMTOOLS=samtools
 SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
-BEDGRAPHTOBIGWIG="/media/hiruna/data/basecalling_work/pore_model_results/squigle_plots/methylation/bedGraphToBigWig"
 F5C=f5c
-GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
-BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
-REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
-CHR_SIZES="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38.chrom.sizes"
+GUPPY=
+BUTTERY_EEL_ENV_PATH=
+REFERENCE=
+
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
 
@@ -252,7 +251,6 @@ f5c_methylation() {
 	${F5C} meth-freq -i ${METH_TSV} -s > ${METH_FREQ_TSV} || die "f5c meth-freq failed"
 
 	tail -n +2 ${METH_FREQ_TSV} | awk '{print $1"\t"$2"\t"$3+1"\t"$7}' | sort -k1,1 -k2,2n > ${METH_FREQ_BEDGRAPH} || die "meth-freq to bedgraph conversion failed"
-	# ${BEDGRAPHTOBIGWIG} ${METH_FREQ_BEDGRAPH} ${CHR_SIZES} ${METH_FREQ_BIGWIG}
 	awk -v TH="${METH_THRESHOLD}" '{if($4 > TH) print}' ${METH_FREQ_BEDGRAPH} > ${METH_BED}
 
 }

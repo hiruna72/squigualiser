@@ -27,9 +27,10 @@ SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
 F5C=f5c
-GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
-BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
-XPORE_ENV_PATH="/media/hiruna/data/basecalling_work/pore_model_results/squigle_plots/methylation/xpore_work/venv3"
+
+GUPPY=
+BUTTERY_EEL_ENV_PATH=
+XPORE_ENV_PATH=
 
 REFERENCE="ref.fa"
 MODEL_TO_USE=${R9_RNA_MODEL_HAC}

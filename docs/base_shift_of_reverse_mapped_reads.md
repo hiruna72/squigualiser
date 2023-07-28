@@ -13,6 +13,7 @@ The following figure illustrates the phenomenon when a read is aligned to the re
 ![image](figures/base_shift/reverse_mapped_base_shift.png)
 
 The following table lists the proper base shift for reverse mapped reads.
+The user can simply provide the correct profile using `--profile` argument ([explained here](profiles.md)) and the base shift will be automatically handled. 
 
 | Chemistry               | kmer size | base shift forward mapping | base shift reverse mapping | Link to the model                                                                                                                                    |
 |-------------------------|-----------|----------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|

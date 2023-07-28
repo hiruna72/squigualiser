@@ -27,10 +27,10 @@ CALCULATE_OFFSETS_TOOL="squigualiser calculate_offsets"
 SQUIGULATOR=squigulator
 SAMTOOLS=samtools
 MINIMAP2=minimap2
-GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
-BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
-REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+GUPPY=
+BUTTERY_EEL_ENV_PATH=
+REFERENCE=
 
 MODEL_TO_USE=${R9_MODEL_FAST}
 CHUNK_SIZE="--chunk_size 500"

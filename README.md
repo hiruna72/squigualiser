@@ -90,7 +90,7 @@ guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OU
 samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-2. Reformat move table 
+2. Reformat move table ([more info](docs/reform.md)).
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
@@ -184,7 +184,7 @@ guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OU
 samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-2. Reformat move table 
+2. Reformat move table ([more info](docs/reform.md)).
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
@@ -209,7 +209,7 @@ samtools fastq out.sam | minimap2 -ax splice -uf -k14 ${REF} -t8 --secondary=no 
 
 ```
 
-4. Realign move array to reference
+4. Realign move array to reference ([more info](docs/realign.md)).
 ```
 REALIGN_BAM=realign_output.bam
 squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
@@ -403,29 +403,7 @@ The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By pr
 
 
 ## Guppy move table explanation
-<details>
-<summary>Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.</summary>
-
-1. read_id
-2. basecalled fastq sequence length
-3. basecalled fastq sequence
-4. raw signal length in `ns` tag
-5. raw signal trim offset in `ts` tag
-6. move table in `mv` tag
-7. stride used in the neural network (down sampling factor) in `mv` tag
-
-An example move table looks like the following,
-```
-How the auxiliary field is stored in SAM format -> mv:B:c:5,1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
-Stride (always the first integer) -> 5
-The actual move array (the rest) -> 1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
-```
-The number of ones (1) in the actual move array equals to the fastq sequence length. 
-According to the above example the first move corresponds with `1 x stride` signal points. 
-The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on (see illustration below).
-
-![image](docs/figures/move_table_annotation.png)
-</details>
+Please refer [here](docs/move_table.md)
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).

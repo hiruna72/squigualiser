@@ -1,7 +1,7 @@
 # Calculating base shift
 
 As discussed in [pore model](pore_model.md) and [base shift and event alignment](base_shift_and_eventalignment.md) a base shift must be calculated to properly adjust the base color to the raw signal movements.
-If the user is planning to use `reform` for a profile that is not listed then he may also use `calculate_offsets.py` to calculate appropriate kmer lenght and signal move offset value to use in the `refom` command.
+If the user is planning to use `reform` for a profile that is not listed then they may also use `calculate_offsets.py` to calculate appropriate kmer lenght and signal move offset value to use in the `refom` command.
 
 ## Option 1
 To calculate the kmer length  and signal move offset for a dataset to use in `reform` use the following command.

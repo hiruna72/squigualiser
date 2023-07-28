@@ -28,10 +28,11 @@ SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
 F5C=f5c
-GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
-BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
-REFERENCE="/media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa"
+GUPPY=
+BUTTERY_EEL_ENV_PATH=
+REFERENCE=
+
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
 
@@ -196,7 +197,7 @@ simulate_ref_signal() {
 
 
 
-plot_eventalign_and_sim() {
+plot_methylated_vs_non_methylated() {
 	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
 	info "plotting eventalign and simulated signals"
 
@@ -215,6 +216,25 @@ plot_eventalign_and_sim() {
 
 }
 
+plot_methylated_vs_non_methylated_overlap_only() {
+	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
+	info "plotting eventalign and simulated signals"
+
+	TRACK_COMMAND_FILE="${SQUIG_PLOT_DIR}/track_commands_${FUNCNAME[0]}.txt"
+	rm -f ${TRACK_COMMAND_FILE}
+	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
+	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup --bed ${METH_BED_0} --rna -f ${REFERENCE} -s ${SIGNAL_FILE_0} -a ${EVENTALIGN_BAM_0} --region ${REF_REGION} --tag_name methylated --plot_limit 20  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE} --overlap_only"  >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup --bed ${METH_BED_0} --rna -f ${REFERENCE} -s ${SIGNAL_FILE_1} -a ${EVENTALIGN_BAM_1} --region ${REF_REGION} --tag_name non_methylated --plot_limit 20  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE} --overlap_only"   >> ${TRACK_COMMAND_FILE}
+
+	cat ${TRACK_COMMAND_FILE}
+
+	TESTCASE="${MODEL_TO_USE}_methylated_vs_non_methylated"
+	OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+	${PLOT_TRACK_TOOL} --shared_x -f ${TRACK_COMMAND_FILE} -o ${SQUIG_PLOT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+}
+
 ## stage 1
 
 # create_output_dir
@@ -223,7 +243,7 @@ plot_eventalign_and_sim() {
 # f5c_eventalign
 # f5c_methylation
 # simulate_ref_signal
-plot_eventalign_and_sim
-
+# plot_eventalign_and_sim
+plot_methylated_vs_non_methylated_overlap_only
 
 info "success"
