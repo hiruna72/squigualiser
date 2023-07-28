@@ -7,20 +7,55 @@ DEFAULT_KMER_SIZE = 9
 DEFAULT_SIG_MOVE_OFFSET = 0
 DNA_STRIDE = 5
 RNA_STRIDE = 10
+
+profile_dic = {
+        "guppy_dna_r9.4.1_450bps_fast_prom": [3, 2],
+        "guppy_dna_r9.4.1_450bps_hac_prom": [3, 2],
+        "guppy_dna_r9.4.1_450bps_sup_prom": [4, 3],
+        "guppy_dna_r10.4.1_e8.2_400bps_fast": [1, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_hac": [1, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_sup": [1, 0]}
+
+def list_profiles():
+    # print(profile_dic)
+    print("{}\t{}\t{}".format("name", "kmer_length", "sig_move_offset"))
+    for profile in profile_dic:
+        print("{}\t{}\t{}".format(profile, profile_dic[profile][0], profile_dic[profile][1]))
+    print("If the profile you wanted is not listed here, please refer calculate_offsets.md on github to learn how to generate these values for your new data.")
+
+def search_for_profile(profile):
+    if profile in profile_dic:
+        return profile_dic[profile]
+    else:
+        raise Exception("Error: specified profile ({}) is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset.".format(profile))
 def run(args):
-    if args.kmer_length < 1:
+    if args.list_profile:
+        list_profiles()
+        return
+    else:
+        if args.bam == "":
+            raise Exception("Error: the following argument is required: -b/--bam")
+        if args.output == "":
+            raise Exception("Error: the following argument is required: -o/--output")
+
+    if args.profile == "":
+        kmer_length = args.kmer_length
+        sig_move_offset = args.sig_move_offset
+    else:
+        kmer_length, sig_move_offset = search_for_profile(args.profile)
+    if kmer_length < 1:
         raise Exception("Error: kmer length must be a positive integer")
-    if args.sig_move_offset < 0:
+    if sig_move_offset < 0:
         raise Exception("Error: signal move offset must not be less than zero")
 
-    if args.kmer_length <= args.sig_move_offset:
+    if kmer_length <= sig_move_offset:
         raise Exception("Error: signal move offset value must be smaller than the kmer length.")
 
     if (args.c and args.output[-4:] != ".paf") or (not args.c and args.output[-4:] != ".tsv"):
         raise Exception("Error: please provide the output file with correct extension (.tsv/.paf)")
 
-    print("kmer_length: " + str(args.kmer_length))
-    print("sig_move_offset: " + str(args.sig_move_offset))
+    print("kmer_length: " + str(kmer_length))
+    print("sig_move_offset: " + str(sig_move_offset))
     print("input bam: " + args.bam)
     if args.c:
         print("output format: " + "paf")
@@ -39,7 +74,7 @@ def run(args):
 
     for sam_record in samfile:
 
-        len_seq = len(sam_record.get_forward_sequence()) - args.kmer_length + 1 # to get the number of kmers
+        len_seq = len(sam_record.get_forward_sequence()) - kmer_length + 1 # to get the number of kmers
 
         if not sam_record.has_tag("ns"):
             raise Exception("Error: tag '{}' is not found. Please check your input SAM/BAM file.".format("ns"))
@@ -66,7 +101,7 @@ def run(args):
         if not args.c:
             move_count = 0
             i = 1
-            while move_count < args.sig_move_offset + 1:
+            while move_count < sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
@@ -117,7 +152,7 @@ def run(args):
             start_idx = 0
             kmer_idx = 0
 
-            while move_count < args.sig_move_offset + 1:
+            while move_count < sig_move_offset + 1:
                 value = mv[i]
                 if value == 1:
                     move_count += 1
@@ -128,7 +163,7 @@ def run(args):
 
             j = 1
             l_end_raw = 0
-            len_seq_1 = len_seq + args.sig_move_offset + 1
+            len_seq_1 = len_seq + sig_move_offset + 1
             end_idx = j + 1
             while j < len_mv:
                 value = mv[j]
@@ -191,9 +226,11 @@ def argparser():
     parser.add_argument('-k', '--kmer_length', required=False, default=DEFAULT_KMER_SIZE, type=int, help="kmer length")
     parser.add_argument('-m', '--sig_move_offset', required=False, default=DEFAULT_SIG_MOVE_OFFSET, type=int, help="signal move offset")
     parser.add_argument('-c', action='store_true', help="write move table in paf format")
-    parser.add_argument('-b', '--bam', required=True, help="input SAM/BAM file produced by the basecaller")
-    parser.add_argument('-o', '--output', required=True, help="output .tsv/.paf file")
+    parser.add_argument('-b', '--bam', required=False, default="", type=str, help="input SAM/BAM file produced by the basecaller")
+    parser.add_argument('-o', '--output', required=False, default="", type=str, help="output .tsv/.paf file")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+    parser.add_argument('--profile', required=False, default="", type=str, help="determine -k and -m values using preset values")
+    parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
     return parser
 
 if __name__ == "__main__":

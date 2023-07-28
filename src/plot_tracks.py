@@ -31,8 +31,6 @@ def run(args):
     num_plots = []
     total_plots = 0
 
-    auto_base_shift_count = 0
-
     for i in range(0, num_commands):
         line_ = commands_file.readline().strip().split()
         tool = str(line_[1])
@@ -52,13 +50,10 @@ def run(args):
             del command[idx:idx+2]
         if '--return_plot' not in command:
             command.append('--return_plot')
-        if '--auto_base_shift' in command and auto_base_shift_count == 0:
-            print("Info: Using auto base shift calculation may cause the tracks not to align each other. In that case, adjust the regions and regenerate aligned tracks.")
-            auto_base_shift_count += 1
 
         args_tool = plot_pileup.argparser().parse_args(command)
         p, n_plot = plot_pileup.run(args_tool)
-        if p is None:
+        if p is None or n_plot == 0:
             continue
         p.sizing_mode = 'scale_width'
         num_plots.append(n_plot)
@@ -76,7 +71,6 @@ def run(args):
         num_tracks += 1
     if len(pileup) == 0:
         raise Exception("Error: no plots to plot")
-
     if args.auto_height:
         j = 0
         for p in pileup:

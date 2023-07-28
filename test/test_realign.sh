@@ -69,6 +69,17 @@ testcase_1s() {
   info "testcase:$TESTCASE - RNA"
   ex --rna --paf "${REL_PATH}/data/raw/plot/rna/t0/reform_rna_2.3.paf" --bam ${RAW_DIR}/test_${TESTCASE}/sorted_map.bam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
   diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
+
+  TESTCASE=1.7
+  info "testcase:$TESTCASE - DNA kmer size = 1"
+  ex --paf "${RAW_DIR}/test_${TESTCASE}/reform.paf" --bam ${RAW_DIR}/test_${TESTCASE}/mapped.bam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
+  diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
+
+  TESTCASE=1.8
+  info "testcase:$TESTCASE - DNA kmer size > 1"
+  ex --paf "${RAW_DIR}/test_${TESTCASE}/re_reform.paf" --bam ${RAW_DIR}/test_${TESTCASE}/mapped.bam --output ${OUTPUT_DIR}/test_${TESTCASE}.sam || die "testcase:${TESTCASE} failed"
+  diff "${EXP_DIR}/test_${TESTCASE}.sam" "${OUTPUT_DIR}/test_${TESTCASE}.sam" || die "testcase:${TESTCASE} diff failed"
+
 }
 testcase_2s() {
   TESTCASE=2.1
@@ -99,6 +110,16 @@ testcase_2s() {
   TESTCASE=2.6
   info "testcase:$TESTCASE - RNA"
   ex --rna --paf "${REL_PATH}/data/raw/plot/rna/t0/reform_rna_2.3.paf" --bam ${RAW_DIR}/test_${TESTCASE}/sorted_map.bam --output ${OUTPUT_DIR}/test_${TESTCASE}.paf -c || die "testcase:${TESTCASE} failed"
+  diff "${EXP_DIR}/test_${TESTCASE}.paf" "${OUTPUT_DIR}/test_${TESTCASE}.paf" || die "testcase:${TESTCASE} diff failed"
+
+  TESTCASE=2.7
+  info "testcase:$TESTCASE - DNA kmer size = 1"
+  ex --paf "${RAW_DIR}/test_1.7/reform.paf" --bam "${RAW_DIR}/test_1.7/mapped.bam" --output ${OUTPUT_DIR}/test_${TESTCASE}.paf -c || die "testcase:${TESTCASE} failed"
+  diff "${EXP_DIR}/test_${TESTCASE}.paf" "${OUTPUT_DIR}/test_${TESTCASE}.paf" || die "testcase:${TESTCASE} diff failed"
+
+  TESTCASE=2.8
+  info "testcase:$TESTCASE - DNA kmer size > 1"
+  ex --paf "${RAW_DIR}/test_1.7/re_reform.paf" --bam "${RAW_DIR}/test_1.7/mapped.bam" --output ${OUTPUT_DIR}/test_${TESTCASE}.paf -c || die "testcase:${TESTCASE} failed"
   diff "${EXP_DIR}/test_${TESTCASE}.paf" "${OUTPUT_DIR}/test_${TESTCASE}.paf" || die "testcase:${TESTCASE} diff failed"
 
 }

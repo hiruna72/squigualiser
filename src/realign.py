@@ -52,6 +52,8 @@ def run(args):
             if not args.rna:
                 print("Info: data is detected as RNA")
                 raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
+        if not data_is_rna and args.rna:
+            raise Exception("Error: data is not not detected as RNA but the user specified as RNA. Please remove the argument --rna and check dataset")
 
         # print(sam_read_id)
         # print("sam_read.pos: " + str(sam_read.pos+1))
@@ -79,15 +81,22 @@ def run(args):
         ss_string = ""
         count_bases = 0
         count_bases_seq = 0
-
-        if len(sam_record.query_sequence) != len(moves_string):
-            raise Exception("Error: the sequence length does not match the number of moves")
-
+        # print(len(moves_string))
+        # print(paf_dic[sam_read_id].target_end)
+        # print(paf_dic[sam_read_id].target_start)
+        # print(len(sam_record.query_sequence))
+        # if len(sam_record.query_sequence) != len(moves_string):
+        #     raise Exception("Error: the sequence length does not match the number of moves")
+        len_moves = len(moves_string)
         op_count = 0
+        total_cig_count_seq = 0
         for a in cigar_t:
             cig_op = a[0]
             cig_count = a[1]
             if cig_op == BAM_CMATCH:
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 for i in range(0, cig_count):
                     ss_string = ss_string + moves_string[idx] + ","
                     idx = idx + 1
@@ -98,6 +107,9 @@ def run(args):
                 count_bases += cig_count
                 # print(str(cig_count) + " D " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CINS:
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 signal_skip = 0
                 for i in range(0, cig_count):
                     signal_skip = signal_skip + int(moves_string[idx])
@@ -106,21 +118,18 @@ def run(args):
                 count_bases_seq += cig_count
                 # print(str(signal_skip) + " I BAM_CINS " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CSOFT_CLIP:
+                if total_cig_count_seq + cig_count > len_moves:
+                    cig_count = len_moves - total_cig_count_seq
+                total_cig_count_seq += cig_count
                 signal_skip = 0
                 for i in range(0, cig_count):
                     # print(str(idx) + " " + moves_string[idx])
                     signal_skip = signal_skip + int(moves_string[idx])
                     idx = idx + 1
-                if sam_record.is_reverse:
-                    if op_count == 0:
-                        raw_end -= signal_skip
-                    else:
-                        raw_start += signal_skip
+                if op_count == 0:
+                    raw_start += signal_skip
                 else:
-                    if op_count == 0:
-                        raw_start += signal_skip
-                    else:
-                        raw_end -= signal_skip
+                    raw_end -= signal_skip
                 # ss_string = ss_string + str(signal_skip) + "I"
                 # print(str(signal_skip) + " I BAM_CSOFT_CLIP " + str(int(sam_read.pos) + 1 + count_bases))
             elif cig_op == BAM_CHARD_CLIP:

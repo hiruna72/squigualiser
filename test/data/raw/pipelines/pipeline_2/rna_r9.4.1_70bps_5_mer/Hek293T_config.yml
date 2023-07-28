@@ -1,0 +1,15 @@
+notes: Pairwise comparison without replicates with default parameter setting.
+
+data:
+    KO:
+        rep1: ./data/0/dataprep
+    WT:
+        rep1: ./data/1/dataprep    
+    
+out: ./xpore_out
+
+method:
+    prefiltering:
+        method: t-test
+        threshold: 0.1
+
