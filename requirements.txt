@@ -6,3 +6,4 @@ pyfaidx
 pyfastx
 pysam
 matplotlib
+seaborn
