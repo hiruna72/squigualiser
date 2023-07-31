@@ -30,6 +30,8 @@ SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
 F5C=f5c
+BGZIP=bgzip
+TABIX=tabix
 
 GUPPY=
 BUTTERY_EEL_ENV_PATH=
@@ -70,7 +72,7 @@ REALIGN_BAM="${OUTPUT_DIR}/realigned.bam"
 EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 
 
-[ "${REFERENCE}" ] || die "edit the reference genome path (variable REF) in the script"
+[ "${REFERENCE}" ] || die "edit the reference genome path (variable REFERENCE) in the script"
 
 [ "${SQUIGULATOR}" ] || die "edit the executable path of squigulator (variable SQUIGULATOR) in the script"
 [ "${SAMTOOLS}" ] || die "edit the executable path of samtools (variable SAMTOOLS) in the script"
@@ -78,7 +80,8 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 [ "${F5C}" ] || die "edit the executable path of f5c (variable F5C) in the script"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
-[ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
+[ "${BGZIP}" ] || die "edit the executable path of bgzip (variable BGZIP) in the script"
+[ "${TABIX}" ] || die "edit the executable path of tabix (variable TABIX) in the script"
 
 [ ${SIMULATING_PROFILE} ] || die "set the variable SIMULATING_PROFILE"
 [ "${READ_ID}" ] || die "READ_ID is not set"
@@ -143,9 +146,11 @@ calculate_offsets_read_id() {
 re_reform() {
 	info "running re-reform..."
 	${REFORM_TOOL} -k ${RE_REFORM_K} -m ${RE_REFORM_M} --bam ${MOVES_BAM} -c -o ${OUTPUT_DIR}/temp.paf || die "re reform failed"
-	sort -k6,6 -k8,8n ${OUTPUT_DIR}/temp.paf -o ${RE_REFORMAT_PAF}
-	bgzip -k ${RE_REFORMAT_PAF}
-	tabix -0 -b 8 -e 9 -s 6 ${RE_REFORMAT_PAF_GZ}
+	sort -k6,6 -k8,8n ${OUTPUT_DIR}/temp.paf -o ${RE_REFORMAT_PAF} || die "sort failed"
+	cp ${RE_REFORMAT_PAF} "${RE_REFORMAT_PAF}.copy" || die "copy failed"
+	${BGZIP} ${RE_REFORMAT_PAF} || die "bgzip failed"
+	${TABIX} -0 -b 8 -e 9 -s 6 ${RE_REFORMAT_PAF_GZ} || die "tabix failed"
+	cp "${RE_REFORMAT_PAF}.copy" ${RE_REFORMAT_PAF} || die "copy failed"
 }
 
 simulate_read_signal() {
@@ -298,17 +303,18 @@ plot_realign_forward_reverse() {
 ## stage 1
 
 # create_output_dir
+# if there are problems with basecall_eel basecalling use basecall_fast5 basecalling
 # basecall_eel
 # basecall_fast5
 # reform_move_table
 
-# stage 2 (optional)
+# stage 2
 
 # calculate_offsets
 # calculate_offsets_read_id
 # re_reform
 
-# stage 3 (optional)
+# stage 3
 
 # simulate_read_signal
 # plot_sim_and_real_signal

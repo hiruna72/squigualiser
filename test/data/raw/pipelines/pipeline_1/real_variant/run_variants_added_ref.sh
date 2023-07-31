@@ -31,6 +31,9 @@ SAMTOOLS=samtools
 BCFTOOLS=bcftools
 MINIMAP2=minimap2
 F5C=f5c
+BGZIP=bgzip
+TABIX=tabix
+
 GUPPY="/media/hiruna/data/slow5_work/guppy_integration/ont-guppy_6.3.7/bin"
 BUTTERY_EEL_ENV_PATH="/media/hiruna/data/basecalling_work/buttery-eel-main/venv3"
 
@@ -82,6 +85,8 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
 [ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
+[ "${BGZIP}" ] || die "edit the executable path of bgzip (variable BGZIP) in the script"
+[ "${TABIX}" ] || die "edit the executable path of tabix (variable TABIX) in the script"
 
 [ ${SIMULATING_PROFILE} ] || die "set the variable SIMULATING_PROFILE"
 [ "${READ_ID}" ] || die "READ_ID is not set"
@@ -147,8 +152,10 @@ re_reform() {
 	info "running re-reform..."
 	${REFORM_TOOL} -k ${RE_REFORM_K} -m ${RE_REFORM_M} --bam ${MOVES_BAM} -c -o ${OUTPUT_DIR}/temp.paf || die "re reform failed"
 	sort -k6,6 -k8,8n ${OUTPUT_DIR}/temp.paf -o ${RE_REFORMAT_PAF}
-	bgzip -k ${RE_REFORMAT_PAF}
-	tabix -0 -b 8 -e 9 -s 6 ${RE_REFORMAT_PAF_GZ}
+	cp ${RE_REFORMAT_PAF} "${RE_REFORMAT_PAF}.copy" || die "copy failed"
+	${BGZIP} ${RE_REFORMAT_PAF} || die "bgzip failed"
+	${TABIX} -0 -b 8 -e 9 -s 6 ${RE_REFORMAT_PAF_GZ} || die "tabix failed"
+	cp "${RE_REFORMAT_PAF}.copy" ${RE_REFORMAT_PAF} || die "copy failed"
 }
 
 simulate_read_signal() {

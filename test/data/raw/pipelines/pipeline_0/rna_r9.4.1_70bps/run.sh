@@ -27,6 +27,9 @@ CALCULATE_OFFSETS_TOOL="squigualiser calculate_offsets"
 SQUIGULATOR=squigulator
 SAMTOOLS=samtools
 MINIMAP2=minimap2
+F5C=f5c
+BGZIP=bgzip
+TABIX=tabix
 
 GUPPY=
 BUTTERY_EEL_ENV_PATH=
@@ -72,8 +75,11 @@ EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
 [ "${SQUIGULATOR}" ] || die "edit the executable path of squigulator (variable SQUIGULATOR) in the script"
 [ "${SAMTOOLS}" ] || die "edit the executable path of samtools (variable SAMTOOLS) in the script"
 [ "${MINIMAP2}" ] || die "edit the executable path of minimap2 (variable MINIMAP2) in the script"
+[ "${F5C}" ] || die "edit the executable path of f5c (variable F5C) in the script"
 [ "${GUPPY}" ] || die "edit the path to the dir the of guppy_basecaller (variable GUPPY) in the script"
 [ "${BUTTERY_EEL_ENV_PATH}" ] || die "edit the env path of buttery-eel (variable BUTTERY_EEL_ENV_PATH) in the script"
+[ "${BGZIP}" ] || die "edit the executable path of bgzip (variable BGZIP) in the script"
+[ "${TABIX}" ] || die "edit the executable path of tabix (variable TABIX) in the script"
 
 [ ${SIMULATING_PROFILE} ] || die "set the variable SIMULATING_PROFILE"
 [ "${READ_ID}" ] || die "READ_ID is not set"
@@ -134,8 +140,10 @@ re_reform() {
 	info "running re-reform..."
 	${REFORM_TOOL} --rna -k ${RE_REFORM_K} -m ${RE_REFORM_M} --bam ${MOVES_BAM} -c -o ${OUTPUT_DIR}/temp.paf || die "re reform failed"
 	sort -k6,6 -k9,9n ${OUTPUT_DIR}/temp.paf -o ${RE_REFORMAT_PAF}
-	bgzip -k ${RE_REFORMAT_PAF}
-	tabix -0 -b 9 -e 8 -s 6 ${RE_REFORMAT_PAF_GZ}
+	cp ${RE_REFORMAT_PAF} "${RE_REFORMAT_PAF}.copy" || die "copy failed"
+	${BGZIP} ${RE_REFORMAT_PAF}
+	${TABIX} -0 -b 9 -e 8 -s 6 ${RE_REFORMAT_PAF_GZ}
+	cp "${RE_REFORMAT_PAF}.copy" ${RE_REFORMAT_PAF} || die "copy failed"
 }
 
 plot_real_signal() {
@@ -247,8 +255,8 @@ plot_realign_and_sim() {
 f5c_eventalign() {
 	info "f5c eventalign..."
 	
-	f5c index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
-	f5c eventalign --rna -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	${F5C} index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
+	${F5C} eventalign --rna -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
 	${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
 
 }
