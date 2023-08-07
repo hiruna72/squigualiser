@@ -121,7 +121,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details>
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 
-1. Install f5c 1.2 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start).
+1. Install f5c 1.3 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start).
 
 2. Run f5c resquiggle
 ```
@@ -244,7 +244,8 @@ minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
 
 ```
   
-2. create f5c index
+2. Install f5c 1.3 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start). 
+   create f5c index. 
 ```
 SIGNAL=reads.blow5
 f5c index ${FASTQ} --slow5 ${SIGNAL}
@@ -351,8 +352,8 @@ Note that the only difference between the two commands is that the second comman
 ```
 num_commands=2
 plot_heights=900,200
-python plot_pileup.py --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
-python plot_pileup.py --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
+squigualiser plot_pileup --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
+squigualiser plot_pileup --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
 ```
 
 Then use the `plot_tracks` command as below (remember to provide `-o`),
