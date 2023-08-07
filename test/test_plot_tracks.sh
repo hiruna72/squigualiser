@@ -27,22 +27,48 @@ mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 RAW_DIR="${REL_PATH}/data/raw/plot_tracks"
 EXP_DIR="${REL_PATH}/data/exp/plot_tracks"
 
-testcase_20s() {
-  TESTCASE=20.0
+testcase_30s() {
+  TESTCASE=30.0
   info "testcase:$TESTCASE - plot tracks"
   python src/plot_tracks.py && die "testcase:$TESTCASE failed"
 
-  TESTCASE=20.1
+  TESTCASE=30.1
   info "testcase:$TESTCASE - plot tracks"
-  COMMAND_FILE="${RAW_DIR}/t_20.1.txt"
+  COMMAND_FILE="${RAW_DIR}/t_30.1.txt"
   python src/plot_tracks.py -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} && die "testcase:$TESTCASE failed"
 
-  TESTCASE=20.2
+  TESTCASE=30.2
   info "testcase:$TESTCASE - plot tracks"
-  COMMAND_FILE="${RAW_DIR}/t_20.2.txt"
+  COMMAND_FILE="${RAW_DIR}/t_30.2.txt"
   python src/plot_tracks.py -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=30.3
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.3.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=30.4
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.4.txt"
+  python src/plot_tracks.py --shared_x --auto_height -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=30.5
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.5.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=30.6
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.6.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=30.7
+  info "testcase:$TESTCASE - plot tracks"
+  COMMAND_FILE="${RAW_DIR}/t_30.7.txt"
+  python src/plot_tracks.py --shared_x -f ${COMMAND_FILE} -o ${OUTPUT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
 }
-testcase_20s #pileup
+testcase_30s #plot_tracks
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

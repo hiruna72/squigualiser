@@ -36,6 +36,7 @@ PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 PLOT_BASE_SHIFT = 0
 PLOT_X_PADDING = 100
+PLOT_LIMIT = 1000
 
 DEFAULT_NUM_BED_COLS = 3
 DEFAULT_BED_ANNOTATION_COLOR = (75, 126, 246)
@@ -51,7 +52,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
-    label_position = np.percentile(y, 98)
+    label_position = np.nanpercentile(y, 98)
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
@@ -62,16 +63,14 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     base_label_colors = []
     sample_label_colors = []
     location_plot = 0
-    initial_location = location_plot
+
+    move_x = []
+    move_y = []
+    move_label = []
+    move_label_colors = []
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
-
-    base_shift_seq = 'N' * abs(draw_data['base_shift'])
-    if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
-    else:
-        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -135,11 +134,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             for j in range(0, n_samples):
                 sample_label_colors.append('purple')
 
-            base_x.append(previous_location)
-            base_y.append(label_position/2)
-            label = str(n_samples)
-            base_label.append(label)
-            base_label_colors.append('purple')
+            move_x.append(previous_location)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('purple')
+
         else:
             n_samples = int(i)
             location_plot += n_samples
@@ -158,6 +157,12 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             base_label_colors.append('black')
             for j in range(0, n_samples):
                 sample_label_colors.append('red')
+
+            move_x.append(previous_location)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('black')
+
             base_index += 1
 
         if base_index - sig_algn_data["start_kmer"] == base_limit:
@@ -173,15 +178,22 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
+    move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
+
+    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
+    toggle_moves.js_link('active', move_annotation_labels, 'visible')
+
     source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
-    
+    p.add_layout(move_annotation_labels)
+
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
-    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
@@ -192,9 +204,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
 
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -207,13 +219,19 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', x_callback)
+    p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    layout_ = p, row(toggle_bases, toggle_samples)
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_move_annotation)
+
+    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
     return layout_
 def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
@@ -222,7 +240,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
 
     # label_position = np.median(y)
     # label_position = np.percentile(y, 75)  # Q3
-    label_position = np.percentile(y, 98)
+    label_position = np.nanpercentile(y, 98)
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
@@ -232,17 +250,16 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     base_label = []
     base_label_colors = []
     sample_label_colors = []
+
+    move_x = []
+    move_y = []
+    move_label = []
+    move_label_colors = []
+
     location_plot = 0
-    initial_location = location_plot
 
     x_coordinate = 0
     initial_x_coordinate = x_coordinate
-
-    base_shift_seq = 'N' * abs(draw_data['base_shift'])
-    if draw_data["base_shift"] > 0:
-        fasta_sequence = base_shift_seq + fasta_sequence[:-1*draw_data["base_shift"]]
-    else:
-        fasta_sequence = fasta_sequence[abs(draw_data['base_shift']):] + base_shift_seq
 
     # draw moves
     moves = sig_algn_data["ss"]
@@ -329,17 +346,22 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             line_segment_x.append(location_plot)
 
             if num_samples_in_insertion > 0:
-                base_x.append(previous_location)
-                base_y.append(label_position/2)
-                label = str(num_samples_in_insertion)
-                base_label.append(label)
-                base_label_colors.append('purple')
+                move_x.append(previous_location)
+                move_y.append(label_position/2)
+                move_label.append(str(num_samples_in_insertion))
+                move_label_colors.append('purple')
 
             base_x.append(previous_location)
             base_y.append(label_position)
             label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
+
+            move_x.append(previous_location+draw_data["fixed_base_width"]/2)
+            move_y.append(label_position/2)
+            move_label.append(str(n_samples))
+            move_label_colors.append('black')
+
             for j in range(0, n_samples - num_samples_in_insertion):
                 sample_label_colors.append('red')
             base_index += 1
@@ -359,17 +381,24 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
+    move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
+
+    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
+    toggle_moves.js_link('active', move_annotation_labels, 'visible')
+
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
+    p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
-    toggle_samples = Toggle(label="sample", button_type="danger", active=True, height=30, width=60)
+    toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
@@ -379,9 +408,9 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.mode = 'mouse'
     indt = "\t\t\t\t\t\t\t\t"
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]}-{sig_algn_data["ref_end"] - base_index+1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'base_shift: {draw_data["base_shift"]}{indt}{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]}-{sig_algn_data["ref_start"] + base_index-1}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
 
     p.title = plot_title
 
@@ -397,15 +426,35 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
-    p.x_range.js_on_change('start', x_callback)
+    p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    layout_ = p, row(toggle_bases, toggle_samples)
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_move_annotation)
+
+    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
     return layout_
+
 def run(args):
+    if args.list_profile:
+        plot_utils.list_profiles_base_shift()
+        return
+    else:
+        if args.file == "":
+            raise Exception("Error: the following argument is required: -f/--file")
+        if args.slow5 == "":
+            raise Exception("Error: the following argument is required: -s/--slow5")
+        if args.alignment == "":
+            raise Exception("Error: the following argument is required: -a/--alignment")
+        if args.output_dir == "":
+            raise Exception("Error:the following argument is required: -o/--output_dir")
+
     if args.read_id != "":
         args.plot_limit = 1
 
@@ -456,6 +505,9 @@ def run(args):
         print(f'bed file: {args.bed}')
         bed_dic = bed_annotation.create_bed_dic(args)
 
+    if args.plot_reverse:
+        print("Info: reads mapped to the reverse strand will be plotted")
+
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
@@ -467,9 +519,24 @@ def run(args):
     draw_data["point_size"] = args.point_size
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
-    draw_data["base_shift"] = args.base_shift
     draw_data["plot_dims"] = {}
     draw_data["fixed_width"] = args.fixed_width
+    draw_data["sig_dir"] = "->"
+    draw_data["bed_labels"] = args.print_bed_labels
+    if args.plot_reverse:
+        draw_data["sig_dir"] = "<-"
+
+    if args.profile == "":
+        draw_data["base_shift"] = args.base_shift
+    else:
+        if args.plot_reverse:
+            draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
+        else:
+            draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
+    kmer_correction = 0
+    if args.profile != "":
+        kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
+
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -500,10 +567,7 @@ def run(args):
                 else:
                     fasta_seq = sequence_reads[read_id].seq
                     if len(fasta_seq) < paf_record.target_length:
-                        print(
-                            "Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(
-                                args.file))
-                        exit(1)
+                        raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
 
                 ref_start = -1
                 ref_end = -1
@@ -557,40 +621,27 @@ def run(args):
                     x = list(range(1, end_index - start_index + 1))
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
-                if args.sig_scale == "medmad":
-                    arr = np.ma.array(y).compressed()
-                    read_median = np.median(arr)
-                    if read_median == np.nan:
-                        raise Exception("Error: calculated median is NaN")
-                    mad = np.median(np.abs(arr - read_median))
-                    if mad == np.nan:
-                        raise Exception("Error: calculated mad is NaN")
-                    read_mad = mad * 1.4826
-                    if read_mad < 1.0:
-                        read_mad = 1.0
-                    y = (y - read_mad) / read_mad
-                    args.tag_name += " scale:medmad"
-                elif args.sig_scale == "znorm":
-                    # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                    # Calculate the z-score from scratch
-                    y = (y - np.mean(y)) / np.std(y)
-                    args.tag_name += " scale:znorm"
+
+                y = plot_utils.scale_signal(y, args.sig_scale)
+
+                scaling_str = "no scaling"
+                if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                    scaling_str = args.sig_scale
                 elif not args.sig_scale == "":
                     raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
                 strand_dir = "(DNA 5'->3')"
-
-                # if data_is_rna == 1 and args.reverse_signal:
-                #     x_real.reverse()
-                #     y = np.flip(y)
-                #     moves.reverse()
-                #     strand_dir = "(RNA 3'->5')"
                 if data_is_rna == 1:
                     fasta_seq = fasta_seq[:ref_end]
                     fasta_seq = fasta_seq[::-1]
                     strand_dir = "(RNA 3'->5')"
                 else:
                     fasta_seq = fasta_seq[ref_start-1:]
+
+                moves_string = paf_record.tags['ss'][2]
+                moves_string = re.sub('D', 'D,', moves_string)
+                moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
+                moves = re.split(r',+', moves_string)
 
                 signal_tuple = (x, x_real, y)
                 region_tuple = (ref_start, ref_end, 0, seq_len)
@@ -602,20 +653,34 @@ def run(args):
                 sig_algn_dic['use_paf'] = use_paf
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
-                if args.fixed_width:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
-                else:
-                    sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: "
-
-                moves_string = paf_record.tags['ss'][2]
-                moves_string = re.sub('D', 'D,', moves_string)
-                moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-                moves = re.split(r',+', moves_string)
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-                draw_data['y_min'] = np.amin(y)
-                draw_data['y_max'] = np.amax(y)
+
+                # if args.auto_base_shift:
+                #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+                #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+                if draw_data["base_shift"] < 0:
+                    abs_base_shift = abs(draw_data["base_shift"])
+                    x = signal_tuple[0]
+                    x_real = signal_tuple[1]
+                    y = signal_tuple[2]
+                    y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                    y = np.concatenate((y_prefix, y), axis=0)
+                    x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                    x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                    signal_tuple = (x, x_real, y)
+                    moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                    sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
+                if args.fixed_width:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
+                else:
+                    sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
+
+                draw_data['y_min'] = np.nanmin(y)
+                draw_data['y_max'] = np.nanmax(y)
                 p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
                     p = bed_annotation.plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
@@ -664,9 +729,9 @@ def run(args):
             read_id = sam_record.query_name
             if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
                 continue
-            if sam_record.is_reverse and args.plot_reverse is False:
+            if args.plot_reverse is True and sam_record.is_reverse is False:
                 continue
-            if not sam_record.is_reverse and args.reverse_only:
+            if args.plot_reverse is False and sam_record.is_reverse is True:
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
@@ -686,7 +751,7 @@ def run(args):
                         print("Info: data is detected as RNA")
                         raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                     ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
-                    reference_start = int(si_tag[SI_END_KMER])
+                    reference_start = int(si_tag[SI_END_KMER]) + kmer_correction
 
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
@@ -719,16 +784,21 @@ def run(args):
             # print("ref_seq_len: {}".format(ref_seq_len))
             # print("{}".format(sam_record.cigarstring))
             # print("base_limit: {}".format(base_limit))
+            if sam_record.is_reverse and data_is_rna == 1:
+                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
 
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if sam_record.is_reverse:
-                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+                    fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
@@ -743,24 +813,11 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                args.tag_name += " scale:medmad"
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
-                args.tag_name += " scale:znorm"
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
+            scaling_str = "no scaling"
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -769,17 +826,6 @@ def run(args):
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
 
-            # if data_is_rna == 0 and args.reverse_signal:
-            #     raise Exception("Error: the signal will be reversed only in RNA plots")
-
-            if sam_record.is_reverse and data_is_rna == 1:
-                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
-
-            # if data_is_rna == 1 and args.reverse_signal:
-            #     x_real.reverse()
-            #     y = np.flip(y)
-            #     moves.reverse()
-            #     strand_dir = "(RNA 3'->5')"
             if data_is_rna == 0:
                 strand_dir = "(DNA +)"
                 if sam_record.is_reverse:
@@ -787,7 +833,6 @@ def run(args):
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
@@ -803,17 +848,36 @@ def run(args):
             sig_algn_dic['ref_end'] = ref_end
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+            # if args.auto_base_shift:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
+            if args.fixed_width:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            else:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
+
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.amin(y)
-            draw_data['y_max'] = np.amax(y)
+            draw_data['y_min'] = np.nanmin(y)
+            draw_data['y_max'] = np.nanmax(y)
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
@@ -859,11 +923,10 @@ def run(args):
             #     continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if paf_record[STRAND] == "-" and args.plot_reverse is False:
+            if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
-            if paf_record[STRAND] == "+" and args.reverse_only:
+            if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
-
             data_is_rna = 0
             start_index = int(paf_record[START_RAW])
             end_index = int(paf_record[END_RAW])
@@ -875,7 +938,7 @@ def run(args):
                     print("Info: data is detected as RNA")
                     raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
-                reference_start = int(paf_record[END_KMER])
+                reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
             if ref_seq_len < BASE_LIMIT:
                 base_limit = ref_seq_len
@@ -908,16 +971,19 @@ def run(args):
             if paf_record[STRAND] == "-":
                 record_is_reverse = 1
             if record_is_reverse and data_is_rna == 1:
-                raise Exception("Error: the signal is  always sequenced from 3` to 5`. Hence, cannot have reversed mapped reads?")
+                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             else:
                 if record_is_reverse:
-                    print("plot (DNA 5'->3' -) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+                    fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
-                    print("plot (DNA 5'->3' +) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
@@ -932,24 +998,11 @@ def run(args):
                 x = list(range(1, end_index - start_index + 1))
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
-            if args.sig_scale == "medmad":
-                arr = np.ma.array(y).compressed()
-                read_median = np.median(arr)
-                if read_median == np.nan:
-                    raise Exception("Error: calculated median is NaN")
-                mad = np.median(np.abs(arr - read_median))
-                if mad == np.nan:
-                    raise Exception("Error: calculated mad is NaN")
-                read_mad = mad * 1.4826
-                if read_mad < 1.0:
-                    read_mad = 1.0
-                y = (y - read_mad) / read_mad
-                args.tag_name += " scale:medmad"
-            elif args.sig_scale == "znorm":
-                # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-                # Calculate the z-score from scratch
-                y = (y - np.mean(y)) / np.std(y)
-                args.tag_name += " scale:znorm"
+
+            y = plot_utils.scale_signal(y, args.sig_scale)
+            scaling_str = "no scaling"
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
@@ -970,7 +1023,6 @@ def run(args):
                     x_real.reverse()
                     y = np.flip(y)
                     moves.reverse()
-
             if data_is_rna == 1:
                 strand_dir = "(RNA 3'->5')"
                 fasta_seq = fasta_seq[::-1]
@@ -985,18 +1037,36 @@ def run(args):
             sig_algn_dic['pa'] = args.no_pa
             sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
             sig_algn_dic['data_is_rna'] = data_is_rna
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "fixed_width: " + str(
-                    args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + strand_dir + indt + "region: " + ref_name + ":"
             sig_algn_dic['ss'] = moves
+
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+
+            # if args.auto_base_shift:
+            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
+            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
+
+            if draw_data["base_shift"] < 0:
+                abs_base_shift = abs(draw_data["base_shift"])
+                x = signal_tuple[0]
+                x_real = signal_tuple[1]
+                y = signal_tuple[2]
+                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+                y = np.concatenate((y_prefix, y), axis=0)
+                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+                signal_tuple = (x, x_real, y)
+                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+
+            if args.fixed_width:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
+            else:
+                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.amin(y)
-            draw_data['y_max'] = np.amax(y)
+            draw_data['y_min'] = np.nanmin(y)
+            draw_data['y_max'] = np.nanmax(y)
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
@@ -1004,7 +1074,7 @@ def run(args):
                 layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
             else:
                 layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-                
+
             output_file(output_file_name, title=read_id)
             save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
@@ -1024,15 +1094,14 @@ def argparser():
         add_help=False
     )
 
-    parser.add_argument('-f', '--file', required=True, help="fasta/fa/fastq/fq/fq.gz sequence file")
+    parser.add_argument('-f', '--file', required=False, help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('-s', '--slow5', required=True, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=True, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('-s', '--slow5', required=False, help="slow5 file")
+    parser.add_argument('-a', '--alignment', required=False, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot reverse mapped reads")
-    parser.add_argument('--reverse_only', required=False, action='store_true', help="only plot reverse mapped reads")
+    parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
@@ -1042,11 +1111,13 @@ def argparser():
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
-    parser.add_argument('--plot_limit', required=False, type=int, default=1000, help="limit the number of plots generated")
+    parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
+    parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
+    parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
-    parser.add_argument('--stride', required=False, type=int, default=DEFAULT_STRIDE, help="stride used in basecalling network")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
-    parser.add_argument('-o', '--output_dir', required=True, help="output dir")
+    parser.add_argument('--print_bed_labels',  required=False, action='store_true', help="draw bed annotations with labels")
+    parser.add_argument('-o', '--output_dir', required=False, help="output dir")
     return parser
 
 if __name__ == "__main__":

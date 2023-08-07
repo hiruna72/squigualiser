@@ -4,6 +4,8 @@ A simple tool to Visualise nanopore raw signal-base alignment.
 
 Google Chrome is the recommended web browser to visualise these plots.
 
+signals (**squig**gles) + vis**ualiser** = **squigualiser**
+
 ![image](docs/figures/preview.png)
 
 1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
@@ -25,12 +27,15 @@ Google Chrome is the recommended web browser to visualise these plots.
    2. [Option 2 - Using f5c eventalign](#option-2-f5c-eventalign)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
 4. [Pileup view](#pileup-view)
-5. [BED annotations](#bed-annotations)
-6. [Squigualiser GUI](#Squigualiser-gui)
-7. [Notes](#notes)
-8. [Guppy move table explanation](#guppy-move-table-explanation)
-9. [Base shift](#base-shift)
-10. [Example](#example)
+5. [Plot multiple tracks](#plot-multiple-tracks)
+6. [BED annotations](#bed-annotations)
+7. [Squigualiser GUI](#Squigualiser-gui)
+8. [Notes](#notes)
+9. [Guppy move table explanation](#guppy-move-table-explanation)
+10. [Base shift](#base-shift)
+11. [Signal scaling](#signal-scaling)
+12. [Plot conventions](#conventions-not-finalised)
+13. [Example](#example)
 
 
 ## Installation
@@ -86,7 +91,7 @@ guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OU
 samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-2. Reformat move table 
+2. Reformat move table ([more info](docs/reform.md)).
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
@@ -180,7 +185,7 @@ guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OU
 samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
 ```
 
-2. Reformat move table 
+2. Reformat move table ([more info](docs/reform.md)).
 ```
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
@@ -205,7 +210,7 @@ samtools fastq out.sam | minimap2 -ax splice -uf -k14 ${REF} -t8 --secondary=no 
 
 ```
 
-4. Realign move array to reference
+4. Realign move array to reference ([more info](docs/realign.md)).
 ```
 REALIGN_BAM=realign_output.bam
 squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
@@ -327,6 +332,38 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 [Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-20.1.html) is an example DNA pileup plot created using the [testcase 20.1](test/test_plot_pileup.sh).
 [Here](https://hiruna72.github.io/squigualiser/docs/figures/pileup/pileup_testcase-43.1.html) is an example RNA pileup plot created using the [testcase 43.1](test/test_plot_pileup.sh).
 
+## Plot multiple tracks
+<details>
+<summary>For in depth analysis the user can visualize multiple plots in the same web page.
+</summary>
+
+For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward and reverse mapped reads on two separate tracks on the same webpage.
+
+![image](docs/figures/plot_tracks/plot_tracks.png)
+
+The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input. 
+
+The input file describes the number of commands, the dimension of each track, and the pileup commands.
+
+The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
+
+Setting `plot_heights=*` in the `command_file.txt` or providing the argument `--auto_height` will automatically adjust the track height depending on the number of plots in each track.
+
+Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads. And `-o` or `--output_dir` argument is not necessary (ignored).
+```
+num_commands=2
+plot_heights=900,200
+squigualiser plot_pileup --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "forward_mapped"
+squigualiser plot_pileup --region chr1:6,811,011-6,811,198 -f genome/hg38noAlt.fa -s reads.blow5 -a eventalign.bam --tag_name "reverse_mapped" --plot_reverse
+```
+
+Then use the `plot_tracks` command as below (remember to provide `-o`),
+```
+COMMAND_FILE="command_file.txt"
+squigualiser plot_tracks --shared_x -f ${COMMAND_FILE} -o output_dir
+```
+</details>
+
 ## BED annotations
 Plots support BED file annotations. Use argument `--bed [BED FILE]` to provide the bed file to the plot command.
 
@@ -359,32 +396,23 @@ samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
 ```
 
 ## Base shift
-User can shift the base sequence to right or left by `n` number of bases by providing the argument `--base_shift n` to the `plot` command. This is helpful to correct the signal level to the base. A positive `n` value will shift the base sequence to the right. A negative `n` value will shift the base sequence to the left.
+User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left. 
+However, the user is adviced to use `--profile` which automatically sets the `--base_shift`.
+For more information please refer [base_shift_and_eventalignment](docs/base_shift_and_eventalignment.md).
+
+## Signal scaling
+The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+
 
 ## Guppy move table explanation
-<details>
-<summary>Nanopore basecallers output move arrays in SAM/BAM format. The important fields are listed below.</summary>
-
-1. read_id
-2. basecalled fastq sequence length
-3. basecalled fastq sequence
-4. raw signal length in `ns` tag
-5. raw signal trim offset in `ts` tag
-6. move table in `mv` tag
-7. stride used in the neural network (down sampling factor) in `mv` tag
-
-An example move table looks like the following,
-```
-How the auxiliary field is stored in SAM format -> mv:B:c:5,1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
-Stride (always the first integer) -> 5
-The actual move array (the rest) -> 1,1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,1,1,…
-```
-The number of ones (1) in the actual move array equals to the fastq sequence length. 
-According to the above example the first move corresponds with `1 x stride` signal points. 
-The second move corresponds with `2 x stride` signal points. The third with `4 x stride`, the fourth with `2 x stride` and so on (see illustration below).
-
-![image](docs/figures/move_table_annotation.png)
-</details>
+Please refer [here](docs/move_table.md)
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
+
+## Conventions
+![image](docs/figures/plot_description/plot_description.png)
+* **A** is a descriptive tag name to identify the plot.
+* **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
+* **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
+* **D** indicates the true sequencing direction of the signals.

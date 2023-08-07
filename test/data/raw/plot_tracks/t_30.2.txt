@@ -1,0 +1,4 @@
+num_commands=2
+plot_heights=200,800
+python plot_pileup.py --overlap_only --region chr1:6,811,011-6,811,198 -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "overlap" --base_shift -6
+python plot_pileup.py --no_overlap --region chr1:6,811,011-6,811,198 -f /media/hiruna/data/basecalling_work/apply_variants_to_genome/genome/hg38noAlt.fa -s test/data/raw/plot/f5c_eventalign/reads.blow5 -a test/data/raw/plot/f5c_eventalign/sorted_eventalign.paf.gz --tag_name "pileup" --base_shift -6

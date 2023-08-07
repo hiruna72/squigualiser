@@ -6,6 +6,11 @@ hiruna@unsw.edu.au
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
 import re
+import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
 
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
@@ -54,7 +59,6 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         signal_tuple = (x, x_real, y)
         sig_algn_data['ss'] = moves
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
-
 def create_figure(args, plot_mode):
     p_defualt = None
     if plot_mode == 0:
@@ -89,5 +93,45 @@ def create_figure(args, plot_mode):
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         p_default.toolbar.logo = None
     return p_default
-
-
+def scale_signal(y, sig_scale):
+    if sig_scale == "medmad":
+        arr = np.ma.array(y).compressed()
+        read_median = np.median(arr)
+        if read_median == np.nan:
+            raise Exception("Error: calculated median is NaN")
+        mad = np.median(np.abs(arr - read_median))
+        if mad == np.nan:
+            raise Exception("Error: calculated mad is NaN")
+        read_mad = mad * 1.4826
+        if read_mad < 1.0:
+            read_mad = 1.0
+        y = (y - read_mad) / read_mad
+    elif sig_scale == "znorm":
+        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+        # Calculate the z-score from scratch
+        y = (y - np.mean(y)) / np.std(y)
+    elif not sig_scale == "":
+        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
+    return y
+profile_dic_base_shift = {
+        "kmer_model_dna_r9.4.1_450bps_5_mer": [-2, -2],
+        "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
+        "kmer_model_rna_r9.4.1_70bps_5_mer": [-3, -1],
+        "kmer_model_dna_r10.4.1_e8.2_400bps_9_mer": [-6, -2],
+        "guppy_dna_r9.4.1_450bps_fast_prom": [0, 0],
+        "guppy_dna_r9.4.1_450bps_hac_prom": [0, 0],
+        "guppy_dna_r9.4.1_450bps_sup_prom": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_fast": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_hac": [0, 0],
+        "guppy_dna_r10.4.1_e8.2_400bps_sup": [0, 0]}
+def list_profiles_base_shift():
+    # print(profile_dic)
+    print("{}\t{}\t{}".format("name", "base_shift_forward", "base_shift_reverse"))
+    for profile in profile_dic_base_shift:
+        print("{}\t{}\t{}".format(profile, profile_dic_base_shift[profile][0], profile_dic_base_shift[profile][1]))
+    print("If the profile you wanted is not listed here, please refer calculate_offsets.md on github to learn how to generate base shift values for your new data.")
+def search_for_profile_base_shift(profile):
+    if profile in profile_dic_base_shift:
+        return profile_dic_base_shift[profile]
+    else:
+        raise Exception("Error: specified profile ({}) is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset.".format(profile))

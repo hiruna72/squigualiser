@@ -10,3 +10,6 @@ idealg_v
 build
 venv3
 test/data/outplot
+cprofile_run.log
+test/data/raw/pipelines/pipeline_*/*/RUN*
+!test/data/raw/pipelines/pipeline_*/*/RUN*/squig_plot_reads/
