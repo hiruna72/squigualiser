@@ -1,6 +1,8 @@
 # squigualiser
 
-A simple tool to Visualise nanopore raw signal-base alignment
+A simple tool to Visualise nanopore raw signal-base alignment.
+
+Google Chrome is the recommended web browser to visualise these plots.
 
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
@@ -11,9 +13,8 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 3. The third read is a signal-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
 4. The fourth read (RNA) is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
 
-[This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
-
-[This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
+* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
+* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
 
 # Table of Contents
 1. [Installation](#installation)
@@ -121,7 +122,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details>
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 
-1. Install f5c 1.3 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start).
+1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).
 
 2. Run f5c resquiggle
 ```
@@ -231,7 +232,8 @@ squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} 
 <details>
 <summary>Steps for using f5c eventalign</summary>
 
-1. Align reads to reference genome
+1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).   
+2. Align reads to reference genome
 ```
 REF=genome.fa #reference
 MAP_SAM=mapped.sam
@@ -244,13 +246,12 @@ minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
 
 ```
   
-2. Install f5c 1.3 or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c#quick-start). 
-   create f5c index. 
+3. create f5c index
 ```
 SIGNAL=reads.blow5
 f5c index ${FASTQ} --slow5 ${SIGNAL}
 ```
-3. f5c eventalign
+4. f5c eventalign
 ```
 ALIGNMENT=eventalign.bam
 f5c eventalign -b ${MAP_SAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -a -o eventalign.sam
@@ -258,7 +259,7 @@ samtools sort eventalign.sam -o ${ALIGNMENT}
 samtools index ${ALIGNMENT}
 
 ```
-4. Plot signal to reference alignment.
+5. Plot signal to reference alignment.
 ````
 OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
