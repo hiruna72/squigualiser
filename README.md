@@ -409,7 +409,7 @@ Please refer [here](docs/move_table.md)
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
-## Conventions (not finalised)
+## Conventions
 ![image](docs/figures/plot_description/plot_description.png)
 * **A** is a descriptive tag name to identify the plot.
 * **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
