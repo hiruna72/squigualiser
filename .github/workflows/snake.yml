@@ -58,6 +58,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: brew_install
+      run:  brew install xz
     - name: install packages
       run: pip3 install numpy
     - name: install
@@ -71,6 +73,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: brew_install
+      run:  brew install xz
     - name: install packages
       run: pip3 install numpy
     - name: install
