@@ -19,7 +19,7 @@ jobs:
     - name: install
       run:  python3 setup.py install --user && squigualiser --help
     - name: test
-      run: test/test_plot_pileup.sh
+      run: test/test_reform.sh
   ubuntu_22:
     name: ubuntu-22.04
     runs-on: ubuntu-22.04
@@ -32,7 +32,7 @@ jobs:
     - name: install
       run:  python3 setup.py install --user && squigualiser --help
     - name: test
-      run: test/test_plot_pileup.sh
+      run: test/test_reform.sh
 #  arm64:
 #    name: pyslow5 ubuntu arm
 #    runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
     - name: install
       run:  pip3 install . && squigualiser --help
     - name: test
-      run: test/test_plot_pileup.sh
+      run: test/test_reform.sh
   os_x_12:
     name: macos-12
     runs-on: macos-12
@@ -80,4 +80,4 @@ jobs:
     - name: install
       run:  pip3 install . && squigualiser --help
     - name: test
-      run: test/test_plot_pileup.sh
+      run: test/test_reform.sh
