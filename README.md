@@ -17,28 +17,39 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 * [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
 
 # Table of Contents
-1. [Installation](#installation)
-2. [Signal to read visualisation](#signal-to-read-visualisation)
+1. [Quickstart](#quickstart)
+2. [Setup](#setup)
+3. [Signal to read visualisation](#signal-to-read-visualisation)
    1. [Option 1 - Using basecaller move table](#option-1---basecaller-move-table)
    2. [Option 2 - Using f5c resquiggle](#option-2---f5c-resquiggle)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation)
-3. [Signal to reference visualisation](#signal-to-reference-visualisation)
+4. [Signal to reference visualisation](#signal-to-reference-visualisation)
    1. [Option 1 - Using basecaller move table](#option-1---basecaller-move-table-1)
    2. [Option 2 - Using f5c eventalign](#option-2-f5c-eventalign)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
-4. [Pileup view](#pileup-view)
-5. [Plot multiple tracks](#plot-multiple-tracks)
-6. [BED annotations](#bed-annotations)
-7. [Squigualiser GUI](#Squigualiser-gui)
-8. [Notes](#notes)
-9. [Guppy move table explanation](#guppy-move-table-explanation)
-10. [Base shift](#base-shift)
-11. [Signal scaling](#signal-scaling)
-12. [Plot conventions](#conventions-not-finalised)
-13. [Example](#example)
+5. [Pileup view](#pileup-view)
+6. [Plot multiple tracks](#plot-multiple-tracks)
+7. [BED annotations](#bed-annotations)
+8. [Squigualiser GUI](#Squigualiser-gui)
+9. [Notes](#notes)
+10. [Guppy move table explanation](#guppy-move-table-explanation)
+11. [Base shift](#base-shift)
+12. [Signal scaling](#signal-scaling)
+13. [Plot conventions](#conventions-not-finalised)
+14. [Example](#example)
 
+## Quickstart
+````
+python3.8 -m venv venv3
+source venv3/bin/activate
+pip install --upgrade pip
 
-## Installation
+pip install squigualiser
+
+squigualiser --help
+````
+
+## Setup
 <details open><summary>using python environment (tested with python 3.8.0, should work with anything higher as well)</summary>
 
 ````
@@ -68,6 +79,21 @@ export PYSLOW5_ZSTD=1 # if your slow5 file uses zstd compression and you have zs
 python setup.py install
 squigualiser --help
 ````
+</details>
+
+<details><summary>troubleshooting python versions</summary>
+
+You can check your Python version by invoking `python3 --version`. If your native python3 meets this requirement of >=3.8, you can use that, or use a
+specific version installed with deadsnakes below. If you install with deadsnakes, you will need to call that specific python, such as python3.8 or python3.9, in all the following commands until you create a virtual environment with venv. Then once activated, you can just use python3. To install a specific version of python, the deadsnakes ppa is a good place to start:
+
+    ```
+    # This is an example for installing python3.8
+    # you can then call that specific python version
+    # > python3.8 -m pip --version
+    sudo add-apt-repository ppa:deadsnakes/ppa
+    sudo apt-get update
+    sudo apt install python3.8 python3.8-dev python3.8-venv
+    ```
 </details>
 
 ## Signal to read visualisation
@@ -416,3 +442,7 @@ The figures on the top of the document were generated using the testcases - `1.1
 * **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
 * **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
 * **D** indicates the true sequencing direction of the signals.
+
+
+## Acknowledgement
+Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab) and [buttery-eel](https://github.com/Psy-Fer/buttery-eel).
