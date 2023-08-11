@@ -24,7 +24,11 @@ setuptools.setup(
     url="https://github.com/hiruna72/squigualiser",
     author="Hiruna Samarakoon",
     author_email="h.samarakoon@garvan.org.au",
+    maintainer='Hiruna Samarakoon',
+    maintainer_email='h.samarakoon@garvan.org.au',
     description="Visualise ONT raw signals ",
+    license='MIT',
+    keywords=['nanopore', 'slow5', 'signal'],
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -37,7 +41,10 @@ setuptools.setup(
         ],
     },
     classifiers=[
+        'Development Status :: 5 - Production/Stable',
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
 )
