@@ -1,0 +1,79 @@
+name: snake CI
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  ubuntu_20:
+    name: ubuntu-20.04
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: install packages
+      run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
+    - name: install
+      run:  python3 setup.py install --user && squigualiser --help
+    - name: test
+      run: test/test_plot_pileup.sh
+  ubuntu_22:
+    name: ubuntu-22.04
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: install packages
+      run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
+    - name: install
+      run:  python3 setup.py install --user && squigualiser --help
+    - name: test
+      run: test/test_plot_pileup.sh
+#  arm64:
+#    name: pyslow5 ubuntu arm
+#    runs-on: ubuntu-latest
+#    steps:
+#    - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+#    - uses: docker://multiarch/ubuntu-core:arm64-focal
+#      with:
+#        args: 'uname -a'
+#    - uses: actions/checkout@v1
+#    - uses: docker://multiarch/ubuntu-core:arm64-focal
+#      with:
+#        args: >
+#          bash -c "apt-get update &&
+#          apt-get install -y zlib1g-dev gcc make python3 python3-pip git wget &&
+#          pip3 install setuptools cython numpy &&
+#          ldd --version && gcc --version && python3 --version &&
+#          git clone -b dev https://github.com/hasindu2008/slow5lib && cd slow5lib && python3 setup.py install && cd .. &&
+#          python3 setup.py install && blue-crab --help && test/test.sh"
+  os_x_11:
+    name: macos-11
+    runs-on: macos-11
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: install packages
+      run: pip3 install numpy
+    - name: install
+      run:  pip3 install . && squigualiser --help
+    - name: test
+      run: test/test_plot_pileup.sh
+  os_x_12:
+    name: macos-12
+    runs-on: macos-12
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: install packages
+      run: pip3 install numpy
+    - name: install
+      run:  pip3 install . && squigualiser --help
+    - name: test
+      run: test/test_plot_pileup.sh
