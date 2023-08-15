@@ -29,7 +29,7 @@ mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 #commands ...
 
 ex() {
-  python src/realign.py "$@"
+  squigualiser realign "$@"
 }
 
 RAW_DIR="${REL_PATH}/data/raw/realign"

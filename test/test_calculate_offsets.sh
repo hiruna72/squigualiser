@@ -40,15 +40,15 @@ ex() {
 RAW_DIR="${REL_PATH}/data/raw/reform"
 EXP_DIR="${REL_PATH}/data/exp/reform"
 
-TESTCASE=0.1
-info "testcase:$TESTCASE - help"
-ex && die "testcase:$TESTCASE failed"
+#TESTCASE=0.1
+#info "testcase:$TESTCASE - help"
+#ex && die "testcase:$TESTCASE failed"
+#
+#TESTCASE=0.2
+#info "testcase:$TESTCASE - read:1,kmer:0,move:1,output:paf"
+#ex -k0 -m1 -c "${RAW_DIR}/guppy_one_read.bam" > ${OUTPUT_DIR}/out.paf && die "testcase:$TESTCASE failed"
 
-TESTCASE=0.2
-info "testcase:$TESTCASE - read:1,kmer:0,move:1,output:paf"
-ex -k0 -m1 -c "${RAW_DIR}/guppy_one_read.bam" > ${OUTPUT_DIR}/out.paf && die "testcase:$TESTCASE failed"
 
-
-info "all $TESTCASE testcases passed"
+info "no testcases written here, check pipelines"
 rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0
