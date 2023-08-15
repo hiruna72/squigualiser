@@ -34,7 +34,7 @@ mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 #commands ...
 
 ex() {
-  python src/reform.py "$@"
+  squigualiser reform "$@"
 }
 
 RAW_DIR="${REL_PATH}/data/raw/reform"
