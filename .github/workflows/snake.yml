@@ -17,7 +17,7 @@ jobs:
     - name: install packages
       run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
     - name: install
-      run:  python3 setup.py install --user && squigualiser --help
+      run:  pip3 install --upgrade pip && python3 setup.py install --user && squigualiser --help
     - name: test
       run: test/test_reform.sh
   ubuntu_22:
