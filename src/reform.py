@@ -177,7 +177,7 @@ def run(args):
                 l_end_raw = ts + (end_idx-1) * stride
 
             fout.write("{}\t".format(l_end_raw)) #4 Raw signal end index (0-based; BED-like; open)
-            fout.write("{}\t".format("+")) #5 Relative strand: “+” or “-“
+            fout.write("+\t") #5 Relative strand: "+" or "-"
             fout.write("{}\t".format(sam_record.query_name)) #6 Same as column 1
             fout.write("{}\t".format(len_seq)) #7 base-called sequence length (no. of k-mers)
 
