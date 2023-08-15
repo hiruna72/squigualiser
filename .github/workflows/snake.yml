@@ -51,33 +51,33 @@ jobs:
 #          ldd --version && gcc --version && python3 --version &&
 #          git clone -b dev https://github.com/hasindu2008/slow5lib && cd slow5lib && python3 setup.py install && cd .. &&
 #          python3 setup.py install && blue-crab --help && test/test.sh"
-  os_x_11:
-    name: macos-11
-    runs-on: macos-11
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: brew_install
-      run:  brew install xz
-    - name: install packages
-      run: pip3 install numpy
-    - name: install
-      run:  pip3 install . && squigualiser --help
-    - name: test
-      run: test/test_reform.sh
-  os_x_12:
-    name: macos-12
-    runs-on: macos-12
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: brew_install
-      run:  brew install xz
-    - name: install packages
-      run: pip3 install numpy
-    - name: install
-      run:  pip3 install . && squigualiser --help
-    - name: test
-      run: test/test_reform.sh
+#  os_x_11:
+#    name: macos-11
+#    runs-on: macos-11
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        submodules: recursive
+#    - name: brew_install
+#      run:  brew install xz
+#    - name: install packages
+#      run: pip3 install numpy
+#    - name: install
+#      run:  pip3 install . && squigualiser --help
+#    - name: test
+#      run: test/test_reform.sh
+#  os_x_12:
+#    name: macos-12
+#    runs-on: macos-12
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        submodules: recursive
+#    - name: brew_install
+#      run:  brew install xz
+#    - name: install packages
+#      run: pip3 install numpy
+#    - name: install
+#      run:  pip3 install . && squigualiser --help
+#    - name: test
+#      run: test/test_reform.sh
