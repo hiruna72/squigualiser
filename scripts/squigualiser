@@ -15,7 +15,8 @@ then
 fi
 if [ "${OS}" == "Darwin"  ];
 then
-    REALPATH=$(dirname "$(readlink "$0")")
+    REALPATH=$(dirname "$0")
+    readlink "$0" && REALPATH=$(dirname "$(readlink "$0")")
 fi
 
 if [[ ${OS} != "Linux" && ${OS} != "Darwin" ]];
