@@ -35,7 +35,7 @@ Citation:...
     subparsers.required = True
     for module in modules:
         mod = globals()[module]
-        p = subparsers.add_parser(module, help=module_help[module]['help'], parents=[mod.argparser()])
+        p = subparsers.add_parser(module, help=module_help[module]['help'], description=module_help[module]['help'], parents=[mod.argparser()])
         p.set_defaults(func=mod.run)
 
     args = parser.parse_args()
