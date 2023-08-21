@@ -17,7 +17,7 @@ def main():
     parser = ArgumentParser(
         description='squigualiser - A simple tool to Visualise nanopore raw signal-base alignment.',
         epilog='''
-See slow5.page.link/squigualiser for a detailed description of these command-line options.
+See https://slow5.page.link/squigualiser for a detailed description of these command-line options.
 
 Citation:...
                ''',

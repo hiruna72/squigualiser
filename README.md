@@ -6,6 +6,11 @@ Google Chrome is the recommended web browser to visualise these plots.
 
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
+![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
+[![PyPI](https://img.shields.io/pypi/v/squigualiser   .svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
+[![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
+
+
 ![image](docs/figures/preview.png)
 
 1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
@@ -48,6 +53,42 @@ pip install squigualiser
 
 squigualiser --help
 ````
+<details open><summary>Or use the pre-compiled binary release for common Linux distributions</summary>
+
+```
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
+tar xf squigualiser.tar.gz
+cd squigualiser
+./squigualiser --help
+```
+</details>
+<details><summary>Or use the pre-compiled binary release for common macOS distributions</summary>
+
+```
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
+# or use curl 
+curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
+
+tar xf squigualiser.tar.gz
+cd squigualiser
+./squigualiser --help
+```
+</details>
+
+For a quick test run the following
+````
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz
+# or use curl
+curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz -o sample_dataset.tar.gz
+
+tar xf sample_dataset.tar.gz
+./squigualiser plot_pileup -f ref.fasta -s reads.blow5 -a eventalign.bam -o dir_out --region chr1:92,778,040-92,782,120 --tag_name "test_0"
+
+````
+
+`export PATH=[path_to_squigualiser_dir]:$PATH` to execute `squigualiser` from any location.
+
+
 
 ## Setup
 <details open><summary>using python environment (tested with python 3.8.0, should work with anything higher as well)</summary>
@@ -81,7 +122,7 @@ squigualiser --help
 ````
 </details>
 
-<details><summary>troubleshooting python versions</summary>
+<details><summary>Troubleshoot: python versions</summary>
 
 You can check your Python version by invoking `python3 --version`. If your native python3 meets this requirement of >=3.8, you can use that, or use a
 specific version installed with deadsnakes below. If you install with deadsnakes, you will need to call that specific python, such as python3.8 or python3.9, in all the following commands until you create a virtual environment with venv. Then once activated, you can just use python3. To install a specific version of python, the deadsnakes ppa is a good place to start:
@@ -96,7 +137,7 @@ specific version installed with deadsnakes below. If you install with deadsnakes
     ```
 </details>
 
-<details><summary>Install zlib development libraries (and optionally zstd development libraries)</summary>
+<details><summary>Troubleshoot: Install zlib development libraries (and optionally zstd development libraries)</summary>
 
 The commands to zlib __development libraries__ on some popular distributions :
 ```sh
@@ -377,7 +418,7 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 
 ## Plot multiple tracks
 <details>
-<summary>For in depth analysis the user can visualize multiple plots in the same web page.
+<summary>For in depth analysis the user can visualize multiple pileup plots in the same web page.
 </summary>
 
 For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward and reverse mapped reads on two separate tracks on the same webpage.
@@ -433,15 +474,16 @@ python src/server.py
 4. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 5. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
 6. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
-```
-echo -e fake_reference'\t'0 > fake_reference.fa.fai
-samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
-```
+   ```
+   echo -e fake_reference'\t'0 > fake_reference.fa.fai
+   samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
+   ```
+7. Squigulator's signal simulation is a good way to understand the nature of the alignments. Please refer to the documentation about [real_vs_simulated_signal](docs/real_vs_simulated_signal.md).
 
 ## Base shift
 User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left. 
-However, the user is adviced to use `--profile` which automatically sets the `--base_shift`.
-For more information please refer [base_shift_and_eventalignment](docs/base_shift_and_eventalignment.md).
+However, the user is adviced to use `--profile` (documented [here](docs/profiles.md)) which automatically sets the `--base_shift`.
+For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
 
 ## Signal scaling
 The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
@@ -452,6 +494,8 @@ Please refer [here](docs/move_table.md)
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
+
+Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
 
 ## Conventions
 ![image](docs/figures/plot_description/plot_description.png)
