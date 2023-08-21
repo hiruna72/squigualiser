@@ -1,7 +1,7 @@
 # squigualiser
 
 <details open>
-<summary>Shopping list</summary>
+<summary>Shopping list2</summary>
 <div markdown=1>
    
 * Vegetables
