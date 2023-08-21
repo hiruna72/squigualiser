@@ -96,6 +96,23 @@ specific version installed with deadsnakes below. If you install with deadsnakes
     ```
 </details>
 
+<details><summary>Install zlib development libraries (and optionally zstd development libraries)</summary>
+
+The commands to zlib __development libraries__ on some popular distributions :
+```sh
+    On Debian/Ubuntu : sudo apt-get install zlib1g-dev
+    On Fedora/CentOS : sudo dnf/yum install zlib-devel
+    On OS X : brew install zlib
+ ```
+
+SLOW5 files compressed with *zstd* offer smaller file size and better performance compared to the default *zlib*. However, *zlib* runtime library is available by default on almost all distributions unlike *zstd* and thus files compressed with *zlib* will be more 'portable'. Enabling optional *zstd* support, requires __zstd 1.3 or higher development libraries__ installed on your system:
+ ```sh
+    On Debian/Ubuntu : sudo apt-get install libzstd1-dev # libzstd-dev on newer distributions if libzstd1-dev is unavailable
+    On Fedora/CentOS : sudo yum libzstd-devel
+    On OS X : brew install zstd
+ ```
+</details>
+
 ## Signal to read visualisation
 
 #### Option 1 - basecaller move table
