@@ -180,6 +180,7 @@ SLOW5 files compressed with *zstd* offer smaller file size and better performanc
 <div markdown=1>
 
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
+
 ````
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
@@ -195,6 +196,7 @@ samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a s
 ````
 
 2. Reformat move table ([more info](docs/reform.md)).
+
 ````
 # PAF output for plotting
 ALIGNMENT=reform_output.paf
@@ -209,6 +211,7 @@ squigualiser reform --sig_move_offset 0 --kmer_length 1 --bam out.sam -o reform_
 * Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
 
 3. Plot signal to read alignment
+
 ````
 FASTA_FILE=read.fasta
 SIGNAL_FILE=read.blow5
@@ -231,6 +234,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).
 
 2. Run f5c resquiggle
+
 ````
 FASTQ=reads.fastq
 SIGNAL_FILE=reads.blow5
@@ -242,6 +246,7 @@ f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNME
 * Refer [Note(3)](#notes) for more information about RNA.
 
 3. Plot signal to read alignment
+
 ````
 OUTPUT_DIR=output_dir
 squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} # to plot a selected read ID, you can provide -r 'READ_ID'.
@@ -251,8 +256,7 @@ squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 </details>
 
 #### Option 3 - Squigulator signal simulation
-<details>
-<summary>Steps for using Squigulator signal simulation software</summary>
+<details><summary>Steps for using Squigulator signal simulation software</summary>
 
 1.  Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
