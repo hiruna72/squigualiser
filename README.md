@@ -1,5 +1,14 @@
 # squigualiser
 
+<details open>
+<summary>Shopping list</summary>
+
+* Vegetables
+* Fruits
+* Fish
+
+</details>
+
 A simple tool to Visualise nanopore raw signal-base alignment.
 
 Google Chrome is the recommended web browser to visualise these plots.
