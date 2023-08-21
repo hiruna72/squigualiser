@@ -3,9 +3,11 @@
 <details open>
 <summary>Shopping list</summary>
 <div markdown=1>
+   
 * Vegetables
 * Fruits
-* Fish 
+* Fish
+  
 </div>
 
 </details>
