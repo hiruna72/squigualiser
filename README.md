@@ -506,4 +506,4 @@ Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to 
 
 
 ## Acknowledgement
-Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab) and [buttery-eel](https://github.com/Psy-Fer/buttery-eel).
+Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel)., [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)
