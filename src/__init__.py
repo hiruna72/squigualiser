@@ -1,6 +1,13 @@
+import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, RawTextHelpFormatter
 from src import plot, reform, realign, plot_pileup, plot_tracks, calculate_offsets
 from ._version import __version__
+
+class MyParser(ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help(sys.stderr)
+        sys.exit(2)
 
 modules = ['plot', 'reform', 'realign', 'plot_pileup', 'plot_tracks', 'calculate_offsets']
 module_help = {
@@ -14,7 +21,7 @@ module_help = {
 version = "squigualiser     {}".format(__version__)
 
 def main():
-    parser = ArgumentParser(
+    parser = MyParser(
         description='squigualiser - A simple tool to Visualise nanopore raw signal-base alignment.',
         epilog='''
 See slow5.page.link/squigualiser for a detailed description of these command-line options.
@@ -32,11 +39,17 @@ Citation:...
         title='subcommands', description='valid commands',
         help='additional help', dest='command'
     )
-    subparsers.required = True
+    # subparsers.required = True
     for module in modules:
         mod = globals()[module]
         p = subparsers.add_parser(module, help=module_help[module]['help'], description=module_help[module]['help'], parents=[mod.argparser()])
         p.set_defaults(func=mod.run)
 
     args = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+
     args.func(args)
