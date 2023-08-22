@@ -1094,11 +1094,11 @@ def argparser():
         add_help=False
     )
 
-    parser.add_argument('-f', '--file', required=False, help="fasta/fa/fastq/fq/fq.gz sequence file")
+    parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
+    parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
+    parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('-s', '--slow5', required=False, help="slow5 file")
-    parser.add_argument('-a', '--alignment', required=False, help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
