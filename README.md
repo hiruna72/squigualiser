@@ -84,9 +84,9 @@ cd squigualiser
 
 For a quick test run the following
 ````
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz
+wget https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz
 # or use curl
-curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz -o sample_dataset.tar.gz
+curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
 
 tar xf sample_dataset.tar.gz
 ./squigualiser plot_pileup -f ref.fasta -s reads.blow5 -a eventalign.bam -o dir_out --region chr1:92,778,040-92,782,120 --tag_name "test_0"
