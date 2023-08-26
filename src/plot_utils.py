@@ -15,6 +15,10 @@ import seaborn as sns
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+def get_base_color_map():
+    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
+    return base_color_map
+
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]

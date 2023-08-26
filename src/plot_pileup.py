@@ -51,8 +51,6 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     label_position = y_min
 
-    # base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
-    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -97,7 +95,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
                     base_label_colors.append('black')
                     base_box_details['left'].append(prev_loc)
                     base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
-                    base_box_details['fill_color'].append(base_color_map[base])
+                    base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
                 else:
                     base_label_colors.append('red')
                     base_box_details['left'].append(prev_loc)
@@ -160,7 +158,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
-            base_box_details['fill_color'].append(base_color_map[base])
+            base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
             line_segment_x.append(location_plot)
             if num_plots == -1 or draw_data['overlap_only']:
                 base_x.append(previous_location)
@@ -493,16 +491,22 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if sam_record.is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            print(fasta_seq)
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
             x = []
             x_real = []
@@ -707,16 +711,21 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if record_is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
             x = []
             x_real = []

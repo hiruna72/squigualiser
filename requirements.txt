@@ -5,5 +5,5 @@ readpaf
 pyfaidx
 pyfastx
 pysam
-matplotlib
+matplotlib==3.7
 seaborn

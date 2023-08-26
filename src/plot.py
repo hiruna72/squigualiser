@@ -56,7 +56,6 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
-    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -146,7 +145,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
-            base_box_details['fill_color'].append(base_color_map[base])
+            base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
 
             line_segment_x.append(location_plot)
 
@@ -244,7 +243,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     y_min = draw_data['y_min']
     y_max = draw_data['y_max']
 
-    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -342,7 +340,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
-            base_box_details['fill_color'].append(base_color_map[base])
+            base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
             line_segment_x.append(location_plot)
 
             if num_samples_in_insertion > 0:
@@ -564,10 +562,14 @@ def run(args):
                 fasta_seq = ""
                 if use_fasta:
                     fasta_seq = sequence_reads[read_id][:].seq
+                    fasta_seq = fasta_seq.upper()
                 else:
                     fasta_seq = sequence_reads[read_id].seq
+                    fasta_seq = fasta_seq.upper()
                     if len(fasta_seq) < paf_record.target_length:
                         raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                    raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
                 ref_start = -1
                 ref_end = -1
@@ -790,15 +792,21 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if sam_record.is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
+
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
@@ -975,15 +983,21 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if record_is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
+
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
 
             x = []
