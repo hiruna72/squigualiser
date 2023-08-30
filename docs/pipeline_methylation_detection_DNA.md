@@ -28,7 +28,10 @@ The real signal plot clearly shows two different current levels at methylated ci
 
 *Figure 2*
 
-As a continuation of the above analysis we can use the methylation frequency information to better visualise the methylations.
+
+## Using methylation frequency information
+
+Optionally, we can use the methylation frequency information to better visualise the methylations.
 1. Filter a site from the methylation frequency `meth-freq.tsv` file where the frequency is approximately `0.5`.
 2. Filter the `+` reads of the filtered site from the raw `meth.tsv` file.
 3. Filter the read ids where the log likelihood ratio is less than `-2` and above `2` for unmethylated and methylated reads respectively.
