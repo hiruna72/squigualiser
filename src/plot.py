@@ -840,13 +840,13 @@ def run(args):
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
-            scale_params = []
+            scale_params = {}
             if args.sig_scale == "scaledpA":
                 if not args.no_pa:
                     raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
                 for tag in ["sc", "sh"]:
                     if sam_record.has_tag(tag):
-                        scale_params[tag] = sam_record.get_tag(tag).split(',')
+                        scale_params[tag] = sam_record.get_tag(tag)
                     else:
                         raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
 
@@ -958,7 +958,12 @@ def run(args):
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
-            if 'ss' not in paf_record.tags:
+            moves_string = ""
+            for i in range(12, len(paf_record)):
+                tag = paf_record[i].split(':')[0]
+                if tag == "ss":
+                    moves_string = paf_record[i].split(':')[2]
+            if moves_string == "":
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
             data_is_rna = 0
@@ -1050,12 +1055,13 @@ def run(args):
                 if not args.no_pa:
                     raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
                 for tag in ["sc", "sh"]:
-                    if tag not in paf_record.tags:
+                    for i in range(12, len(paf_record)):
+                        if tag == paf_record[i].split(':')[0]:
+                            scale_params[tag] = float(paf_record[i].split(':')[2])
+                    if tag not in scale_params:
                         raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
-                    scale_params[tag] = paf_record.tags[tag]
             y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
-            moves_string = paf_record.tags['ss'][2]
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
