@@ -551,6 +551,8 @@ def run(args):
                     continue
                 if read_id not in set(sequence_reads.keys()):
                     raise Exception("Error: read_id {} is not found in {}".format(read_id, args.file))
+                if 'ss' not in paf_record.tags:
+                    raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
                 data_is_rna = 0
                 if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
@@ -624,13 +626,22 @@ def run(args):
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
 
-                y = plot_utils.scale_signal(y, args.sig_scale)
-
                 scaling_str = "no scaling"
-                if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+                if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                     scaling_str = args.sig_scale
                 elif not args.sig_scale == "":
                     raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+
+                scale_params = {}
+                if args.sig_scale == "scaledpA":
+                    if not args.no_pa:
+                        raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
+                    for tag in ["sc", "sh"]:
+                        if tag not in paf_record.tags:
+                            raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
+                        scale_params[tag] = paf_record.tags[tag][2]
+
+                y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
                 strand_dir = "(DNA 5'->3')"
                 if data_is_rna == 1:
@@ -737,7 +748,8 @@ def run(args):
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
-
+            if not sam_record.has_tag("ss"):
+                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
             ref_seq_len = 0
             data_is_rna = 0
             start_index = -1
@@ -822,12 +834,23 @@ def run(args):
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
 
-            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+
+            scale_params = []
+            if args.sig_scale == "scaledpA":
+                if not args.no_pa:
+                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
+                for tag in ["sc", "sh"]:
+                    if sam_record.has_tag(tag):
+                        scale_params[tag] = sam_record.get_tag(tag).split(',')
+                    else:
+                        raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
+
+            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -935,6 +958,9 @@ def run(args):
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
+            if 'ss' not in paf_record.tags:
+                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
+
             data_is_rna = 0
             start_index = int(paf_record[START_RAW])
             end_index = int(paf_record[END_RAW])
@@ -1013,19 +1039,23 @@ def run(args):
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
 
-            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
 
-            for i in range(12, len(paf_record)):
-                tag = paf_record[i][:2]
-                if tag == "ss":
-                    moves_string = paf_record[i][5:]
-            if moves_string == "":
-                raise Exception("Error: ss tag was not found")
+            scale_params = {}
+            if args.sig_scale == "scaledpA":
+                if not args.no_pa:
+                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
+                for tag in ["sc", "sh"]:
+                    if tag not in paf_record.tags:
+                        raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
+                    scale_params[tag] = paf_record.tags[tag]
+            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+
+            moves_string = paf_record.tags['ss'][2]
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
@@ -1119,7 +1149,7 @@ def argparser():
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
     parser.add_argument('--fixed_width', required=False, action='store_true', help="plot with fixed base width")
-    parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
+    parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")

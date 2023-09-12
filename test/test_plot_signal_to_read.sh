@@ -30,13 +30,15 @@ EXP_DIR="${REL_PATH}/data/exp/plot"
 testcase_0s() {
   TESTCASE=0.1
   info "testcase:$TESTCASE - help"
-  python src/plot.py && die "testcase:$TESTCASE failed"
+  squigualiser plot && die "testcase:$TESTCASE failed"
 
   TESTCASE=0.2
   info "testcase:$TESTCASE - help"
-  python src/plot.py --help && die "testcase:$TESTCASE failed"
+  squigualiser plot --help || die "testcase:$TESTCASE failed"
 }
 testcase_1s() {
+  RAW_DIR="${REL_PATH}/data/raw/plot"
+
   TESTCASE=1.1
   info "testcase:$TESTCASE - read-signal plot"
   FASTA="${RAW_DIR}/one_read/read.fasta"
@@ -45,7 +47,7 @@ testcase_1s() {
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   BASE_SHIFT=0
-  python src/plot.py --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.2
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -54,7 +56,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0.paf"
   REGION="1-20"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.3
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -63,7 +65,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0.paf"
   REGION="10-40"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.4
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -71,7 +73,7 @@ testcase_1s() {
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m0.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.5
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -80,7 +82,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m0.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.6
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -89,7 +91,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m1.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.7
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -98,7 +100,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m6.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.9
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -107,7 +109,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m8.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.10
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -116,7 +118,7 @@ testcase_1s() {
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k9m8.paf"
   REGION="10-268"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.11
   info "testcase:$TESTCASE - read-signal plot region specified"
@@ -124,7 +126,7 @@ testcase_1s() {
   SIGNAL="${RAW_DIR}/simulate_reads/r1/sim.blow5"
   ALIGNMENT="${RAW_DIR}/simulate_reads/r1/sim.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot --no_pa -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=1.12
   info "testcase:$TESTCASE - read-signal plot"
@@ -134,7 +136,7 @@ testcase_1s() {
   REGION=""
   SCALING="medmad"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
   TESTCASE=1.13
   info "testcase:$TESTCASE - read-signal plot"
@@ -144,7 +146,7 @@ testcase_1s() {
   REGION=""
   SCALING="znorm"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
   TESTCASE=1.14
   info "testcase:$TESTCASE - read-signal plot"
@@ -154,7 +156,7 @@ testcase_1s() {
   REGION=""
   SCALING="new_scaling"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --sig_scale ${SCALING} && die "testcase:$TESTCASE failed"
 
   TESTCASE=1.15
   info "testcase:$TESTCASE - read-signal plot"
@@ -162,10 +164,12 @@ testcase_1s() {
   SIGNAL="${RAW_DIR}/one_read/read.slow5"
   ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0.paf"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width   --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width   --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
 
 }
 testcase_2s() {
+  RAW_DIR="${REL_PATH}/data/raw/plot"
+
   TESTCASE=2.1
   info "testcase:$TESTCASE - resquiggle read-signal plot"
   FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
@@ -173,7 +177,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.2
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -182,7 +186,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.3
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -191,7 +195,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION="900-1495"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.4
   info "testcase:$TESTCASE - resquiggle read-signal plot"
@@ -200,9 +204,11 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION="1483-1495"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 }
 testcase_3s() {
+  RAW_DIR="${REL_PATH}/data/raw/plot"
+
   RAW_DIR="${RAW_DIR}/rna/t0"
   TESTCASE=3.1
   info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
@@ -212,7 +218,7 @@ testcase_3s() {
   REGION=""
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  squigualiser plot --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=3.2
   info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
@@ -222,7 +228,7 @@ testcase_3s() {
   REGION="1300-1563"
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  squigualiser plot --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
 
   TESTCASE=3.3
   info "testcase:$TESTCASE - resquiggle RNA read-signal plot"
@@ -232,13 +238,48 @@ testcase_3s() {
   REGION="1300-1563"
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  python src/plot.py --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+  squigualiser plot --rna -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --region ${REGION} --tag_name "testcase-${TESTCASE}" --read_id ${READ_ID}|| die "testcase:$TESTCASE failed"
+}
+testcase_x4s() {
+  RAW_DIR="${REL_PATH}/data/raw/plot"
+
+  TESTCASE=x4.1
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0.paf"
+  REGION=""
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  BASE_SHIFT=0
+  squigualiser plot --sig_scale "scaledpA" --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+
+  TESTCASE=x4.2
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0_scaledpA.paf"
+  REGION=""
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  BASE_SHIFT=0
+  squigualiser plot --no_pa --sig_scale "scaledpA" --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" && die "testcase:$TESTCASE failed"
+
+  TESTCASE=x4.3
+  info "testcase:$TESTCASE - read-signal plot"
+  FASTA="${RAW_DIR}/one_read/read.fasta"
+  SIGNAL="${RAW_DIR}/one_read/read.slow5"
+  ALIGNMENT="${RAW_DIR}/one_read/reform/r1k1m0_scaledpA.paf"
+  REGION=""
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  BASE_SHIFT=0
+  squigualiser plot --sig_scale "scaledpA" --base_shift ${BASE_SHIFT} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" || die "testcase:$TESTCASE failed"
+
 }
 
 testcase_0s #basic
 testcase_1s #signal-read
 testcase_2s #resquiggle
 testcase_3s #RNA
+testcase_x4s #scalings
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
