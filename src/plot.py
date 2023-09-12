@@ -1135,6 +1135,8 @@ def run(args):
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
     print("Number of plots: {}".format(num_plots))
+    if num_plots == 0:
+        print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
 
     s5.close()
 def argparser():
