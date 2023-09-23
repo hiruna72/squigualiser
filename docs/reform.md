@@ -12,7 +12,7 @@ Optionally the user can also provide `-k` and `-m` values. The argument  `--prof
 ```
 ALIGNMENT=reform_output.paf
 PROFILE="guppy_dna_r10.4.1_e8.2_400bps_fast"
-squigualiser reform -c --bam out.sam -o ${ALIGNMENT} --profile ${PROFILE} 
+squigualiser reform -c --bam basecalls.sam -o ${ALIGNMENT} --profile ${PROFILE} 
 
 KMER_LENGTH=1
 SIG_MOVE_OFFSET=0
@@ -39,8 +39,8 @@ Information regarding `calcualte_offsets` is documented at [calculate_offsets](c
 
 The ASCII BYTE count ratio between the two formats can be easily calculated using the following bash commands.
 ```
-BASECALLER_MOVES_FILE=
-REFORM_FILE=
+BASECALLER_MOVES_FILE=basecalls.sam
+REFORM_FILE=reform_output.paf
 mv_array_size=$(samtools view ${BASECALLER_MOVES_FILE} | awk '{for(i=5;i<=NF;i++){if($i~/mv/){a=$i}} print a}' | wc -c)
 ss_array_size=$(cat ${REFORM_FILE} | awk '{for(i=5;i<=NF;i++){if($i~/ss:Z:/){a=$i}} print a}' | wc -c)
 awk -v var1=${mv_array_size} -v var2=${ss_array_size} 'BEGIN { print  ( var1 / var2 ) }'
@@ -50,5 +50,5 @@ awk -v var1=${mv_array_size} -v var2=${ss_array_size} 'BEGIN { print  ( var1 / v
 
 Reform can also output a custom TSV format for human readability (not supported for plotting):
 ```
-squigualiser reform -k ${KMER_LENGTH} -mt ${SIG_MOVE_OFFSET} --bam basecalls.sam -o reform_output.tsv
+squigualiser reform -k ${KMER_LENGTH} -m ${SIG_MOVE_OFFSET} --bam basecalls.sam -o reform_output.tsv
 ```
