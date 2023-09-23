@@ -1,10 +1,9 @@
 # squigualiser
 
-A simple tool to Visualise nanopore raw signal-base alignment.
+squigualiser is a tool to Visualise nanopore raw signal-base alignment.
+signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 Google Chrome is the recommended web browser to visualise these plots.
-
-signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 ![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
@@ -23,7 +22,7 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 # Table of Contents
 1. [Quickstart](#quickstart)
-2. [Setup](#setup)
+2. [Advanced Setup](#advanced-setup)
 3. [Signal to read visualisation](#signal-to-read-visualisation)
    1. [Option 1 - Using basecaller move table](#option-1---basecaller-move-table)
    2. [Option 2 - Using f5c resquiggle](#option-2---f5c-resquiggle)
@@ -36,53 +35,42 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 6. [Plot multiple tracks](#plot-multiple-tracks)
 7. [BED annotations](#bed-annotations)
 8. [Squigualiser GUI](#Squigualiser-gui)
-9. [Notes](#notes)
-10. [Guppy move table explanation](#guppy-move-table-explanation)
-11. [Base shift](#base-shift)
-12. [Signal scaling](#signal-scaling)
-13. [Plot conventions](#conventions-not-finalised)
-14. [Example](#example)
+9. [Visualisation Enhancements](#Visualisation-Enhancements)
+   1. [Base shift](#base-shift)
+   2. [Signal scaling](#signal-scaling)
+10. [Plot conventions](#plot-conventions)
+11. [Notes](#notes)
+12. [Examples](#example)
+
 
 ## Quickstart
-````
-python3.8 -m venv venv3
-source venv3/bin/activate
-pip install --upgrade pip
 
-pip install squigualiser
-
-squigualiser --help
-````
-<details open><summary>Or use the pre-compiled binary release for common Linux distributions</summary>
+The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippent of commands for your operating system.
+<details close><summary>For Linux distributions</summary>
 <div markdown=1>
-
 ```
 wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
-
 </div>
 </details>
-<details><summary>Or use the pre-compiled binary release for common macOS distributions</summary>
+<details><summary>For macOS (Apple Silicon) distributions</summary>
 <div markdown=1>
-
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
-# or use curl 
 curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
-
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
-
 </div>
 </details>
 
+</br>
 
-For a quick test run the following
+
+For a quick test run the following:
 ````
 wget https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz
 # or use curl
@@ -90,15 +78,33 @@ curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sa
 
 tar xf sample_dataset.tar.gz
 ./squigualiser plot_pileup -f ref.fasta -s reads.blow5 -a eventalign.bam -o dir_out --region chr1:92,778,040-92,782,120 --tag_name "test_0"
-
 ````
 
 `export PATH=[path_to_squigualiser_dir]:$PATH` to execute `squigualiser` from any location.
 
+You may refer to [advanced setup](#advanced-setup) below for instructions on installing using pip, conda or source.
 
 
-## Setup
-<details open><summary>using python environment (tested with python 3.8.0, should work with anything higher as well)</summary>
+## Advanced setup
+
+Clock on the arrow to expand the relevant section.
+
+<details close><summary>Using python environment</summary>
+<div markdown=1>
+
+Squigualiser has been tested with python 3.8.0, should work with anything higher as well. For installing relevant python versions, see the troubleshoot section below.
+
+````
+python3.8 -m venv venv3
+source venv3/bin/activate
+pip install --upgrade pip
+pip install squigualiser
+squigualiser --help
+````
+</div>
+</details>
+
+<details close><summary>Using source code</summary>
 <div markdown=1>
 
 ````
@@ -117,7 +123,7 @@ squigualiser --help
 </div>
 </details>
 
-<details><summary>using conda environment</summary>
+<details><summary>Using conda environment</summary>
 <div markdown=1>
 
 ````
@@ -184,7 +190,7 @@ SLOW5 files compressed with *zstd* offer smaller file size and better performanc
 ````
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
-e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out 
+e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
 
 # slow5-dorado (tested with v0.2.1)
 slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
@@ -240,7 +246,7 @@ FASTQ=reads.fastq
 SIGNAL_FILE=reads.blow5
 ALIGNMENT=resquiggle.paf
 
-f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT} 
+f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 ````
 * Refer [Note(2)](#notes) for more information about `KMER_MODEL`.
 * Refer [Note(3)](#notes) for more information about RNA.
@@ -283,7 +289,7 @@ squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} 
 </details>
 
 ## Signal to reference visualisation
-#### Option 1 - basecaller move table 
+#### Option 1 - basecaller move table
 <details><summary>Steps for using move table generated by the basecaller</summary>
 <div markdown=1>
 
@@ -292,7 +298,7 @@ squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} 
 ````
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
-e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out 
+e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
 
 # slow5-dorado (tested with v0.2.1)
 slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
@@ -356,7 +362,7 @@ squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} 
 <details><summary>Steps for using f5c eventalign</summary>
 <div markdown=1>
 
-1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).   
+1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).
 2. Align reads to reference genome
 
 ````
@@ -370,7 +376,7 @@ For RNA
 minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
 
 ````
-  
+
 3. create f5c index
 
 ````
@@ -431,19 +437,19 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 ````
 REF=ref.fasta                 #reference
 ALIGNMENT=sorted_sim.paf.gz   #sorted bgzip compressed PAF file containing signal to reference alignment
-SIGNAL_FILE=sim.blow5         #simulated raw signals   
+SIGNAL_FILE=sim.blow5         #simulated raw signals
 NUM_READS=50                  #number of reads to simulate
 
 For DNA
 squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
 sort -k6,6 -k8,8n sim.paf -o sorted_sim.paf
-bgzip sorted_sim.paf 
+bgzip sorted_sim.paf
 tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
 
 For RNA
 squigulator -x rna-r9-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
 sort -k6,6 -k9,9n sim.paf -o sorted_sim.paf
-bgzip sorted_sim.paf 
+bgzip sorted_sim.paf
 tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 
 ````
@@ -477,7 +483,7 @@ For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/pl
 
 ![image](docs/figures/plot_tracks/plot_tracks.png)
 
-The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input. 
+The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input.
 
 The input file describes the number of commands, the dimension of each track, and the pileup commands.
 
@@ -523,6 +529,26 @@ python src/server.py
 </div>
 </details>
 
+## Visualisation Enhancements
+
+### Base shift
+User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left.
+However, the user is adviced to use `--profile` (documented [here](docs/profiles.md)) which automatically sets the `--base_shift`.
+For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
+
+### Signal scaling
+The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+
+
+## Plot Conventions
+![image](docs/figures/plot_description/plot_description.png)
+* **A** is a descriptive tag name to identify the plot.
+* **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
+* **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
+* **D** indicates the true sequencing direction of the signals.
+
+
+
 ## Notes
 
 1. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
@@ -536,31 +562,13 @@ python src/server.py
    samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
    ```
 7. Squigulator's signal simulation is a good way to understand the nature of the alignments. Please refer to the documentation about [real_vs_simulated_signal](docs/real_vs_simulated_signal.md).
+8. For a explanation of the Guppy move table explanation see please refer [here](docs/move_table.md).
 
-## Base shift
-User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left. 
-However, the user is adviced to use `--profile` (documented [here](docs/profiles.md)) which automatically sets the `--base_shift`.
-For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
-
-## Signal scaling
-The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
-
-
-## Guppy move table explanation
-Please refer [here](docs/move_table.md)
 
 ## Example
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
-
-## Conventions
-![image](docs/figures/plot_description/plot_description.png)
-* **A** is a descriptive tag name to identify the plot.
-* **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
-* **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
-* **D** indicates the true sequencing direction of the signals.
-
 
 ## Acknowledgement
 Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel)., [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)
