@@ -40,35 +40,36 @@ Google Chrome is the recommended web browser to visualise these plots.
    2. [Signal scaling](#signal-scaling)
 10. [Plot conventions](#plot-conventions)
 11. [Notes](#notes)
-12. [Examples](#example)
+12. [Examples](#examples)
 
 
 ## Quickstart
 
-The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippent of commands for your operating system.
-<details close><summary>For Linux distributions</summary>
+The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippet of commands for your operating system.
+<details open><summary>For Linux distributions</summary>
 <div markdown=1>
+
 ```
 wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
+
 </div>
 </details>
 <details><summary>For macOS (Apple Silicon) distributions</summary>
 <div markdown=1>
+   
 ```
 curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
+
 </div>
 </details>
-
-</br>
-
 
 For a quick test run the following:
 ````
@@ -82,18 +83,17 @@ tar xf sample_dataset.tar.gz
 
 `export PATH=[path_to_squigualiser_dir]:$PATH` to execute `squigualiser` from any location.
 
-You may refer to [advanced setup](#advanced-setup) below for instructions on installing using pip, conda or source.
+You can take a look at [advanced setup](#advanced-setup) below for instructions on installing using pip, conda or source.
 
 
 ## Advanced setup
 
-Clock on the arrow to expand the relevant section.
+Click on the arrow to expand the relevant section.
 
 <details close><summary>Using python environment</summary>
+   
 <div markdown=1>
-
-Squigualiser has been tested with python 3.8.0, should work with anything higher as well. For installing relevant python versions, see the troubleshoot section below.
-
+    
 ````
 python3.8 -m venv venv3
 source venv3/bin/activate
@@ -101,6 +101,7 @@ pip install --upgrade pip
 pip install squigualiser
 squigualiser --help
 ````
+Squigualiser has been tested with python 3.8.0, which should also work with anything higher. For installing relevant python versions, see the troubleshoot section below.
 </div>
 </details>
 
@@ -565,7 +566,7 @@ The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By pr
 8. For a explanation of the Guppy move table explanation see please refer [here](docs/move_table.md).
 
 
-## Example
+## Examples
 The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
