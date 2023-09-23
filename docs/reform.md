@@ -1,16 +1,15 @@
 # Reform
 
-The format how the moves information stores in the [move table](move_table.md) is not generalised. That is a move that is not a multiple of the stride cannot be stored in that format.
-A more generalised format is documented [here](https://hasindu2008.github.io/f5c/docs/output#ss-tag). In addition to the flexibility this format has a greater compression ratio (~1.6) in ASCII format compared to the move table format.
+The [move table](move_table.md) format used by ONT basecallers to store the move information is not generalised. For instance, a move that is not a multiple of the stride, cannot be stored in the move table format. A more generalised format to store the signal to read/reference alignment is documented [here](https://hasindu2008.github.io/f5c/docs/output#ss-tag), which we would refer to as the **ss tag**. In addition to the flexibility, this **ss tag** format has a greater compression ratio (~1.6) in ASCII format compared to the move table format.
 Squigualiser uses this format as the input to generate plots.
-Hence, before proceeding to create plots the move table has to be converted to the required format.
-This is done using the tool `reform`.
-The two important parameters `reform` takes are `kmer_length or k` and `sig_move_offset or m`.
+Hence, before proceeding to create plots, the move table has to be converted to the required **ss tag** format.
+This is done using the sub tool `reform` in squigualiser.
+The two important parameters `reform` take are `kmer_length or k` and `sig_move_offset or m`.
 This determines the base colour adjustment to the signal jumps. More information is discussed in [pore_model document](pore_model.md) and [using base shift](base_shift_and_eventalignment.md).
 
-The user can provide `--profile` argument to deteremine the kmer  length and the signal move offset using preset values.
+The user can provide `--profile` argument to determine the kmer length and the signal move offset using preset values.
 Optionally the user can also provide `-k` and `-m` values.
-The argument  `--profile` will override `-k` and/or `-m` values if all are provided.
+The argument  `--profile` will override `-k` and/or `-m` values, if all arguments are provided.
 
 ```
 ALIGNMENT=reform_output.paf
@@ -19,10 +18,15 @@ squigualiser reform -c --bam out.sam -o ${ALIGNMENT} --profile ${PROFILE}
 
 KMER_LENGTH=1
 SIG_MOVE_OFFSET=0
-squigualiser reform --kmer_length ${KMER_LENGTH} --sig_move_offset ${SIG_MOVE_OFFSET} -c --bam out.sam -o ${ALIGNMENT}
+squigualiser reform --kmer_length ${KMER_LENGTH} --sig_move_offset ${SIG_MOVE_OFFSET} -c --bam basecalls.sam -o ${ALIGNMENT}
 ```
 
-## Precomputed kmer lengths and signal moves offsets
+Reform can also output a custom TSV format for human readability (not supported for plotting):
+```
+squigualiser reform --kmer_length ${KMER_LENGTH} --sig_move_offset ${SIG_MOVE_OFFSET} --bam basecalls.sam -o reform_output.tsv
+```
+
+## Precomputed kmer lengths and signal move offsets
 The following precomputed kmer length and signal move offset values are available as profiles.
 
 | profile                            | kmer length | sig move offset |
