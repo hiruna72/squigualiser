@@ -33,9 +33,9 @@ F5C=f5c
 BGZIP=bgzip
 TABIX=tabix
 
-GUPPY=
-BUTTERY_EEL_ENV_PATH=
-REFERENCE=
+GUPPY="none"
+BUTTERY_EEL_ENV_PATH="none"
+REFERENCE=""
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -50,11 +50,13 @@ SIGNAL_FILE="reads.blow5"
 
 READ_ID="251256d6-1c5d-4756-91bf-8fa5dc6fd1c8"
 READ_REGION=${READ_ID}:1-500
-REF_REGION="chr1:92,779,392-92,779,445"
-SIM_REGION="sim_ref:1-45"
+REF_REGION="chr1:92778190-92778210"
+SIM_REGION="sim_ref:1-20"
 SIG_SCALE="--sig_scale znorm"
 
 ## variable the user can change end here
+
+READ_ID_LIST="read_id.list"
 
 OUTPUT_DIR=${RUN_NO}_${MODEL_TO_USE}
 BASECALL_DIR="${OUTPUT_DIR}/basecall_${MODEL_TO_USE}"
@@ -70,6 +72,10 @@ SEQUENCE_FILE="${OUTPUT_DIR}/pass.fastq"
 MAPPED_BAM="${OUTPUT_DIR}/mapped.bam"
 REALIGN_BAM="${OUTPUT_DIR}/realigned.bam"
 EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
+EVENTALIGN_PAF="${OUTPUT_DIR}/eventalign.paf"
+EVENTALIGN_PAF_FILTERED="${OUTPUT_DIR}/eventalign_filtered.paf"
+EVENTALIGN_PAF_FILTERED_GZ="${OUTPUT_DIR}/eventalign_filtered.paf.gz"
+SORTED_EVENTALIGN_PAF="${OUTPUT_DIR}/sorted_eventalign.paf"
 
 METH_TSV="${OUTPUT_DIR}/meth.tsv"
 METH_FREQ_TSV="${OUTPUT_DIR}/meth-freq.tsv"
@@ -245,8 +251,10 @@ f5c_eventalign() {
 	info "f5c eventalign..."
 	
 	f5c index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
-	f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
-	${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
+	# f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	# ${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
+
+	f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} -c -o ${EVENTALIGN_PAF}
 
 }
 
@@ -265,11 +273,17 @@ plot_eventalign_and_sim() {
 	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
 	info "plotting eventalign and simulated signals"
 
+	sort -k6,6 -k8,8n ${EVENTALIGN_PAF} -o ${SORTED_EVENTALIGN_PAF}
+	cat ${SORTED_EVENTALIGN_PAF} | grep -f ${READ_ID_LIST} > ${EVENTALIGN_PAF_FILTERED}
+	bgzip -f ${EVENTALIGN_PAF_FILTERED}
+	tabix -0 -b 8 -e 9 -s 6 ${EVENTALIGN_PAF_FILTERED_GZ}
+
 	TRACK_COMMAND_FILE="${SQUIG_PLOT_DIR}/track_commands_${FUNCNAME[0]}.txt"
 	rm -f ${TRACK_COMMAND_FILE}
 	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
 	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
-	echo "squigualiser plot_pileup --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_BAM} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 6  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	# echo "squigualiser plot_pileup --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_PAF_FILTERED_GZ} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 20  --base_shift -5 ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_PAF_FILTERED_GZ} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 20  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
 	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name ${MODEL_TO_USE}_sim_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
 
 	cat ${TRACK_COMMAND_FILE}

@@ -33,9 +33,9 @@ F5C=f5c
 BGZIP=bgzip
 TABIX=tabix
 
-GUPPY=
-BUTTERY_EEL_ENV_PATH=
-REFERENCE=
+GUPPY="none"
+BUTTERY_EEL_ENV_PATH="none"
+REFERENCE=""
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -48,10 +48,10 @@ PROFILE_TO_DETERMINE_BASE_SHIFT="kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
 
 SIGNAL_FILE="reads.blow5"
 
-READ_ID="251256d6-1c5d-4756-91bf-8fa5dc6fd1c8"
+READ_ID="35142bde-548d-4f55-bf50-21c4cdd254da"
 READ_REGION=${READ_ID}:1-500
-REF_REGION="chr1:92,778,040-92,782,120"
-SIM_REGION="sim_ref:1-500"
+REF_REGION="chr1:92,783,745-92,783,946"
+SIM_REGION="sim_ref:1-190"
 SIG_SCALE="--sig_scale znorm"
 
 ## variable the user can change end here
@@ -70,6 +70,9 @@ SEQUENCE_FILE="${OUTPUT_DIR}/pass.fastq"
 MAPPED_BAM="${OUTPUT_DIR}/mapped.bam"
 REALIGN_BAM="${OUTPUT_DIR}/realigned.bam"
 EVENTALIGN_BAM="${OUTPUT_DIR}/eventalign.bam"
+EVENTALIGN_PAF="${OUTPUT_DIR}/eventalign.paf"
+
+NANOPOLISH_PROJECTED_PAF="nanopolish_signal_projection/signal_projection.paf"
 
 
 [ "${REFERENCE}" ] || die "edit the reference genome path (variable REFERENCE) in the script"
@@ -223,7 +226,7 @@ plot_realign_and_sim() {
 	rm -f ${TRACK_COMMAND_FILE}
 	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
 	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
-	echo "squigualiser plot_pileup -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${REALIGN_BAM} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_realign --plot_limit 6 ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${REALIGN_BAM} --region ${REF_REGION} --tag_name Method:realign --plot_limit 6 ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
 	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name ${MODEL_TO_USE}_sim_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
 
 	cat ${TRACK_COMMAND_FILE}
@@ -238,7 +241,8 @@ f5c_eventalign() {
 	info "f5c eventalign..."
 	
 	${F5C} index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
-	${F5C} eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	# ${F5C} eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	${F5C} eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} -c -o ${EVENTALIGN_PAF}
 	${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
 
 }
@@ -251,7 +255,7 @@ plot_eventalign_and_sim() {
 	rm -f ${TRACK_COMMAND_FILE}
 	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
 	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
-	echo "squigualiser plot_pileup -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_BAM} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 6  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_BAM} --region ${REF_REGION} --tag_name Method:eventalign --plot_limit 6  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
 	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name ${MODEL_TO_USE}_sim_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
 
 	cat ${TRACK_COMMAND_FILE}
@@ -300,6 +304,30 @@ plot_realign_forward_reverse() {
 
 }
 
+plot_nanopolish_projected_signal(){
+	sort -k6,6 -k8,8n ${NANOPOLISH_PROJECTED_PAF} -o ${OUTPUT_DIR}/sorted_projected.paf
+	bgzip ${OUTPUT_DIR}/sorted_projected.paf
+	tabix -0 -b 8 -e 9 -s 6 ${OUTPUT_DIR}/sorted_projected.paf.gz
+
+
+	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
+	info "plotting projected and simulated signals"
+
+	TRACK_COMMAND_FILE=${SQUIG_PLOT_DIR}/track_commands_${FUNCNAME[0]}.txt
+	rm -f ${TRACK_COMMAND_FILE}
+	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
+	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${OUTPUT_DIR}/sorted_projected.paf.gz --region ${REF_REGION} --tag_name Method:nanopolish_signal_projection --plot_limit 6 ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name Squigualator_simulated_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
+
+	cat ${TRACK_COMMAND_FILE}
+
+	TESTCASE="${MODEL_TO_USE}_nanopolish_projected_vs_sim"
+	OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+	${PLOT_TRACK_TOOL} --shared_x -f ${TRACK_COMMAND_FILE} -o ${SQUIG_PLOT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+}
+
 ## stage 1
 
 # create_output_dir
@@ -326,5 +354,6 @@ plot_realign_forward_reverse() {
 # plot_eventalign_and_sim
 # plot_eventalign_forward_reverse
 # plot_realign_forward_reverse
+plot_nanopolish_projected_signal
 
 info "success"

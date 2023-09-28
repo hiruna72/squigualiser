@@ -1,6 +1,6 @@
 import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, RawTextHelpFormatter
-from src import plot, reform, realign, plot_pileup, plot_tracks, calculate_offsets
+from src import plot, reform, realign, plot_pileup, plot_tracks, calculate_offsets, metric
 from ._version import __version__
 
 class MyParser(ArgumentParser):
@@ -9,7 +9,7 @@ class MyParser(ArgumentParser):
         self.print_help(sys.stderr)
         sys.exit(2)
 
-modules = ['plot', 'reform', 'realign', 'plot_pileup', 'plot_tracks', 'calculate_offsets']
+modules = ['plot', 'reform', 'realign', 'plot_pileup', 'plot_tracks', 'calculate_offsets', 'metric']
 module_help = {
     'plot': {'help': 'Plot read/reference - signal alignments.'},
     'reform': {'help': "Convert basecaller's move table to ss string format."},
@@ -17,6 +17,7 @@ module_help = {
     'plot_pileup': {'help': 'Plot a reference - signal alignment pileup.'},
     'plot_tracks': {'help': 'Plot multiple reference - signal alignment pileup tracks.'},
     'calculate_offsets': {'help': 'A utility program to calculate the most significant base index given a kmer model or a read - signal alignment.'},
+    'metric': {'help': 'A utility program to calculate some statistics of the signal alignment.'},
 }
 version = "squigualiser     {}".format(__version__)
 
