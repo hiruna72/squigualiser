@@ -1,7 +1,7 @@
 # RNA visualisation
 
 Here we will look at synthetic direct RNA data from ONT `rna_r9.4.1_70bps` chemistry.
-All the Us in the RNA strands are methylated. 
+We thank Dr. Helen Gunter and her team at https://gih.uq.edu.au/ for providing early access to this data.
 
 | Dataset name | SRA accession description                | Preparation                                   | Location of FAST5 data                                                         |
 |--------------|------------------------------------------|-----------------------------------------------|--------------------------------------------------------------------------------|
@@ -38,20 +38,20 @@ By comparing the reference-read alignments on IGV we can observe that the baseca
 ![image](figures/RNA_visualisation/igv_methylatedU.png)
 *Figure 2: metylatedU read alignment*
 
-Now let's proceed to the signal-reference alignment stage.
+Now let's proceed to the signal alignment stage.
 
 Squigualiser's [realign method](realign.md) is robust to the methylated Us as it uses the basecaller's move table (does not matter if it basecalled as a C or U as long as it is a move).
 However, the signal move boundaries do not get refined when this method is used.
 
 ![image](figures/RNA_visualisation/realign_comparison.png)
-*Figure 3: signal-reference alignment using realign [link](https://hiruna72.github.io/squigualiser/docs/figures/RNA_visualisation/plot_realign_comparison.html)*
+*Figure 3: signal alignment using realign [link](https://hiruna72.github.io/squigualiser/docs/figures/RNA_visualisation/plot_realign_comparison.html)*
 
-Fig. 4 shows a comparison between the unmethylated and methylatedU data.
+Fig. 4 shows a comparison between the unmethylated and methylatedU data signal alignment using f5c eventalign.
 
 ![image](figures/RNA_visualisation/eventalign_comparison2.png)
-*Figure 4: unmethylated and metylatedU signal-reference alignment using f5c eventalign [link](https://hiruna72.github.io/squigualiser/docs/figures/RNA_visualisation/plot_eventalign_comparison.html)*
+*Figure 4: unmethylated and metylatedU data signal alignment using f5c eventalign [link](https://hiruna72.github.io/squigualiser/docs/figures/RNA_visualisation/plot_eventalign_comparison.html)*
 
-Both show how the signal alignment is erroneous around Us in the methylatedU data.
+Fig. 4 shows that the signal alignment is erroneous around Us in the methylatedU data.
 Kmers with methylated Us have different current levels than the kmers with unmethylated Us. 
 Since f5c eventalign relies on pore model it is critical that the pore model has the updated current levels for the methylated kmers.
 Therefore, we used nanopolish train sub-tool to train a pore model for the methylated data.
