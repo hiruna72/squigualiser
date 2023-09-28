@@ -62,7 +62,7 @@ However, the signal alignment using trained model (round 1) is far better than t
 ![image](figures/RNA_visualisation/rounds.png)
 *Figure 5: f5c eventalign alignment using trained models*
 
-![image](figures/RNA_visualisation/eventalign_comparison3.png)
+![image](figures/RNA_visualisation/eventalign_comparison4.png)
 *Figure 6: unmethylated and metylatedU (improved) f5c eventalign alignment*
 
 Fig. 7 takes a closer look at the current level differences of the kmers with U between unmethylated and methylateU datasets.
