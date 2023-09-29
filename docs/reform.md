@@ -23,14 +23,22 @@ squigualiser reform -k ${KMER_LENGTH} -m ${SIG_MOVE_OFFSET} -c --bam basecalls.s
 
 The following precomputed kmer length and signal move offset values are available as profiles in squigualiser.
 
-| profile                            | kmer length (k) | sig move offset (m)|
-|------------------------------------|-------------|-----------------|
-| guppy_dna_r9.4.1_450bps_fast_prom  |           3 |               2 |
-| guppy_dna_r9.4.1_450bps_hac_prom   |           3 |               2 |
-| guppy_dna_r9.4.1_450bps_sup_prom   |           4 |               3 |
-| guppy_dna_r10.4.1_e8.2_400bps_fast |           1 |               0 |
-| guppy_dna_r10.4.1_e8.2_400bps_hac  |           1 |               0 |
-| guppy_dna_r10.4.1_e8.2_400bps_sup  |           1 |               0 |
+These models were available in `ont-guppy_v6.3.7` and hence tested with `ont-guppy_v6.3.7`.
+
+In the newer versions of `ont-guppy` we hope they don't change the model structure for the available ones.
+
+We believe they will release models with proper names so that the old models are still identifiable.
+
+We warmly welcome any pull request updating the following table with dorado models.
+
+| profile                            | kmer length (k) | sig move offset (m) |
+|------------------------------------|-----------------|---------------------|
+| guppy_dna_r9.4.1_450bps_fast_prom  | 3               | 2                   |
+| guppy_dna_r9.4.1_450bps_hac_prom   | 3               | 2                   |
+| guppy_dna_r9.4.1_450bps_sup_prom   | 4               | 3                   |
+| guppy_dna_r10.4.1_e8.2_400bps_fast | 1               | 0                   |
+| guppy_dna_r10.4.1_e8.2_400bps_hac  | 1               | 0                   |
+| guppy_dna_r10.4.1_e8.2_400bps_sup  | 1               | 0                   |
 
 If `reform` errors out with the message `"Error: specified profile is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset."`, then the user is advised to run `calculate_offsets` subtool .
 Information regarding `calcualte_offsets` is documented at [calculate_offsets](calculate_offsets.md).
