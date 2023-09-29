@@ -1,6 +1,6 @@
 # Different Alignments
 
-Here we will look at the 3 different alignments for the same `dna_r10.4.1_e8.2_400bps` signals that align to `chr1:92,783,745-92,783,946`.
+Here we will look at the 3 different signal alignment methods for the same `dna_r10.4.1_e8.2_400bps` signals that align to `chr1:92,783,745-92,783,946`.
 1. Fig.1 - Alignment using [realign method](realign.md)
 2. Fig.2 - Alignment using f5c eventalign method
 3. Fig.3 - Alignment using [nanopolish signal projection method](https://github.com/hiruna72/nanopolish/tree/r10.4-integration). This is dynamic programming based algorithm that uses the [move table](move_table.md) as a guide to generate the alignment.
@@ -21,10 +21,10 @@ Here we will look at the 3 different alignments for the same `dna_r10.4.1_e8.2_4
 These alignments can be compared against each other visually and statistically.
 When the alignment methods are ranked based on the quality of aligning ups and downs of the signal to the moves (refined boundaries); f5c eventalign is at the top with very well refined boundaries followed by nanopolish signal projection.
 Due to the inherent limitation in move table realign has the worst refined boundaries.
-Considering the distortion introduced to the shape of the signal; nanopolish signal projection has the highest distortion level where some kmers have 1 sample move that created straight lines (see G41-G50).
-Overall, f5c eventalign is the best alignment method out of the three alignment methods in this case.
+Considering the distortion introduced to the shape of the signal; nanopolish signal projection has the highest distortion level where some kmers have 1 sample move that created straight lines (see `G41-G50`).
+Overall, f5c eventalign is the best alignment method in this case.
 
 Sub-tool `metric` can be used to infer some basic statistics of the alignments. The output format is explained [here](metric.md).
 The statistics generated for each alignment can be found [here](figures/different_aligments/metric).
-An important observation to make is that the minimum number of samples for a move is 1 for nanopolish signal projection while for the other two alignments it is 3.
-This explains the distortion associated nanopolish signal projection alignment explained above.
+The minimum number of samples for a move is 1 for nanopolish signal projection and 3 for the other two alignments.
+This explains the distortion associated with nanopolish signal projection alignment described above.
