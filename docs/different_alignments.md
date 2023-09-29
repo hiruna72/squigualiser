@@ -1,9 +1,9 @@
 # Different Alignments
 
-Here we will look at the 3 different signal alignment methods for the same `dna_r10.4.1_e8.2_400bps` signals that align to `chr1:92,783,745-92,783,946`.
+Here we will look at the 3 different signal alignment methods for the same `dna_r10.4.1_e8.2_400bps` signals that align to the region `chr1:92,783,745-92,783,946`.
 1. Fig.1 - Alignment using [realign method](realign.md)
 2. Fig.2 - Alignment using f5c eventalign method
-3. Fig.3 - Alignment using [nanopolish signal projection method](https://github.com/hiruna72/nanopolish/tree/r10.4-integration). This is dynamic programming based algorithm that uses the [move table](move_table.md) as a guide to generate the alignment.
+3. Fig.3 - Alignment using [nanopolish signal projection method](https://github.com/hiruna72/nanopolish/tree/r10.4-integration). This is a dynamic programming based algorithm that uses the [move table](move_table.md) as a guide to generate the alignment.
 4. Fig. 4 - Squigulator signal simulation
 
 ![image](figures/different_aligments/method_realign.png)
