@@ -12,6 +12,8 @@
          Plot multiple reference - signal alignment pileup tracks.
 * `calculate_offsets`:<br/>
 		 A utility program to calculate the most significant base index given a kmer model or a read - signal alignment.
+* `metric`:<br/>
+		 A utility program to calculate some statistics of the signal alignment.
 
 ### reform
 
@@ -252,3 +254,60 @@ A utility program to calculate the most significant base index given a kmer mode
    (optional) Specify if RNA reads are used. By default, only DNA is accepted [default value: false].
    The tool will not error out if the data is RNA but if the user failed to specify it.
    It will still generate an incorrect output.
+
+### metric
+
+```
+squigualiser metric [OPTIONS] -f reads.fasta -s reads.slow5 -a reform.paf -o output.tsv
+squigualiser metric [OPTIONS] -f reads.fastq -s reads.slow5 -a reform.paf -o output.tsv
+squigualiser metric [OPTIONS] -f reads.fasta -s reads.slow5 -a realign.sam -o output.tsv
+squigualiser metric [OPTIONS] -f reads.fasta -s reads.slow5 -a realign.paf.gz -o output.tsv
+```
+
+Parse the ss string to calculate basic statistics of the read/reference - signal alignments.
+The arguments are almost the same as for `plot` and `plot_pileup` tools.
+Instead of generating figures `metric` will generate statistics after parsing the ss string.
+[These statistics](metric.md) are written to the output file.
+
+* `-f, --file FILE`:<br/>
+   The sequence file in `fasta/fa/fastq/fq/fq.gz` format.
+* `-r, --read_id STR`
+   (optional) Plot only the read with the read id specified.
+* `-s, --slow5 FILE`
+	Path to slow5 file containing raw signals.
+* `-a, --alignment FILE`
+	For read-signal alignment plots provide the path to `.paf` file generated using `reform`.
+	For reference-signal alignment plots provide the `.sam/.bam` or `.paf.gz` file (generated using `realgin` or `f5c eventalign`).
+* `--region STR`
+	[start-end] 1-based closed interval region to plot.
+	For read-signal alignment eg:`100-200`.
+	For reference-signal alignment eg: `chr1:6811428-6811467` or `chr1:6,811,428-6,811,467`.
+*  `-o, --output FILE `:<br/>
+   Specifies name/location of the output file. A valid relative or absolute path can be provided. Data will be overwritten. [These statistics](metric.md) are written to the output file.
+* `--tag_name STR`
+	(optional) A tag name to easily identify the plot.
+* `--plot_reverse`
+	(optional) Plot only the reverse mapped reads [default value: false].
+* `--rna`
+	(optional) Specify if RNA reads are used. By default, only DNA is accepted [default value: false].
+* `--sig_ref`
+	(optional) Plot signal to reference mapping. Can be mostly discarded. Act as a flag to avoid ploting reference-signal alignment using a `.paf` alignment file [default value: false].
+* `--sig_scale`
+	(optional) Plot the scaled signal.
+	By default, the signal is not scaled but converted to pA values.
+	Supported scalings are: [medmad, znorm].
+	`medmad` is median absolute deviation scaling.  
+	`znorm` is zscore normalization scaling.
+	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
+* `--no_pa`
+	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
+* `--base_shift INT`
+	(optional) The number of bases to shift to align fist signal move [default value: 0]. More information on this can be found at [here](pore_model.md)
+*  `--profile STR`:<br/>
+   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`  
+*  `--list_profile`:<br/>
+    (optional) Print the available profiles and exit.
+* `--plot_limit INT`
+	(optional) the number of plots to be generated [default value: 1000]. 
+* `--sig_plot_limit INT`
+	(optional) The maximum number of signal samples to draw on a plot [default value: 20000].

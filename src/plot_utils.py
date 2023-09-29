@@ -15,6 +15,10 @@ import seaborn as sns
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+def get_base_color_map():
+    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
+    return base_color_map
+
 def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
@@ -93,7 +97,7 @@ def create_figure(args, plot_mode):
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         p_default.toolbar.logo = None
     return p_default
-def scale_signal(y, sig_scale):
+def scale_signal(y, sig_scale, scale_params):
     if sig_scale == "medmad":
         arr = np.ma.array(y).compressed()
         read_median = np.median(arr)
@@ -110,9 +114,12 @@ def scale_signal(y, sig_scale):
         # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
         # Calculate the z-score from scratch
         y = (y - np.mean(y)) / np.std(y)
+    elif sig_scale == "scaledpA":
+        y = (y - scale_params["sh"]) / scale_params["sc"]
     elif not sig_scale == "":
         raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
     return y
+
 profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_5_mer": [-2, -2],
         "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
