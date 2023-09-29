@@ -27,4 +27,5 @@ Overall, f5c eventalign is the best alignment method in this case.
 Sub-tool `metric` can be used to infer some basic statistics of the alignments. The output format is explained [here](metric.md).
 The statistics generated for each alignment can be found [here](figures/different_aligments/metric).
 The minimum number of samples for a move is 1 for nanopolish signal projection and 3 for the other two alignments.
+The mode value of number of samples for a move is also 1 for the nanopolish signal projection.
 This explains the distortion associated with nanopolish signal projection alignment described above.
