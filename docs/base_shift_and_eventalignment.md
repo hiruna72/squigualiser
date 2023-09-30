@@ -8,11 +8,11 @@ The calculation is implemented [here](https://github.com/hiruna72/squigualiser/b
 
 ## Example 1
 * Fig. 1 and 2 have the same `dna_r10.4.1_e8.2_400bps` signal pileup with a base shift of `0` and `-6` respectively.
-* The base colors in Fig. 1 is not nicely aligned to the signal. 
-* Fig. 2 has the signal moving from low to high when a base `T` is met.
-* This is a base shift adjusted plot. Its base shift is `-6` (first 6 bases are not aligned to the signal).
-* The reason Fig. 2 aligns well when the base shift is `-6` can be explained further understanding the pileup. This signal pileup is generated usinng f5c eventalign. How to use f5c eventalign is explained [here](https://github.com/hiruna72/squigualiser#option-2-f5c-eventalign).
-* F5c uses the `dna_r10.4.1_e8.2_400bps` pore model to align the signals. As discussed in [pore_model document](pore_model.md) the most contributing base index is `-6`.
+* The base colors in Fig. 1 do not nicely aligned to the signal. 
+* However, in Fig. 2 the signal is moving from low to high when a base `T` is met.
+* Fig. 2 is a base shift adjusted plot and the base shift is `-6` (first 6 bases are not aligned to the signal).
+* These signal pileups were generated using f5c eventalign. How to use f5c eventalign is explained [here](https://github.com/hiruna72/squigualiser#option-2-f5c-eventalign).
+* F5c used `dna_r10.4.1_e8.2_400bps` pore model to align these signals. Its most contributing base index is `-6` and hence the appropriate base shift in this scenario is also `-6`.
 
 ![image](figures/base_shift/testcase_20.8_base_shift_0.png)
 
