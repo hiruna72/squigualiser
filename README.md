@@ -480,15 +480,11 @@ For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/pl
 
 ![image](docs/figures/plot_tracks/plot_tracks.png)
 
-The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input.
-
-The input file describes the number of commands, the dimension of each track, and the pileup commands.
-
-The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
-
-Setting `plot_heights=*` in the `command_file.txt` or providing the argument `--auto_height` will automatically adjust the track height depending on the number of plots in each track.
-
-Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads. And `-o` or `--output_dir` argument is not necessary (ignored).
+* The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input.
+* The input file describes the number of commands, the dimension of each track, and the pileup commands.
+* The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
+* Setting `plot_heights=*` in the `command_file.txt` or providing the argument `--auto_height` will automatically adjust the track height depending on the number of plots in each track.
+* Note that the only difference between the two commands is that the second command has the additional `--plot_reverse` argument to plot reverse mapped reads. And `-o` or `--output_dir` argument is not necessary (ignored).
 
 ````
 num_commands=2
