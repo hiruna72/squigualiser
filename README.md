@@ -181,7 +181,7 @@ This section explains how you can use squigualiser to visualise a raw signal ali
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 <div markdown=1>
 
-1. Install f5c [v1.3-beta or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
+1. Install f5c [v1.3 or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
 
 2. Run f5c resquiggle
 
@@ -190,9 +190,9 @@ FASTQ=reads.fastq
 SIGNAL_FILE=reads.blow5
 ALIGNMENT=resquiggle.paf
 
-f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
+f5c resquiggle -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 ````
-* Refer [Note(2)](#notes) for more information about `KMER_MODEL`, which is optional.
+* Refer [Note(2)](#notes) for more information about `--kmer-model [KMER_MODEL]`, which is optional.
 * Refer [Note(3)](#notes) for more information about RNA.
 
 3. Plot signal to read alignment
@@ -258,7 +258,7 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 <details><summary>Steps for using Squigulator signal simulation software</summary>
 <div markdown=1>
 
-1. Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2.1 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -q and -c options).
 
@@ -289,7 +289,7 @@ This section explains how you can use squigualiser to visualise a raw signal ali
 <details><summary>Steps for using f5c eventalign</summary>
 <div markdown=1>
 
-1.  Install f5c [v1.3-beta or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
+1.  Install f5c [v1.3 or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
 2. Align reads to reference genome
 
 ````
@@ -404,7 +404,7 @@ squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM
 <details><summary>Steps for using the signal simulation software (SAM output, recommended)</summary>
 <div markdown=1>
 
-1. Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2.1 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -a).
 ```
@@ -549,8 +549,8 @@ The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By pr
 ## Notes
 
 1. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-2. The argument `KMER_MODEL` is optional..
-3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
+2. The optional argument `--kmer-model KMER_MODEL` can be used to specify a custom k-mer model if you wish.
+3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also, provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
 4. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 5. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
 6. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
