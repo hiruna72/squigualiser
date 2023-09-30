@@ -51,8 +51,6 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     label_position = y_min
 
-    # base_color_map = {'A': 'limegreen', 'C': 'blue', 'T': 'red', 'G': 'orange', 'U': 'red', 'N': 'lavender'}
-    base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe'}
     base_x = []
     base_y = []
     base_label = []
@@ -97,7 +95,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
                     base_label_colors.append('black')
                     base_box_details['left'].append(prev_loc)
                     base_box_details['right'].append(prev_loc + draw_data["fixed_base_width"])
-                    base_box_details['fill_color'].append(base_color_map[base])
+                    base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
                 else:
                     base_label_colors.append('red')
                     base_box_details['left'].append(prev_loc)
@@ -160,7 +158,7 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
             base = fasta_sequence[base_index]
             base_box_details['left'].append(previous_location)
             base_box_details['right'].append(location_plot)
-            base_box_details['fill_color'].append(base_color_map[base])
+            base_box_details['fill_color'].append(plot_utils.get_base_color_map()[base])
             line_segment_x.append(location_plot)
             if num_plots == -1 or draw_data['overlap_only']:
                 base_x.append(previous_location)
@@ -430,6 +428,8 @@ def run(args):
                 continue
             if args.read_list != "" and read_id not in read_id_list:
                 continue
+            if not sam_record.has_tag("ss"):
+                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
             ref_seq_len = 0
             data_is_rna = 0
@@ -493,16 +493,21 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if sam_record.is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
             x = []
             x_real = []
@@ -517,13 +522,23 @@ def run(args):
                 x_real = list(range(start_index+1, end_index+1))             # 1based
                 y = read['signal'][start_index:end_index]
 
-            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
                 draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+
+            scale_params = {}
+            if args.sig_scale == "scaledpA":
+                if not args.no_pa:
+                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
+                for tag in ["sc", "sh"]:
+                    if sam_record.has_tag(tag):
+                        scale_params[tag] = sam_record.get_tag(tag)
+                    else:
+                        raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
+            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -649,6 +664,13 @@ def run(args):
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
+            moves_string = ""
+            for i in range(12, len(paf_record)):
+                tag = paf_record[i].split(':')[0]
+                if tag == "ss":
+                    moves_string = paf_record[i].split(':')[2]
+            if moves_string == "":
+                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
             data_is_rna = 0
             start_index = int(paf_record[START_RAW])
@@ -707,16 +729,21 @@ def run(args):
             if data_is_rna == 1:
                 print("plot (RNA 3'->5') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
                 fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_seq.upper()
             else:
                 if record_is_reverse:
                     print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
                     nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
                     # fasta_seq = "".join(nn[n] for n in reversed(fasta_seq))
                     fasta_seq = "".join(nn[n] for n in fasta_seq)
                 else:
                     print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
                     fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                    fasta_seq = fasta_seq.upper()
+            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
+                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
             x = []
             x_real = []
@@ -731,20 +758,24 @@ def run(args):
                 x_real = list(range(start_index + 1, end_index + 1))  # 1based
                 y = read['signal'][start_index:end_index]
 
-            y = plot_utils.scale_signal(y, args.sig_scale)
             scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm":
+            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
                 draw_data["plot_y_margin"] = 0.1
             elif not args.sig_scale == "":
                 raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
+            scale_params = {}
+            if args.sig_scale == "scaledpA":
+                if not args.no_pa:
+                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
+                for tag in ["sc", "sh"]:
+                    for i in range(12, len(paf_record)):
+                        if tag == paf_record[i].split(':')[0]:
+                            scale_params[tag] = float(paf_record[i].split(':')[2])
+                    if tag not in scale_params:
+                        raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
+            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
-            for i in range(12, len(paf_record)):
-                tag = paf_record[i][:2]
-                if tag == "ss":
-                    moves_string = paf_record[i][5:]
-            if moves_string == "":
-                raise Exception("Error: ss tag was not found")
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
             moves = re.split(r',+', moves_string)
@@ -844,6 +875,9 @@ def run(args):
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
     print("Number of plots: {}".format(num_plots))
+    if num_plots == 0:
+        print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
+
     if num_plots > 0:
         if sig_algn_dic["data_is_rna"] == 1:
             sig_dir = " ->"
@@ -909,7 +943,7 @@ def argparser():
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
     parser.add_argument('--plot_num_samples', required=False, action='store_true', help="annotate the number of samples for each move")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
-    parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm]")
+    parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")

@@ -1,59 +1,44 @@
 # squigualiser
 
-A simple tool to Visualise nanopore raw signal-base alignment.
+squigualiser is a tool to Visualise nanopore raw signal-base alignment.
+signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 Google Chrome is the recommended web browser to visualise these plots.
-
-signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 ![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
 
-
-![image](docs/figures/preview.png)
-
-1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
-2. The second read is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-2.1.html)).
-3. The third read is a signal-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
-4. The fourth read (RNA) is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
-
-* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
-* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
+![image](docs/figures/different_aligments/method_eventalign.png)
+*Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`. Click the [link](https://hiruna72.github.io/squigualiser/docs/figures/different_aligments/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html) to open it on your browser.* Go to Section [Examples](#examples) for more examples.
 
 # Table of Contents
 1. [Quickstart](#quickstart)
-2. [Setup](#setup)
+2. [Advanced Setup](#advanced-setup)
 3. [Signal to read visualisation](#signal-to-read-visualisation)
-   1. [Option 1 - Using basecaller move table](#option-1---basecaller-move-table)
-   2. [Option 2 - Using f5c resquiggle](#option-2---f5c-resquiggle)
+   1. [Option 1 - Using f5c resquiggle](#option-1---f5c-resquiggle)
+   2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation)
-4. [Signal to reference visualisation](#signal-to-reference-visualisation)
-   1. [Option 1 - Using basecaller move table](#option-1---basecaller-move-table-1)
-   2. [Option 2 - Using f5c eventalign](#option-2-f5c-eventalign)
+5. [Signal to reference visualisation](#signal-to-reference-visualisation)
+   1. [Option 1 - Using f5c eventalign](#option-1-f5c-eventalign)
+   2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table-1)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
-5. [Pileup view](#pileup-view)
-6. [Plot multiple tracks](#plot-multiple-tracks)
-7. [BED annotations](#bed-annotations)
-8. [Squigualiser GUI](#Squigualiser-gui)
-9. [Notes](#notes)
-10. [Guppy move table explanation](#guppy-move-table-explanation)
-11. [Base shift](#base-shift)
-12. [Signal scaling](#signal-scaling)
-13. [Plot conventions](#conventions-not-finalised)
-14. [Example](#example)
+6. [Pileup view](#pileup-view)
+7. [Plot multiple tracks](#plot-multiple-tracks)
+8. [BED annotations](#bed-annotations)
+9. [Squigualiser GUI](#Squigualiser-gui)
+10. [Visualisation Enhancements](#Visualisation-Enhancements)
+   1. [Base shift](#base-shift)
+   2. [Signal scaling](#signal-scaling)
+11. [Plot conventions](#plot-conventions)
+12. [Notes](#notes)
+13. [Examples](#examples)
+
 
 ## Quickstart
-````
-python3.8 -m venv venv3
-source venv3/bin/activate
-pip install --upgrade pip
 
-pip install squigualiser
-
-squigualiser --help
-````
-<details open><summary>Or use the pre-compiled binary release for common Linux distributions</summary>
+The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippet of commands for your operating system.
+<details open><summary>For Linux distributions</summary>
 <div markdown=1>
 
 ```
@@ -65,14 +50,11 @@ cd squigualiser
 
 </div>
 </details>
-<details><summary>Or use the pre-compiled binary release for common macOS distributions</summary>
+<details><summary>For macOS (Apple Silicon) distributions</summary>
 <div markdown=1>
-
+   
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
-# or use curl 
 curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
-
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
@@ -81,24 +63,41 @@ cd squigualiser
 </div>
 </details>
 
-
-For a quick test run the following
+For a quick test run the following:
 ````
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz
+wget https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz
 # or use curl
-curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/sample_dataset.tar.gz -o sample_dataset.tar.gz
+curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
 
 tar xf sample_dataset.tar.gz
 ./squigualiser plot_pileup -f ref.fasta -s reads.blow5 -a eventalign.bam -o dir_out --region chr1:92,778,040-92,782,120 --tag_name "test_0"
-
 ````
 
 `export PATH=[path_to_squigualiser_dir]:$PATH` to execute `squigualiser` from any location.
 
+You can take a look at [advanced setup](#advanced-setup) below for instructions on installing using pip, conda or source.
 
 
-## Setup
-<details open><summary>using python environment (tested with python 3.8.0, should work with anything higher as well)</summary>
+## Advanced setup
+
+Click on the arrow to expand the relevant section.
+
+<details close><summary>Using python environment</summary>
+   
+<div markdown=1>
+    
+````
+python3.8 -m venv venv3
+source venv3/bin/activate
+pip install --upgrade pip
+pip install squigualiser
+squigualiser --help
+````
+Squigualiser has been tested with python 3.8.0, which should also work with anything higher. For installing relevant python versions, see the troubleshoot section below.
+</div>
+</details>
+
+<details close><summary>Using source code</summary>
 <div markdown=1>
 
 ````
@@ -117,7 +116,7 @@ squigualiser --help
 </div>
 </details>
 
-<details><summary>using conda environment</summary>
+<details><summary>Using conda environment</summary>
 <div markdown=1>
 
 ````
@@ -175,63 +174,14 @@ SLOW5 files compressed with *zstd* offer smaller file size and better performanc
 
 ## Signal to read visualisation
 
-#### Option 1 - basecaller move table
-<details><summary>steps for using move table generated by the basecaller</summary>
-<div markdown=1>
+This section explains how you can use squigualiser to visualise a raw signal alignment against its basecalled read. Click on the arrow to expand the revalent method.
 
-1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
-
-````
-# buttery-eel (tested with v0.2.2)
-buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
-e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out 
-
-# slow5-dorado (tested with v0.2.1)
-slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
-e.g. slow5-dorado basecaller dna_r10.4.1_e8.2_400bps_sup@v4.0.0 input_reads.blow5 --emit-moves > out.sam
-
-# ont-guppy (tested with v6.3.7)
-guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
-samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
-````
-
-2. Reformat move table ([more info](docs/reform.md)).
-
-````
-# PAF output for plotting
-ALIGNMENT=reform_output.paf
-squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
-
-# For human readability you may prefer the tsv output (not supported for plotting)
-squigualiser reform --sig_move_offset 0 --kmer_length 1 --bam out.sam -o reform_output.tsv
-
-````
-* Refer [Note(4)](#notes) for more information on the paf output.
-* Refer [Note(5)](#notes) for a description about `sig_move_offset`.
-* Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
-
-3. Plot signal to read alignment
-
-````
-FASTA_FILE=read.fasta
-SIGNAL_FILE=read.blow5
-OUTPUT_DIR=output_dir
-
-# use samtools fasta command to create .fasta file from SAM/BAM file
-samtools fasta out.sam > ${FASTA_FILE}
-# plot
-squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
-````
-
-</div>
-</details>
-
-#### Option 2 - f5c resquiggle
+#### Option 1 - f5c resquiggle
 <details>
 <summary>Steps for using f5c resquiggle signal-read alignment</summary>
 <div markdown=1>
 
-1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).
+1. Install f5c [v1.3 or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
 
 2. Run f5c resquiggle
 
@@ -240,9 +190,9 @@ FASTQ=reads.fastq
 SIGNAL_FILE=reads.blow5
 ALIGNMENT=resquiggle.paf
 
-f5c resquiggle --kmer-model [KMER_MODEL] -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT} 
+f5c resquiggle -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 ````
-* Refer [Note(2)](#notes) for more information about `KMER_MODEL`.
+* Refer [Note(2)](#notes) for more information about `--kmer-model [KMER_MODEL]`, which is optional.
 * Refer [Note(3)](#notes) for more information about RNA.
 
 3. Plot signal to read alignment
@@ -255,11 +205,60 @@ squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 </div>
 </details>
 
+
+#### Option 2 - basecaller move table
+<details><summary>steps for using move table generated by the basecaller</summary>
+<div markdown=1>
+
+1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
+
+````
+# buttery-eel (tested with v0.2.2)
+buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
+e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
+
+# slow5-dorado (tested with v0.2.1)
+slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
+e.g. slow5-dorado basecaller dna_r10.4.1_e8.2_400bps_sup@v4.0.0 input_reads.blow5 --emit-moves > basecalls.sam
+
+# ont-guppy (tested with v6.3.7)
+guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
+samtools merge pass/*.bam -o basecalls.bam # merge passed BAM files to create a single BAM file
+````
+
+2. Reformat move table ([more info about reform](docs/reform.md)).
+
+````
+# PAF output for plotting
+ALIGNMENT=reform_output.paf
+squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam basecalls.sam -o ${ALIGNMENT}
+````
+* Refer [Note(4)](#notes) for more information on the PAF output.
+* Refer [Note(5)](#notes) for a description about `sig_move_offset`.
+* Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
+
+3. Plot signal to read alignment
+
+````
+FASTA_FILE=read.fasta
+SIGNAL_FILE=read.blow5
+OUTPUT_DIR=output_dir
+
+# use samtools fasta command to create .fasta file from SAM/BAM file
+samtools fasta basecalls.sam > ${FASTA_FILE}
+# plot
+squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR}
+````
+
+</div>
+</details>
+
 #### Option 3 - Squigulator signal simulation
+
 <details><summary>Steps for using Squigulator signal simulation software</summary>
 <div markdown=1>
 
-1.  Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2.1 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -q and -c options).
 
@@ -283,94 +282,30 @@ squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} 
 </details>
 
 ## Signal to reference visualisation
-#### Option 1 - basecaller move table 
-<details><summary>Steps for using move table generated by the basecaller</summary>
-<div markdown=1>
 
-1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
+This section explains how you can use squigualiser to visualise a raw signal alignment against a reference. Click on the arrow to expand the relevant method.
 
-````
-# buttery-eel (tested with v0.2.2)
-buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
-e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o out.sam --port 5558 --use_tcp -x "cuda:all" --moves_out 
-
-# slow5-dorado (tested with v0.2.1)
-slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
-e.g. slow5-dorado basecaller dna_r10.4.1_e8.2_400bps_sup@v4.0.0 input_reads.blow5 --emit-moves > out.sam
-
-# ont-guppy (tested with v6.3.7)
-guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
-samtools merge pass/*.bam -o pass_bam.bam # merge passed BAM files to create a single BAM file
-````
-
-2. Reformat move table ([more info](docs/reform.md)).
-
-````
-# PAF output for plotting
-ALIGNMENT=reform_output.paf
-squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam out.sam -o ${ALIGNMENT}
-
-# For human readability you may prefer the tsv output (not supported for plotting)
-squigualiser reform --sig_move_offset 0 --kmer_length 1 --bam out.sam -o reform_output.tsv
-
-````
-* Refer [Note(4)](#notes) for more information on the paf output.
-* Refer [Note(5)](#notes) for a description about `sig_move_offset`.
-* Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
-
-3. Align reads to reference genome
-
-````
-REF=genome.fa #reference
-MAPP_SAM=map_output.sam
-samtools fastq out.sam | minimap2 -ax map-ont ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
-
-For RNA
-samtools fastq out.sam | minimap2 -ax splice -uf -k14 ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
-
-````
-
-4. Realign move array to reference ([more info](docs/realign.md)).
-
-````
-REALIGN_BAM=realign_output.bam
-squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
-````
-
-5. Plot signal to reference alignment
-
-````
-REGION=chr1:6811404-6811443
-SIGNAL_FILE=read.blow5
-OUTPUT_DIR=output_dir
-
-# plot
-squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${ALIGNMENT} --output_dir ${OUTPUT_DIR} --region ${REGION} --tag_name "optionA"
-
-````
-
-</div>
-</details>
-
-#### Option 2: f5c eventalign
+#### Option 1: f5c eventalign
 <details><summary>Steps for using f5c eventalign</summary>
 <div markdown=1>
 
-1. Install f5c v1.3-beta or higher as explained in [f5c binaries](https://github.com/hasindu2008/f5c/releases).   
+1.  Install f5c [v1.3 or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
 2. Align reads to reference genome
 
 ````
 REF=genome.fa #reference
-MAP_SAM=mapped.sam
+MAP_BAM=mapped.bam
 FASTQ=read.fastq
-samtools fastq basecaller_out.sam > ${FASTQ}
-minimap2 -ax map-ont ${REF} ${FASTQ} -t8 --secondary=no -o ${MAP_SAM}
+samtools fastq basecalls.sam > ${FASTQ} # if basecalls are in sam format
 
-For RNA
-minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no -o ${MAPP_SAM}
+# For DNA
+minimap2 -ax map-ont ${REF} ${FASTQ} -t8 --secondary=no | samtools sort - -o ${MAP_BAM} && samtools index ${MAP_BAM} 
+
+# For RNA (reference must be the transcriptome)
+minimap2 -ax splice -uf -k14 ${REF} ${FASTQ} -t8 --secondary=no | samtools sort - -o ${MAP_BAM} && samtools index ${MAP_BAM} 
 
 ````
-  
+
 3. create f5c index
 
 ````
@@ -381,7 +316,7 @@ f5c index ${FASTQ} --slow5 ${SIGNAL}
 
 ````
 ALIGNMENT=eventalign.bam
-f5c eventalign -b ${MAP_SAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -a -o eventalign.sam
+f5c eventalign -b ${MAP_BAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -a -o eventalign.sam
 samtools sort eventalign.sam -o ${ALIGNMENT}
 samtools index ${ALIGNMENT}
 ````
@@ -397,11 +332,79 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 </div>
 </details>
 
+#### Option 2 - basecaller move table
+<details><summary>Steps for using move table generated by the basecaller</summary>
+<div markdown=1>
+
+1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
+
+````
+# buttery-eel (tested with v0.2.2)
+buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
+e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
+
+# slow5-dorado (tested with v0.2.1)
+slow5-dorado basecaller [DNA model] [INPUT] --emit-moves > [OUTPUT]
+e.g. slow5-dorado basecaller dna_r10.4.1_e8.2_400bps_sup@v4.0.0 input_reads.blow5 --emit-moves > basecalls.sam
+
+# ont-guppy (tested with v6.3.7)
+guppy_basecaller -c [DNA model] -i [INPUT] --moves_out --bam_out --save_path [OUTPUT]
+samtools merge pass/*.bam -o basecalls.bam # merge passed BAM files to create a single BAM file
+````
+
+2. Reformat move table ([more info on reform](docs/reform.md)).
+
+````
+# PAF output for plotting
+REFORMAT_PAF=reform_output.paf
+squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam basecalls.sam -o ${REFORMAT_PAF}
+
+````
+* Refer [Note(4)](#notes) for more information on the paf output.
+* Refer [Note(5)](#notes) for a description about `sig_move_offset`.
+* Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
+
+3. Align reads to reference genome
+
+````
+REF=genome.fa #reference
+MAPP_SAM=map_output.sam
+
+# For DNA
+samtools fastq basecalls.sam | minimap2 -ax map-ont ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
+
+# For RNA (the reference must be the transcriptome)
+samtools fastq basecalls.sam | minimap2 -ax splice -uf -k14 ${REF} -t8 --secondary=no -o ${MAPP_SAM} -
+
+````
+
+4. Realign reformatted move table to reference ([more info on realign](docs/realign.md)).
+
+````
+REALIGN_BAM=realign_output.bam
+squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
+````
+
+5. Plot signal to reference alignment
+
+````
+REGION=chr1:6811404-6811443
+SIGNAL_FILE=read.blow5
+OUTPUT_DIR=output_dir
+
+# plot
+squigualiser plot --file ${REF} --slow5 ${SIGNAL_FILE} --alignment ${REALIGN_BAM} --output_dir ${OUTPUT_DIR} --region ${REGION} --tag_name "optionA"
+
+````
+
+</div>
+</details>
+
 #### Option 3 - Squigulator signal simulation
 <details><summary>Steps for using the signal simulation software (SAM output, recommended)</summary>
 <div markdown=1>
 
-1. Setup squigulator v0.2 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
+1. Setup squigulator v0.2.1 or higher as explained in the [documentation](https://github.com/hasindu2008/squigulator).
 
 2. Simulate a signal (remember to provide -a).
 ```
@@ -431,19 +434,19 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 ````
 REF=ref.fasta                 #reference
 ALIGNMENT=sorted_sim.paf.gz   #sorted bgzip compressed PAF file containing signal to reference alignment
-SIGNAL_FILE=sim.blow5         #simulated raw signals   
+SIGNAL_FILE=sim.blow5         #simulated raw signals
 NUM_READS=50                  #number of reads to simulate
 
 For DNA
 squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
 sort -k6,6 -k8,8n sim.paf -o sorted_sim.paf
-bgzip sorted_sim.paf 
+bgzip sorted_sim.paf
 tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
 
 For RNA
 squigulator -x rna-r9-prom ${REF} -o ${SIGNAL_FILE} --paf-ref -c sim.paf -n ${NUM_READS}
 sort -k6,6 -k9,9n sim.paf -o sorted_sim.paf
-bgzip sorted_sim.paf 
+bgzip sorted_sim.paf
 tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 
 ````
@@ -477,7 +480,7 @@ For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/pl
 
 ![image](docs/figures/plot_tracks/plot_tracks.png)
 
-* The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input. 
+* The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input.
 * The input file describes the number of commands, the dimension of each track, and the pileup commands.
 * The following input `command_file.txt` file describes two pileup tracks with 900 and 200 heights for the first and second track respectively.
 * Setting `plot_heights=*` in the `command_file.txt` or providing the argument `--auto_height` will automatically adjust the track height depending on the number of plots in each track.
@@ -519,11 +522,31 @@ python src/server.py
 </div>
 </details>
 
+## Visualisation Enhancements
+
+### Base shift
+User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left.
+However, the user is adviced to use `--profile` (documented [here](docs/profiles.md)) which automatically sets the `--base_shift`.
+For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
+
+### Signal scaling
+The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+
+
+## Plot Conventions
+![image](docs/figures/plot_description/plot_description.png)
+* **A** is a descriptive tag name to identify the plot.
+* **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
+* **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
+* **D** indicates the true sequencing direction of the signals.
+
+
+
 ## Notes
 
 1. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
-2. The argument `KMER_MODEL` is optional..
-3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
+2. The optional argument `--kmer-model KMER_MODEL` can be used to specify a custom k-mer model if you wish.
+3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also, provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
 4. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 5. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
 6. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
@@ -532,31 +555,24 @@ python src/server.py
    samtools view out.sam -h -t fake_reference.fa.fai -o sq_added_out.sam
    ```
 7. Squigulator's signal simulation is a good way to understand the nature of the alignments. Please refer to the documentation about [real_vs_simulated_signal](docs/real_vs_simulated_signal.md).
-
-## Base shift
-User can shift the base sequence to the left by `n` number of bases by providing the argument `--base_shift -n` to `plot` and `plot_pileup` commands. This is helpful to correct the signal level to the base. A negative `n` value will shift the base sequence to the left. 
-However, the user is adviced to use `--profile` (documented [here](docs/profiles.md)) which automatically sets the `--base_shift`.
-For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
-
-## Signal scaling
-The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+8. For a explanation of the Guppy move table explanation see please refer [here](docs/move_table.md).
 
 
-## Guppy move table explanation
-Please refer [here](docs/move_table.md)
+## Examples
 
-## Example
-The figures on the top of the document were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
+![image](docs/figures/preview.png)
+
+1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
+2. The second read is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-2.1.html)).
+3. The third read is a signal-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
+4. The fourth read (RNA) is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
+
+* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
+* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
+
+These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
 
-## Conventions
-![image](docs/figures/plot_description/plot_description.png)
-* **A** is a descriptive tag name to identify the plot.
-* **B** indicates whether the positive or negative strand was used as the reference to align the signals. For RNA this will be `RNA 3'->5'`. Squigualiser only supports RNA reads mapped to the transcriptome.
-* **C** always indicates the region using the positive strand coordinates, regardless of the forward and reverse mapped plots.
-* **D** indicates the true sequencing direction of the signals.
-
-
 ## Acknowledgement
-Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel)., [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)
+Some code snippets have been taken from [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel), [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)

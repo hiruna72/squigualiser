@@ -24,17 +24,17 @@ FASTQ=reads.fastq
 # samtools index ${MAP_BAM}
 
 SIGNAL=reads.blow5
-f5c index ${FASTQ} --slow5 ${SIGNAL}
+# f5c index ${FASTQ} --slow5 ${SIGNAL}
 
 #ALIGNMENT=sorted_eventalign.paf.gz
-f5c eventalign -b ${MAP_BAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -c -o eventalign.paf --supplementary no
+# f5c eventalign -b ${MAP_BAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} -c -o eventalign_scaledpA.paf --supplementary no
 #   sort -k6,6 -nk8,8 eventalign.paf -o sorted_eventalign.paf \
 #   && bgzip sorted_eventalign.paf \
 #   && tabix -0 -b 8 -e 9 -s 6 ${ALIGNMENT}
 
-# ALIGNMENT=sorted_eventalign.bam
-# f5c eventalign -b ${MAP_BAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} --sam -o eventalign.sam --supplementary no
-# samtools sort eventalign.sam -o ${ALIGNMENT}
-# samtools index ${ALIGNMENT}
+ALIGNMENT=sorted_eventalign.bam
+f5c eventalign -b ${MAP_BAM} -r ${FASTQ} -g ${REF} --slow5 ${SIGNAL} --sam -o eventalign.sam --supplementary no
+samtools sort eventalign.sam -o ${ALIGNMENT}
+samtools index ${ALIGNMENT}
 
 info "success"
