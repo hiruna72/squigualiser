@@ -476,8 +476,6 @@ squigualiser plot_pileup -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT
 <details><summary>For in depth analysis the user can visualize multiple pileup plots in the same web page.</summary>
 <div markdown=1>
 
-For example, [this plot](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html) is visualizing forward and reverse mapped reads on two separate tracks on the same webpage.
-
 ![image](docs/figures/plot_tracks/plot_tracks.png)
 
 * The command `plot_tracks` only supports pileup views and takes a `command_file.txt` file as the input.
@@ -499,6 +497,12 @@ Then use the `plot_tracks` command as below (remember to provide `-o`),
 COMMAND_FILE="command_file.txt"
 squigualiser plot_tracks --shared_x -f ${COMMAND_FILE} -o output_dir
 ````
+
+### Plot multiple tracks examples
+1. Forward and reverse mapped reads in separate tracks[link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
+2. Different alignment methods (f5c eventalign and squigualiser's realign) for RNA data in separate tracks[link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
+3. Real and simulated variants in separate tracks [link](https://hiruna72.github.io/squigualiser/docs/figures/variants/chr22/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html).
+
 
 </div>
 </details>
