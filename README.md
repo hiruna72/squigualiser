@@ -499,8 +499,8 @@ squigualiser plot_tracks --shared_x -f ${COMMAND_FILE} -o output_dir
 ````
 
 ### Plot multiple tracks examples
-1. Forward and reverse mapped reads in separate tracks[link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
-2. Different alignment methods (f5c eventalign and squigualiser's realign) for RNA data in separate tracks[link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
+1. Forward and reverse mapped reads in separate tracks [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
+2. Different alignment methods (f5c eventalign and squigualiser's realign) for RNA data in separate tracks [link](https://hiruna72.github.io/squigualiser/docs/figures/plot_tracks/plot_tracks_testcase-30.3.html).
 3. Real and simulated variants in separate tracks [link](https://hiruna72.github.io/squigualiser/docs/figures/variants/chr22/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html).
 
 
