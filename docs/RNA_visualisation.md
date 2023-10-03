@@ -9,9 +9,11 @@ We thank Dr. Helen Gunter and her team at https://gih.uq.edu.au/ for providing e
 | metylatedU   | direct RNA-seq of GFP mRNA (SRR22888950) | synthetic RNA with all Us **methylated**      | s3://sra-pub-src-6/SRR22888950/dRNA_Mod_37C_NEBT7_BaseGfpmRNA_Fast5.tar.gz.1   |
 
 We did the following steps for the two datasets.
-1. Basecall
-2. Minimap2 alignment
-3. F5C eventalign
+1. Basecall using `guppy_v6.3.7` with the model `rna_r9.4.1_70bps_hac_prom.cfg`.
+2. Read alignment usign minimap2
+3. Realign using squigualiser
+4. Eventalign using f5c
+5. Pore model training using nanopolish
 
 With the default parameters bascalling reported 92% and 62% pass reads percentage for the unmethylated and methylatedU datasets respectively.
 The very low pass percentage (62%) for the methylatedU indicates that the synthetically methylated U has a very different signal nature than the normal U.
