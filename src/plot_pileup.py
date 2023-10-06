@@ -352,8 +352,6 @@ def run(args):
     else:
         if not os.path.exists(args.output_dir):
             os.mkdir(args.output_dir)
-    # if not args.loose_bound:
-    #     print("Warning: the alignments that are not completely within the specified region will be skipped. Please specify --loose_bound to keep")
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -456,7 +454,7 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
+            if True: # if not args.loose_bound:
                 if data_is_rna == 1:
                     if args_ref_start < reference_start + 1 - kmer_correction:
                         continue
@@ -690,7 +688,7 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
+            if True: # if not args.loose_bound:
                 if data_is_rna == 1:
                     if args_ref_start < reference_start + 1 - kmer_correction:
                         continue
@@ -948,7 +946,7 @@ def argparser():
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
     parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")
-    parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
+    # parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
