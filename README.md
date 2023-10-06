@@ -31,8 +31,9 @@ Google Chrome is the recommended web browser to visualise these plots.
    1. [Base shift](#base-shift)
    2. [Signal scaling](#signal-scaling)
 11. [Plot conventions](#plot-conventions)
-12. [Notes](#notes)
-13. [Examples](#examples)
+12. [Calculate alignment statistics](#calculate-alignment-statistics)
+13. [Notes](#notes)
+14. [Examples](#examples)
 
 
 ## Quickstart
@@ -545,6 +546,10 @@ The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By pr
 * **D** indicates the true sequencing direction of the signals.
 
 
+## Calculate alignment statistics
+Calculate basic statistics of read/reference - signal alignments.
+Check [here](docs/commands.md/#metric) for the command.
+Check [here](docs/different_alignments.md) for an example.
 
 ## Notes
 
