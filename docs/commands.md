@@ -114,6 +114,8 @@ Plot read/reference - signal alignments.
 	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
 * `--no_pa`
 	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
+* `--loose_bound`
+	(optional) Also plot alignments not completely within the specified region but at least part is [default value: false].
 * `--point_size INT`
 	(optional) Radius of the signal point drawn in the plot [default value: 0.5].
 * `--base_width INT`
@@ -301,6 +303,8 @@ Instead of generating figures `metric` will generate statistics after parsing th
 	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
 * `--no_pa`
 	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
+* `--loose_bound`
+	(optional) Also plot alignments not completely within the specified region but at least part is [default value: false].
 * `--base_shift INT`
 	(optional) The number of bases to shift to align fist signal move [default value: 0]. More information on this can be found at [here](pore_model.md)
 *  `--profile STR`:<br/>

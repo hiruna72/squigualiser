@@ -776,6 +776,15 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
+            if not args.loose_bound:
+                if data_is_rna == 1:
+                    if args_ref_start < reference_start + 1 - kmer_correction:
+                        continue
+                else:
+                    if args_ref_start < reference_start + 1:
+                        continue
+                if args_ref_end > sam_record_reference_end:
+                    continue
 
             ref_name = sam_record.reference_name
             ref_start = reference_start + 1
@@ -984,6 +993,15 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
+            if not args.loose_bound:
+                if data_is_rna == 1:
+                    if args_ref_start < reference_start + 1 - kmer_correction:
+                        continue
+                else:
+                    if args_ref_start < reference_start + 1:
+                        continue
+                if args_ref_end > paf_record_reference_end:
+                    continue
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
@@ -1160,6 +1178,7 @@ def argparser():
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
