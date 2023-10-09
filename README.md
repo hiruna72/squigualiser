@@ -10,7 +10,9 @@ Google Chrome is the recommended web browser to visualise these plots.
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
 
 ![image](docs/figures/different_aligments/method_eventalign.png)
-*Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`. Click the [link](https://hiruna72.github.io/squigualiser/docs/figures/different_aligments/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html) to open it on your browser.* Go to Section [Examples](#examples) for more examples.
+* Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`.
+* Click the [link](https://hiruna72.github.io/squigualiser/docs/figures/different_aligments/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html) to open it on your browser.
+* Go to Section [Examples](#examples) for more examples.
 
 # Table of Contents
 1. [Quickstart](#quickstart)
