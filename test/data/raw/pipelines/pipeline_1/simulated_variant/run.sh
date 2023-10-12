@@ -3,7 +3,7 @@
 # ReadME first!!!
 # This is a long pipline and might not work in the first go.
 # Go all the way to the bottom and uncomment functions one by one, run and make sure all the commands work before moving to the next function.
-# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/dev/docs/pipeline_basic.md
+# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/main/docs/pipeline_basic.md
 # Good luck!
 
 RED='\033[0;31m' ; GREEN='\033[0;32m' ; NC='\033[0m' # No Color
