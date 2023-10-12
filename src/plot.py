@@ -776,15 +776,16 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if data_is_rna == 1:
-                    if args_ref_start < reference_start + 1 - kmer_correction:
+            if args.region != "":
+                if not args.loose_bound:
+                    if data_is_rna == 1:
+                        if args_ref_start < reference_start + 1 - kmer_correction:
+                            continue
+                    else:
+                        if args_ref_start < reference_start + 1:
+                            continue
+                    if args_ref_end > sam_record_reference_end:
                         continue
-                else:
-                    if args_ref_start < reference_start + 1:
-                        continue
-                if args_ref_end > sam_record_reference_end:
-                    continue
 
             ref_name = sam_record.reference_name
             ref_start = reference_start + 1
@@ -993,15 +994,16 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if data_is_rna == 1:
-                    if args_ref_start < reference_start + 1 - kmer_correction:
+            if args.region != "":
+                if not args.loose_bound:
+                    if data_is_rna == 1:
+                        if args_ref_start < reference_start + 1 - kmer_correction:
+                            continue
+                    else:
+                        if args_ref_start < reference_start + 1:
+                            continue
+                    if args_ref_end > paf_record_reference_end:
                         continue
-                else:
-                    if args_ref_start < reference_start + 1:
-                        continue
-                if args_ref_end > paf_record_reference_end:
-                    continue
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
