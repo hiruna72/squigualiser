@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# steps
-# simulate a region using squigulator
+# ReadME first!!!
+# This is a long pipline and might not work in the first go.
+# Go all the way to the bottom and uncomment functions one by one, run and make sure all the commands work before moving to the next function.
+# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/dev/docs/pipeline_basic.md
+# Good luck!
 
 RED='\033[0;31m' ; GREEN='\033[0;32m' ; NC='\033[0m' # No Color
 die() { echo -e "${RED}$1${NC}" >&2 ; echo ; exit 1 ; } # terminate script
@@ -314,10 +317,10 @@ plot_eventalign_and_sim() {
 # plot_sim_and_real_signal
 # minimap2_align
 # realign
-simulate_ref_signal
+#simulate_ref_signal
 # plot_realign_and_sim
 # f5c_eventalign
 # f5c_methylation
-plot_eventalign_and_sim
+#plot_eventalign_and_sim
 
 info "success"
