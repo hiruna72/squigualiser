@@ -5,6 +5,8 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 Google Chrome is the recommended web browser to visualise these plots.
 
+Check this [video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
+
 ![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
