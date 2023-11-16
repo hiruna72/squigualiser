@@ -17,6 +17,7 @@ from readpaf import parse_paf
 from sys import stdin
 from pyfaidx import Fasta
 from pyfastx import Fastq
+from pyfastx import Fastx
 import os
 import pysam
 from src import bed_annotation
@@ -542,7 +543,12 @@ def run(args):
             if use_fasta:
                 sequence_reads = Fasta(args.file)
             else:
-                sequence_reads = Fastq(args.file)
+                # sequence_reads = Fastq(args.file)
+                sequence_reads = {}
+                for read in Fastq(args.file):
+                    name = read.name.split()[0]
+                    sequence_reads[name] = read
+
             for paf_record in parse_paf(handle):
                 if paf_record.query_name != paf_record.target_name:
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
@@ -776,15 +782,16 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if data_is_rna == 1:
-                    if args_ref_start < reference_start + 1 - kmer_correction:
+            if args.region != "":
+                if not args.loose_bound:
+                    if data_is_rna == 1:
+                        if args_ref_start < reference_start + 1 - kmer_correction:
+                            continue
+                    else:
+                        if args_ref_start < reference_start + 1:
+                            continue
+                    if args_ref_end > sam_record_reference_end:
                         continue
-                else:
-                    if args_ref_start < reference_start + 1:
-                        continue
-                if args_ref_end > sam_record_reference_end:
-                    continue
 
             ref_name = sam_record.reference_name
             ref_start = reference_start + 1
@@ -930,7 +937,7 @@ def run(args):
             output_file(output_file_name, title=read_id)
             save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
-                        
+
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
@@ -993,15 +1000,16 @@ def run(args):
             else:
                 base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
-            if not args.loose_bound:
-                if data_is_rna == 1:
-                    if args_ref_start < reference_start + 1 - kmer_correction:
+            if args.region != "":
+                if not args.loose_bound:
+                    if data_is_rna == 1:
+                        if args_ref_start < reference_start + 1 - kmer_correction:
+                            continue
+                    else:
+                        if args_ref_start < reference_start + 1:
+                            continue
+                    if args_ref_end > paf_record_reference_end:
                         continue
-                else:
-                    if args_ref_start < reference_start + 1:
-                        continue
-                if args_ref_end > paf_record_reference_end:
-                    continue
 
             ref_name = paf_record[SEQUENCE_ID]
             ref_start = reference_start + 1
