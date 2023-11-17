@@ -179,9 +179,27 @@ testcase_2s() {
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
   squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
+  TESTCASE=2.1.2
+  info "testcase:$TESTCASE - resquiggle read-signal plot"
+  FASTA="${RAW_DIR}/resquiggle_dna/t1/read_2.fasta"
+  SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
+  ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
+  REGION=""
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
   TESTCASE=2.2
   info "testcase:$TESTCASE - resquiggle read-signal plot"
   FASTA="${RAW_DIR}/resquiggle_dna/t0/read.fastq"
+  SIGNAL="${RAW_DIR}/resquiggle_dna/t0/read.blow5"
+  ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
+  REGION=""
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  squigualiser plot -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+
+  TESTCASE=2.2.2
+  info "testcase:$TESTCASE - resquiggle read-signal plot"
+  FASTA="${RAW_DIR}/resquiggle_dna/t0/read_2.fastq"
   SIGNAL="${RAW_DIR}/resquiggle_dna/t0/read.blow5"
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t0/resquiggle_move.paf"
   REGION=""
