@@ -8,6 +8,7 @@ from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS
 from bokeh.layouts import column
 from bokeh.colors import RGB
+from bokeh.io import export_svg
 import pyslow5
 import copy
 import argparse
@@ -201,12 +202,12 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
     if (draw_data['overlap_only'] and num_plots == 0) or not draw_data['overlap_only']:
-        p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
+        p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
         p.add_glyph(line_segment_source, glyph)
         p.add_layout(base_annotation_labels)
         if draw_data["plot_num_samples"]:
             p.add_layout(move_annotation_labels)
-            x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=move_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+            x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=move_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
             let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
             move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
             """)
@@ -254,13 +255,13 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
     if subplot_labels:
-        x_callback_subplot_labels = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+        x_callback_subplot_labels = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
         let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
         subplot_labels['text_font_size'] = String(xzoom) + 'pt';
         """)
         p.x_range.js_on_change('start', x_callback_subplot_labels)
     
-    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
@@ -359,6 +360,8 @@ def run(args):
     indt = "\t\t\t\t\t\t\t\t"
     draw_data = {}
     draw_data["point_size"] = args.point_size
+    draw_data["no_colours"] = args.no_colours
+    draw_data["xrange"] = args.xrange
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["plot_y_margin"] = PLOT_Y_MARGIN
@@ -893,8 +896,8 @@ def run(args):
         p.legend.background_fill_alpha = 0.5
 
         if max_location_plot > y_shift:
-            if max_location_plot > PLOT_X_RANGE:
-                new_x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+            if max_location_plot > draw_data['xrange']:
+                new_x_range = Range1d(0, draw_data['xrange'], bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
             else:
                 new_x_range = Range1d(0, max_location_plot, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
             new_x_range.js_property_callbacks = p.x_range.js_property_callbacks
@@ -906,10 +909,18 @@ def run(args):
         if args.return_plot:
             return p, num_plots
         else:
-            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-            output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name
+            if args.save_svg:
+                pileup_output_file_name += ".svg"
+                p.output_backend = "svg"
+                export_svg(p, filename=pileup_output_file_name)
+            else:
+                pileup_output_file_name += ".html"
+                output_file(pileup_output_file_name, title=read_id)
+                save(p)
             print(f'output file: {os.path.abspath(pileup_output_file_name)}')
-            save(p)
+
+
     elif num_plots == 0 and args.return_plot:
         return None, num_plots
 
@@ -956,6 +967,9 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('--print_bed_labels',  required=False, action='store_true', help="draw bed annotations with labels")
+    parser.add_argument('--no_colours', required=False, action='store_false', help="hide base colours")
+    parser.add_argument('--save_svg', required=False, action='store_true', help="save as svg. tweak --region and --xrange to capture the necessary part of the plot")
+    parser.add_argument('--xrange', required=False, type=int, default=PLOT_X_RANGE, help="initial x range")
     parser.add_argument('--cprofile', required=False, action='store_true', help="run cProfile for benchmarking")
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-o', '--output_dir', type=str, default="", help="output dir")
