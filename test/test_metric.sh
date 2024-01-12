@@ -76,6 +76,9 @@ TESTCASE=50.10
 info "testcase:$TESTCASE"
 ex --extend_0 --plot_reverse -f ${HUMAN_GENOME} -s ${RAW_DIR}/reads.blow5 ${REGION} ${PROFILE} -a ${RAW_DIR}/nanopolish_signal_projection/sorted_projected.paf.gz -o ${OUTPUT_DIR}/naopolish_projection_stat_rv.tsv || die "testcase:$TESTCASE failed"
 
+TESTCASE=50.11
+info "testcase:$TESTCASE"
+ex --extend_0 --extend_1 --plot_reverse -f ${HUMAN_GENOME} -s ${RAW_DIR}/reads.blow5 ${REGION} ${PROFILE} -a ${RAW_DIR}/nanopolish_signal_projection/sorted_projected.paf.gz -o ${OUTPUT_DIR}/naopolish_projection_stat_rv.tsv || die "testcase:$TESTCASE failed"
 
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

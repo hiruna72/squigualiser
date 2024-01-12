@@ -50,8 +50,9 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
     match_samples = []
     insertion_samples = []
     deletion_bases = []
-
+    ss_string = []
     for i in moves:
+        ss_string.append(i)
         previous_x_coordinate = x_coordinate
         if 'D' in i:
             i = re.sub('D', '', i)
@@ -86,13 +87,16 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
             break
 
     if sig_algn_data["data_is_rna"] == 1:
-        region_str = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_end"], sig_algn_data["ref_end"] - base_index+1)
+        ref_region = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_end"], sig_algn_data["ref_end"] - base_index+1)
+        signal_region = "{}-{}".format(x_real[0], x_real[x_coordinate - 1])
         # plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {total_length_deletions} insertions(samples): {total_length_insertions}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        region_str = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_start"], sig_algn_data["ref_start"] + base_index-1)
+        ref_region = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_start"], sig_algn_data["ref_start"] + base_index-1)
+        signal_region = "{}-{}".format(x_real[0], x_real[x_coordinate - 1])
         # plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {total_length_deletions} insertions(samples): {total_length_insertions}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
 
-    metric_record['region'] = region_str
+    metric_record['ref_region'] = ref_region
+    metric_record['signal_region'] = signal_region
     metric_record['total_matches'] = base_index - total_length_deletions
     metric_record['total_deletion_occurrences'] = len(deletion_bases)
     metric_record['total_insertion_occurrences'] = len(insertion_samples)
@@ -141,9 +145,10 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
         metric_record['mean_insertion'] = "."
         metric_record['stdev_insertion'] = "."
 
-    fout.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+    fout.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
     metric_record['read_id'],
-    metric_record['region'],
+    metric_record['ref_region'],
+    metric_record['signal_region'],
     metric_record['total_matches'],
     metric_record['total_deletion_occurrences'],
     metric_record['total_insertion_occurrences'],
@@ -173,6 +178,9 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
         match_samples,
         deletion_bases,
         insertion_samples))
+
+    if args.extend_0:
+        fout.write("\t{}".format(ss_string))
 
     fout.write("\n")
 
@@ -256,7 +264,7 @@ def run(args):
     if args.profile != "":
         kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
 
-    metric_header = ("read_id\tregion\t"
+    metric_header = ("read_id\tref_region\tsignal_region\t"
                      "total_matches\ttotal_deletion_occurrences\ttotal_insertion_occurrences\t"
                      "total_length_deletions\ttotal_length_insertions\t"
                      "min_match\tmax_match\tmode_match\tmedian_matches\tmean_matches\tstdev_matches\t"
@@ -264,6 +272,8 @@ def run(args):
                      "min_insertion\tmax_insertion\tmode_insertion\tmedian_insertion\tmean_insertion\tstdev_insertion")
     if args.extend_0:
         metric_header += "\tmatches\tdeletions\tinsertions"
+    if args.extend_1:
+        metric_header += "\tss_string"
     fout.write("{}\n".format(metric_header))
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -343,7 +353,6 @@ def run(args):
 
                 # print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
                 metric_record['read_id'] = read_id
-                metric_record['region'] = "{}:{}-{}".format("", ref_start, ref_end)
 
                 x = []
                 x_real = []
@@ -542,7 +551,6 @@ def run(args):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
             metric_record['read_id'] = read_id
-            metric_record['region'] = "{}:{}-{}".format(ref_name, ref_start, ref_end)
 
             x = []
             x_real = []
@@ -749,7 +757,6 @@ def run(args):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
             metric_record['read_id'] = read_id
-            metric_record['region'] = "{}:{}-{}".format(ref_name, ref_start, ref_end)
 
             x = []
             x_real = []
@@ -875,6 +882,7 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('-o', '--output', required=False, type=str, default="", help="output file")
     parser.add_argument('--extend_0', required=False, action='store_true', help="print matches, deletions, insertions arrays")
+    parser.add_argument('--extend_1', required=False, action='store_true', help="print ss string for the given region")
     return parser
 
 if __name__ == "__main__":

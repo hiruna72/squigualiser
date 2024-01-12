@@ -5,7 +5,8 @@ To run `metric` refer [here](commands.md/#metric).
 | Column name                 | Description                                                    |
 |-----------------------------|----------------------------------------------------------------|
 | read_id                     | read_id of the raw signal                                      |
-| region                      | statistics were calculated within this region                  |
+| ref_region                  | statistics were calculated within this region                  |
+| signal_region               | aligned signal region                                          |
 | total_matches               | total number of base to base matches                           |
 | total_deletion_occurrences  | total number of deletion occurrences                           |
 | total_insertion_occurrences | total number of insertion occurrences                          |
@@ -29,3 +30,6 @@ To run `metric` refer [here](commands.md/#metric).
 | median_insertion            | median of the number of samples in an insertion                |
 | mean_insertion              | mean of the number of samples in an insertion                  |
 | stdev_insertion             | standard deviation of the number of samples in an insertion    |
+| matches                     | matches array                                                  |
+| deletions                   | deletions  array                                               |
+| insertions                  | insertions  array                                              |

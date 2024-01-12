@@ -8,6 +8,7 @@ from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS
 from bokeh.layouts import row
 from bokeh.colors import RGB
+from bokeh.io import export_svg, export_svgs
 import pyslow5
 import copy
 import argparse
@@ -185,14 +186,14 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_moves.js_link('active', move_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
-    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5, visible=draw_data['no_samples'])
     toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -210,8 +211,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
-        if location_plot > PLOT_X_RANGE:
-            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        if location_plot > draw_data['xrange']:
+            p.x_range = Range1d(0, draw_data['xrange'], bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
         else:
             p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
 
@@ -219,18 +220,17 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-
     layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
     return layout_
 def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
@@ -389,14 +389,14 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     fixed_width_x = fixed_width_x[1:]
 
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
-    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
+    p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
-    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5)
+    sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5, visible=draw_data['no_samples'])
     toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
@@ -414,8 +414,8 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
-        if location_plot > PLOT_X_RANGE:
-            p.x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
+        if location_plot > draw_data['xrange']:
+            p.x_range = Range1d(0, draw_data['xrange'], bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
         else:
             p.x_range = Range1d(0, location_plot, bounds=(-1*PLOT_X_PADDING, location_plot+PLOT_X_PADDING))
     # else:
@@ -425,13 +425,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     draw_tool = FreehandDrawTool(renderers=[renderer], num_objects=50)
     p.add_tools(draw_tool)
 
-    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
-    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
@@ -516,6 +516,9 @@ def run(args):
     indt = "\t\t\t\t\t\t\t\t"
     draw_data = {}
     draw_data["point_size"] = args.point_size
+    draw_data["no_colours"] = args.no_colours
+    draw_data["no_samples"] = args.no_samples
+    draw_data["xrange"] = args.xrange
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["plot_dims"] = {}
@@ -619,8 +622,6 @@ def run(args):
 
                 print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
 
-                output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-
                 x = []
                 x_real = []
                 y = []
@@ -709,8 +710,15 @@ def run(args):
                 else:
                     layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
-                output_file(output_file_name, title=read_id)
-                save(layout_)
+                output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
+                if args.save_svg:
+                    output_file_name += ".svg"
+                    layout_[0].output_backend = "svg"
+                    export_svgs(layout_, filename=output_file_name)
+                else:
+                    output_file_name += ".html"
+                    output_file(output_file_name, title=read_id)
+                    save(layout_)
                 print(f'output file: {os.path.abspath(output_file_name)}')
 
                 num_plots += 1
@@ -835,8 +843,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-
             x = []
             x_real = []
             y = []
@@ -934,8 +940,15 @@ def run(args):
             else:
                 layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
-            output_file(output_file_name, title=read_id)
-            save(layout_)
+            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
+            if args.save_svg:
+                output_file_name += ".svg"
+                layout_.output_backend = "svg"
+                export_svgs(layout_, filename=output_file_name)
+            else:
+                output_file_name += ".html"
+                output_file(output_file_name, title=read_id)
+                save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
 
             num_plots += 1
@@ -1055,8 +1068,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name + ".html"
-
             x = []
             x_real = []
             y = []
@@ -1151,9 +1162,17 @@ def run(args):
             else:
                 layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
-            output_file(output_file_name, title=read_id)
-            save(layout_)
+            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
+            if args.save_svg:
+                output_file_name += ".svg"
+                layout_.output_backend = "svg"
+                export_svgs(layout_, filename=output_file_name)
+            else:
+                output_file_name += ".html"
+                output_file(output_file_name, title=read_id)
+                save(layout_)
             print(f'output file: {os.path.abspath(output_file_name)}')
+
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
@@ -1196,6 +1215,10 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('--print_bed_labels', required=False, action='store_true', help="draw bed annotations with labels")
+    parser.add_argument('--no_colours', required=False, action='store_false', help="hide base colours")
+    parser.add_argument('--no_samples', required=False, action='store_false', help="hide sample points")
+    parser.add_argument('--save_svg', required=False, action='store_true', help="save as svg. tweak --region and --xrange to capture the necessary part of the plot")
+    parser.add_argument('--xrange', required=False, type=int, default=PLOT_X_RANGE, help="initial x range")
     parser.add_argument('-o', '--output_dir', required=True, type=str, default="", help="output dir")
     return parser
 
