@@ -543,7 +543,7 @@ However, the user is adviced to use `--profile` (documented [here](docs/profiles
 For more information please refer [base_shift and eventalignment](docs/base_shift_and_eventalignment.md) and [base_shift and reverse mapped reads](docs/base_shift_of_reverse_mapped_reads.md).
 
 ### Signal scaling
-The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. By providing the argument `--sig_scale znorm` or `--sig_scale medmad` the signals will be zscore or median MAD normalized respectively.
+The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. Provide the argument `--sig_scale znorm` to zscore normalize, `--sig_scale medmad` to median MAD normalize, and `--sig_scale scaledpA` to scale the raw signal to the pore model.
 
 
 ## Plot Conventions
