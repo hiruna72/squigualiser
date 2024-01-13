@@ -10,6 +10,10 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 ![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/hiruna72/squigualiser/total?logo=GitHub)](https://github.com/hiruna72/squigualiser/releases)
+<!---
+[![BioConda Install](https://img.shields.io/conda/dn/bioconda/slow5tools.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/slow5tools)
+-->
 
 ![image](docs/figures/different_aligments/method_eventalign.png)
 * Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`.
