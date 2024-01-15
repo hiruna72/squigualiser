@@ -236,7 +236,8 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     signal_region = ""
     indels = f'deletions(bases): {num_Ds} insertions(samples): {num_Is}'
-    signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
+    signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
+    signal_region = f'[{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]'
     y_plot = y[:x_coordinate]+y_shift
     y_median = np.nanmedian(y_plot)
     y_max = np.nanmax(y_plot)
@@ -371,7 +372,7 @@ def run(args):
     draw_data["bed_labels"] = args.print_bed_labels
 
     if args.profile == "":
-        draw_data["base_shift"] = args.base_shift
+        draw_data["base_shift"] = PLOT_BASE_SHIFT
     else:
         if args.plot_reverse:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
@@ -574,9 +575,6 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            # if args.auto_base_shift and num_plots == 0:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
@@ -806,10 +804,6 @@ def run(args):
             # print(len(moves))
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift and num_plots == 0:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
