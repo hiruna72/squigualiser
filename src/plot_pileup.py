@@ -372,7 +372,7 @@ def run(args):
     draw_data["bed_labels"] = args.print_bed_labels
 
     if args.profile == "":
-        draw_data["base_shift"] = PLOT_BASE_SHIFT
+        draw_data["base_shift"] = args.base_shift
     else:
         if args.plot_reverse:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]

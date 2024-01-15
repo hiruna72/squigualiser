@@ -679,10 +679,6 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-                # if args.auto_base_shift:
-                #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-                #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
                 if draw_data["base_shift"] < 0:
                     abs_base_shift = abs(draw_data["base_shift"])
                     x = signal_tuple[0]
@@ -908,10 +904,6 @@ def run(args):
             # print(fasta_seq)
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
 
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
                 x = signal_tuple[0]
@@ -1129,10 +1121,6 @@ def run(args):
             sig_algn_dic['ss'] = moves
 
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
 
             if draw_data["base_shift"] < 0:
                 abs_base_shift = abs(draw_data["base_shift"])
