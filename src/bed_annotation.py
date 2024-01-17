@@ -123,8 +123,11 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-            location_plot += n_samples
             x_coordinate += n_samples
+            if draw_data['fixed_width']:
+                pass
+            else:
+                location_plot += n_samples
         else:
             n_samples = int(i)
             if draw_data['fixed_width']:
