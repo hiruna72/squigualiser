@@ -19,7 +19,7 @@ def get_base_color_map():
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
     return base_color_map
 
-def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
+def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq, draw_data):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
     else:
@@ -62,6 +62,20 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         y = signal_tuple[2][eat_signal:]
         signal_tuple = (x, x_real, y)
         sig_algn_data['ss'] = moves
+
+    if draw_data["base_shift"] < 0:
+        abs_base_shift = abs(draw_data["base_shift"])
+        x = signal_tuple[0]
+        x_real = signal_tuple[1]
+        y = signal_tuple[2]
+        y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+        y = np.concatenate((y_prefix, y), axis=0)
+        x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+        x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+        signal_tuple = (x, x_real, y)
+        moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+        sig_algn_data['ss'] = moves_prefix + sig_algn_data['ss']
+
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 def create_figure(args, plot_mode):
     p_defualt = None

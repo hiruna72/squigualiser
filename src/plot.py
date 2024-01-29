@@ -677,20 +677,7 @@ def run(args):
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 sig_algn_dic['ss'] = moves
 
-                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-                if draw_data["base_shift"] < 0:
-                    abs_base_shift = abs(draw_data["base_shift"])
-                    x = signal_tuple[0]
-                    x_real = signal_tuple[1]
-                    y = signal_tuple[2]
-                    y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                    y = np.concatenate((y_prefix, y), axis=0)
-                    x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                    x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                    signal_tuple = (x, x_real, y)
-                    moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                    sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
                 if args.fixed_width:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
@@ -902,20 +889,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -1120,20 +1094,7 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
 
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
