@@ -86,7 +86,9 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
             break
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
-    signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
     if sig_algn_data["data_is_rna"] == 1:
         ref_region = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_end"], sig_algn_data["ref_end"] - base_index+1)
         signal_region = "{}-{}".format(x_real[signal_start], x_real[x_coordinate - 1])

@@ -76,6 +76,10 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
         sig_algn_data['ss'] = moves_prefix + sig_algn_data['ss']
 
+    base_shift_seq = 'N' * draw_data['base_shift']
+    if draw_data["base_shift"] > 0:
+        fasta_seq = base_shift_seq + fasta_seq[:-1*draw_data["base_shift"]]
+
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 def create_figure(args, plot_mode):
     p_defualt = None

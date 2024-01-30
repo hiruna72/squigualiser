@@ -236,7 +236,9 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     signal_region = ""
     indels = f'deletions(bases): {num_Ds} insertions(samples): {num_Is}'
-    signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
     signal_region = f'[{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]'
     y_plot = y[:x_coordinate]+y_shift
     y_median = np.nanmedian(y_plot)
