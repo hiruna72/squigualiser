@@ -462,6 +462,9 @@ def run(args):
 
     if args.read_id != "":
         args.plot_limit = 1
+    if args.read_list != "":
+        print(f'read_id list file: {args.read_list}')
+        read_id_list = list(line.strip() for line in open(args.read_list))
 
     use_fasta = 0
     if args.file:
@@ -563,6 +566,8 @@ def run(args):
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
                 read_id = paf_record.query_name
                 if args.read_id != "" and read_id != args.read_id:
+                    continue
+                if args.read_list != "" and read_id not in read_id_list:
                     continue
                 if read_id not in set(sequence_reads.keys()):
                     raise Exception("Error: read_id {} is not found in {}".format(read_id, args.file))
@@ -750,6 +755,8 @@ def run(args):
             if args.plot_reverse is False and sam_record.is_reverse is True:
                 continue
             if args.read_id != "" and read_id != args.read_id:
+                continue
+            if args.read_list != "" and read_id not in read_id_list:
                 continue
             if not sam_record.has_tag("ss"):
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
@@ -955,6 +962,8 @@ def run(args):
             #     continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
+            if args.read_list != "" and read_id not in read_id_list:
+                continue
             if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
@@ -1148,6 +1157,7 @@ def argparser():
 
     parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
+    parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
     parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
     parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
