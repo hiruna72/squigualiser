@@ -9,12 +9,22 @@ DNA_STRIDE = 5
 RNA_STRIDE = 10
 
 profile_dic = {
+        "guppy_dna_r9.4.1_450bps_fast": [3, 2],
         "guppy_dna_r9.4.1_450bps_fast_prom": [3, 2],
+        "guppy_dna_r9.4.1_450bps_hac": [3, 2],
         "guppy_dna_r9.4.1_450bps_hac_prom": [3, 2],
+        "guppy_dna_r9.4.1_450bps_sup": [4, 3],
         "guppy_dna_r9.4.1_450bps_sup_prom": [4, 3],
-        "guppy_dna_r10.4.1_e8.2_400bps_fast": [1, 0],
-        "guppy_dna_r10.4.1_e8.2_400bps_hac": [1, 0],
-        "guppy_dna_r10.4.1_e8.2_400bps_sup": [1, 0]}
+        "guppy_dna_r10.4.1_e8.2_400bps_fast": [2, 1],
+        "guppy_dna_r10.4.1_e8.2_400bps_fast_prom": [2, 1],
+        "guppy_dna_r10.4.1_e8.2_400bps_hac": [2, 1],
+        "guppy_dna_r10.4.1_e8.2_400bps_hac_prom": [2, 1],
+        "guppy_dna_r10.4.1_e8.2_400bps_sup": [2, 1],
+        "guppy_rna_r9.4.1_70bps_fast": [1, 0],
+        "guppy_rna_r9.4.1_70bps_fast_prom": [1, 0],
+        "guppy_rna_r9.4.1_70bps_hac": [1, 0],
+        "guppy_rna_r9.4.1_70bps_hac_prom": [1, 0]
+}
 
 def list_profiles():
     # print(profile_dic)
