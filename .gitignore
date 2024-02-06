@@ -6,6 +6,7 @@ output
 *egg*
 dist
 __pycache__
+*/.ipynb_checkpoints/*
 idealg_v
 build
 venv3
