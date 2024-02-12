@@ -85,10 +85,13 @@ def create_figure(args, plot_mode):
     p_defualt = None
     if plot_mode == 0:
         y_axis_label = "signal value (raw)"
+        x_axis_label = "signal value (raw)"
+        if args.fixed_width:
+            x_axis_label = "base index"
         if args.no_pa:
             y_axis_label = "signal value (pA)"
         tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-        p_default = figure(x_axis_label='signal index',
+        p_default = figure(x_axis_label=x_axis_label,
                    y_axis_label=y_axis_label,
                    sizing_mode="stretch_width",
                    height=PLOT_HEIGHT,

@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS, FixedTicker
 from bokeh.layouts import column
 from bokeh.colors import RGB
 from bokeh.io import export_svg
@@ -217,6 +217,17 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         if num_plots == 0:
             sample_label_colors_insert[0] = 'purple'
             sample_label_colors_match[0] = 'red'
+
+            xticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index+1, 5)]
+            mxticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index, 1)]
+            xticks_dic = {}
+            j = 0
+            for i in xticks:
+                xticks_dic[i] = str(j)
+                j += 5
+            p.xaxis.major_label_overrides = xticks_dic
+            p.xaxis.ticker = FixedTicker(ticks=xticks, minor_ticks=mxticks)
+
         sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_match, alpha=0.5, legend_label='match', visible=False)
         sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
 

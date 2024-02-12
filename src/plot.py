@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker
 from bokeh.layouts import row
 from bokeh.colors import RGB
 from bokeh.io import export_svg, export_svgs
@@ -398,6 +398,17 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
+
+    xticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index+1, 5)]
+    mxticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index, 1)]
+    xticks_dic = {}
+    j = 0
+    for i in xticks:
+        xticks_dic[i] = str(j)
+        j += 5
+    p.xaxis.major_label_overrides = xticks_dic
+    p.xaxis.ticker = FixedTicker(ticks=xticks, minor_ticks=mxticks)
+
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5, visible=draw_data['no_samples'])
     toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
