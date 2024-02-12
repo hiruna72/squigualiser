@@ -281,6 +281,10 @@ def run(args):
     if args.extend_1:
         metric_header += "\tss_string"
     fout.write("{}\n".format(metric_header))
+
+    if args.output_current_column:
+        column_raw_samples = {}
+
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
         with open(args.alignment, "r") as handle:
@@ -630,6 +634,15 @@ def run(args):
                     if i < len(ref_pos_dic) - 1:
                         print("\t", end="")
                 print()
+            if args.output_current_column:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        if i in column_raw_samples:
+                            column_raw_samples[i] += rounded_sublist
+                        else:
+                            column_raw_samples[i] = rounded_sublist
     elif use_paf == 1 and plot_sig_ref_flag == 1:
         print("Info: Signal to reference method using PAF ...")
         fasta_reads = Fasta(args.file)
@@ -836,6 +849,14 @@ def run(args):
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
+    if args.output_current_column:
+        for key, item in column_raw_samples.items():
+            array = np.array(item)
+            mean = np.mean(array)
+            darray = array/mean
+            print(', '.join(map(str, darray)))
+            # print(', '.join(map(str, item)))
+
     print("Number of records: {}".format(num_plots))
     if num_plots == 0:
         print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
@@ -872,6 +893,7 @@ def argparser():
     parser.add_argument('--extend_0', required=False, action='store_true', help="print matches, deletions, insertions arrays")
     parser.add_argument('--extend_1', required=False, action='store_true', help="print ss string for the given region")
     parser.add_argument('--output_current', required=False, action='store_true', help="print signal values")
+    parser.add_argument('--output_current_column', required=False, action='store_true', help="print signal values per column")
     return parser
 
 if __name__ == "__main__":
