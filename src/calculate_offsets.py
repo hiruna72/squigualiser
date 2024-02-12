@@ -46,6 +46,8 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     start_offset = 0
     end_offset = kmer_length
     f, axes = plt.subplots(nrows=end_offset-start_offset, ncols=1, figsize=(12, 9))
+    # Adjust space between subplots
+    plt.subplots_adjust(hspace=1)
     for offset in range(start_offset, end_offset):
         i = 0
         for base in test_array[offset]:
@@ -55,11 +57,11 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
                 sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset])
             i += 1
         if kmer_length == 1:
-            axes.set_title('base offset: {}'.format(offset))
+            axes.set_title('base shift: {}'.format(-1*offset), size=10, loc='right')
         else:
-            axes[offset-start_offset].set_title('base offset: {}'.format(offset))
+            axes[offset-start_offset].set_title('base shift: {}'.format(-1*offset), size=10, loc='right')
     plt.legend(prop={'size': 10}, title='Base')
-    plt.suptitle("{}".format(plt_title), size=16)
+    plt.suptitle("{}".format(plt_title), size=10)
     plt.draw()
     plt.savefig(output_pdf, format='pdf')
 def calculate_distance(kmer_length, test_array):
@@ -204,7 +206,6 @@ def run(args):
             for line in model_:
                 values_ = line.split('\t')
                 model[values_[0]] = float(values_[1])
-            print(kmer_length)
             test_array = []
             for base_offset in range(0, kmer_length):
                 freq = [[], [], [], []]
@@ -212,11 +213,13 @@ def run(args):
                     freq[BASE_INDEX[kmer[base_offset]]].append(value)
                 test_array.append(freq)
             max_offset, max_dist = calculate_distance(kmer_length, test_array)
-            print("best_base_offset:{}\tdist:{}".format(max_offset, max_dist))
+            forward_shift = -1 * max_offset
+            reverse_shift = -1 * (kmer_length - max_offset - 1)
+            print("kmer length: {}\nbest base shift for forward mapped reads: {}\nbest base shift for reverse mapped reads: {}\nmax_distance: {}".format(kmer_length, forward_shift, reverse_shift, round(max_dist, 4)))
             if args.output != "":
                 output_pdf = PdfPages(args.output)
                 print("output file: {}".format(args.output))
-                plt_title = "{}\nkmer_len:{}\nbest_base_offset:{} max_dist:{}".format(args.tag_name, kmer_length, max_offset, str(round(max_dist, 4)))
+                plt_title = "{}\nkmer length: {} max_distance: {}\nbest base shift for forward mapped reads (shown below): {}\nbest base shift for reverse mapped reads (derived): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
                 plot_distributions(kmer_length, test_array, output_pdf, plt_title)
                 output_pdf.close()
     else:
