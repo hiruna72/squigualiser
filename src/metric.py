@@ -851,11 +851,15 @@ def run(args):
 
     if args.output_current_column:
         for key, item in column_raw_samples.items():
-            array = np.array(item)
-            mean = np.mean(array)
-            darray = array/mean
-            print(', '.join(map(str, darray)))
             # print(', '.join(map(str, item)))
+            array = np.array(item)
+
+            median = np.median(array)
+            darray = array/median
+            print(', '.join(map(str, darray)))
+
+            # darray = plot_utils.scale_signal(array, 'medmad', {})
+            # print(', '.join(map(str, darray)))
 
     print("Number of records: {}".format(num_plots))
     if num_plots == 0:
