@@ -344,10 +344,6 @@ def run(args):
     # if not args.fixed_width:
     #     raise Exception("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
 
-    if args.base_limit:
-        base_limit = args.base_limit
-    else:
-        base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
     if args.read_id != "":
@@ -466,10 +462,9 @@ def run(args):
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
             if True: # if not args.loose_bound:
                 if data_is_rna == 1:
@@ -684,10 +679,9 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
             if True: # if not args.loose_bound:
                 if data_is_rna == 1:
@@ -929,7 +923,7 @@ def argparser():
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
-    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
+    parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
     parser.add_argument('--plot_num_samples', required=False, action='store_true', help="annotate the number of samples for each move")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")

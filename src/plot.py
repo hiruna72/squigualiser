@@ -116,12 +116,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
                 break
             location_plot = prev_loc
             x_coordinate = prev_x_cord
-
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["fixed_base_width"]))
-            y_add = np.concatenate((y[:previous_location], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
-            y = np.concatenate((y_add, y[previous_location:]), axis=0)
-            x_add = np.concatenate((x_real[:previous_location], [x_real[previous_location]] * n_samples * draw_data["fixed_base_width"]), axis=0)
-            x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
+            y_add = np.concatenate((y[:previous_x_coordinate], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
+            y = np.concatenate((y_add, y[previous_x_coordinate:]), axis=0)
+            x_add = np.concatenate((x_real[:previous_x_coordinate], [x_real[previous_x_coordinate]] * n_samples * draw_data["fixed_base_width"]), axis=0)
+            x_real = np.concatenate((x_add, x_real[previous_x_coordinate:]), axis=0)
             for j in range(0, n_samples * draw_data["fixed_base_width"]):
                 sample_label_colors.append('white')
 
@@ -513,10 +512,6 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         raise Exception("Error: please provide a .fasta or .fa file when using SAM/BAM")
 
-    if args.base_limit:
-        base_limit = args.base_limit
-    else:
-        base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
     bed_dic = {}
@@ -613,6 +608,7 @@ def run(args):
                     fasta_seq = fasta_seq[paf_record.target_start:]
                     ref_start = paf_record.target_start + 1
 
+                base_limit = args.base_limit
                 seq_len = len(fasta_seq)
                 if seq_len < base_limit:
                     base_limit = seq_len
@@ -792,10 +788,9 @@ def run(args):
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
 
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
             if args.region != "":
                 if not args.loose_bound:
@@ -1000,10 +995,11 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
+
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
             if args.region != "":
                 if not args.loose_bound:
@@ -1171,7 +1167,7 @@ def argparser():
     parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
     parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
     parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
+    parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
