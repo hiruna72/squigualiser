@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker
 from bokeh.layouts import row
 from bokeh.colors import RGB
 from bokeh.io import export_svg, export_svgs
@@ -82,7 +82,9 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     base_box_details = {'left': [], 'right': [], 'fill_color': []}
     flag_base_index_bound = 0
 
+    k = 0
     for i in moves:
+        # print("{}: {}".format(k, i))
         previous_location = location_plot
         previous_x_coordinate = x_coordinate
         if 'D' in i:
@@ -116,12 +118,11 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
                 break
             location_plot = prev_loc
             x_coordinate = prev_x_cord
-
             x = x + list(range(x[-1] + 1, x[-1] + 1 + n_samples * draw_data["fixed_base_width"]))
-            y_add = np.concatenate((y[:previous_location], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
-            y = np.concatenate((y_add, y[previous_location:]), axis=0)
-            x_add = np.concatenate((x_real[:previous_location], [x_real[previous_location]] * n_samples * draw_data["fixed_base_width"]), axis=0)
-            x_real = np.concatenate((x_add, x_real[previous_location:]), axis=0)
+            y_add = np.concatenate((y[:previous_x_coordinate], [np.nan] * n_samples * draw_data["fixed_base_width"]), axis=0)
+            y = np.concatenate((y_add, y[previous_x_coordinate:]), axis=0)
+            x_add = np.concatenate((x_real[:previous_x_coordinate], [x_real[previous_x_coordinate]] * n_samples * draw_data["fixed_base_width"]), axis=0)
+            x_real = np.concatenate((x_add, x_real[previous_x_coordinate:]), axis=0)
             for j in range(0, n_samples * draw_data["fixed_base_width"]):
                 sample_label_colors.append('white')
 
@@ -170,6 +171,8 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             break
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
+        k += 1
+
     line_segment_source = ColumnDataSource(dict(x=line_segment_x, x1=line_segment_x, y=[y_min]*len(line_segment_x), y1=[y_max]*len(line_segment_x)))
     glyph = Segment(x0="x", y0="y", x1="x1", y1="y1", line_color="saddlebrown", line_width=1)
 
@@ -204,10 +207,13 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     hover.mode = 'mouse'
 
     indt = "\t\t\t\t\t\t\t\t"
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     p.title = plot_title
 
     if location_plot > (y_max - y_min):
@@ -395,6 +401,17 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
+
+    xticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index+1, 5)]
+    mxticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index, 1)]
+    xticks_dic = {}
+    j = 0
+    for i in xticks:
+        xticks_dic[i] = str(j)
+        j += 5
+    p.xaxis.major_label_overrides = xticks_dic
+    p.xaxis.ticker = FixedTicker(ticks=xticks, minor_ticks=mxticks)
+
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate], radius=draw_data["point_size"], color=sample_label_colors, alpha=0.5, visible=draw_data['no_samples'])
     toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
@@ -406,10 +423,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     hover.tooltips = [("x", "@x_real"), ("y", "@y")]
     hover.mode = 'mouse'
     indt = "\t\t\t\t\t\t\t\t"
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
     if sig_algn_data["data_is_rna"] == 1:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
     else:
-        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {num_Ds} insertions(samples): {num_Is}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
 
     p.title = plot_title
 
@@ -456,6 +476,9 @@ def run(args):
 
     if args.read_id != "":
         args.plot_limit = 1
+    if args.read_list != "":
+        print(f'read_id list file: {args.read_list}')
+        read_id_list = list(line.strip() for line in open(args.read_list))
 
     use_fasta = 0
     if args.file:
@@ -493,10 +516,6 @@ def run(args):
     if use_paf == 0 and use_fasta == 0:
         raise Exception("Error: please provide a .fasta or .fa file when using SAM/BAM")
 
-    if args.base_limit:
-        base_limit = args.base_limit
-    else:
-        base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
     bed_dic = {}
@@ -551,6 +570,19 @@ def run(args):
                 for read in Fastq(args.file):
                     name = read.name.split()[0]
                     sequence_reads[name] = read
+            if args.region != "":
+                args_region = re.sub(',', '', args.region)
+                # print(args_region)
+                # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+                pattern = re.compile("^[0-9]+\-[0-9]+")
+                if not pattern.match(args_region):
+                    raise Exception("Error: region provided is not in correct format")
+                args_ref_start = int(args.region.split("-")[0])
+                args_ref_end = int(args.region.split("-")[1])
+
+            else:
+                args_ref_start = None
+                args_ref_end = None
 
             for paf_record in parse_paf(handle):
                 if paf_record.query_name != paf_record.target_name:
@@ -558,77 +590,108 @@ def run(args):
                 read_id = paf_record.query_name
                 if args.read_id != "" and read_id != args.read_id:
                     continue
+                if args.read_list != "" and read_id not in read_id_list:
+                    continue
                 if read_id not in set(sequence_reads.keys()):
                     raise Exception("Error: read_id {} is not found in {}".format(read_id, args.file))
                 if 'ss' not in paf_record.tags:
                     raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
+                if 'ss' not in paf_record.tags:
+                    raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
+                moves_string = paf_record.tags['ss'][2]
+
                 data_is_rna = 0
+                start_index = paf_record.query_start
+                end_index = paf_record.query_end
+                ref_seq_len = paf_record.target_end - paf_record.target_start
+                reference_start = paf_record.target_start
                 if paf_record.target_start > paf_record.target_end:  # if RNA start_kmer>end_kmer in paf
                     data_is_rna = 1
                     if not args.rna:
                         print("Info: data is detected as RNA")
                         raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
+                    ref_seq_len = paf_record.target_start - paf_record.target_end
+                    reference_start = paf_record.target_end + kmer_correction
 
-                fasta_seq = ""
-                if use_fasta:
-                    fasta_seq = sequence_reads[read_id][:].seq
+                base_limit = args.base_limit
+                if ref_seq_len < base_limit:
+                    base_limit = ref_seq_len
+
+                paf_record_reference_end = reference_start + ref_seq_len #1based closed
+                if args.region != "":
+                    if not args.loose_bound:
+                        if data_is_rna == 1:
+                            if args_ref_start < reference_start + 1 - kmer_correction:
+                                continue
+                        else:
+                            if args_ref_start < reference_start + 1:
+                                continue
+                        if args_ref_end > paf_record_reference_end:
+                            continue
+                ref_name = paf_record.target_name
+                ref_start = reference_start + 1
+                ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
+                if args.region != "":
+                    if args_ref_start > ref_start:
+                        ref_start = args_ref_start
+                        if (ref_start + base_limit - 1) < paf_record_reference_end:
+                            ref_end = ref_start + base_limit - 1
+                        else:
+                            ref_end = paf_record_reference_end
+                    if args_ref_end < ref_end:
+                        ref_end = args_ref_end
+                if ref_end < ref_start:
+                    print("Warning: a corner case has hit because the kmer_length used is larger than 1. This alignment will be skipped")
+                    continue
+                base_limit = ref_end - ref_start + 1
+
+                record_is_reverse = 0
+                if paf_record.strand == "-":
+                    record_is_reverse = 1
+                if record_is_reverse and data_is_rna == 1:
+                    raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
+                if data_is_rna == 1:
+                    print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
+                    if use_fasta:
+                        fasta_seq = sequence_reads[ref_name][:].seq[ref_start-1:ref_end] # this slicing is 0-based [) interval
+                    else:
+                        fasta_seq = sequence_reads[read_id].seq
+                        if len(fasta_seq) < paf_record.target_length:
+                            raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                        fasta_seq = fasta_seq[ref_start-1:ref_end]
                     fasta_seq = fasta_seq.upper()
                 else:
-                    fasta_seq = sequence_reads[read_id].seq
-                    fasta_seq = fasta_seq.upper()
-                    if len(fasta_seq) < paf_record.target_length:
-                        raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                    if record_is_reverse:
+                        print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                        if use_fasta:
+                            fasta_seq = sequence_reads[ref_name][:].seq[ref_start-1:ref_end]
+                        else:
+                            fasta_seq = sequence_reads[read_id].seq
+                            if len(fasta_seq) < paf_record.target_length:
+                                raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                            fasta_seq = fasta_seq[ref_start-1:ref_end]
+                        fasta_seq = fasta_seq.upper()
+                        nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
+                        fasta_seq = "".join(nn[n] for n in fasta_seq)
+                    else:
+                        print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
+                        if use_fasta:
+                            fasta_seq = sequence_reads[ref_name][:].seq[ref_start-1:ref_end]
+                        else:
+                            fasta_seq = sequence_reads[read_id].seq
+                            if len(fasta_seq) < paf_record.target_length:
+                                raise Exception("Error: Sequence lengths mismatch. If {} is a multi-line fastq file convert it to a 4-line fastq using seqtk.".format(args.file))
+                            fasta_seq = fasta_seq[ref_start-1:ref_end]
+                        fasta_seq = fasta_seq.upper()
                 if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                     raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
-
-                ref_start = -1
-                ref_end = -1
-                if data_is_rna == 1:
-                    fasta_seq = fasta_seq[paf_record.target_end:]
-                    ref_start = paf_record.target_end + 1
-                else:
-                    fasta_seq = fasta_seq[paf_record.target_start:]
-                    ref_start = paf_record.target_start + 1
-
-                seq_len = len(fasta_seq)
-                if seq_len < base_limit:
-                    base_limit = seq_len
-                ref_end = base_limit
-
-                if args.region != "":
-                    pattern = re.compile("^[0-9]+\-[0-9]+")
-                    if not pattern.match(args.region):
-                        raise Exception("Error: region provided is not in correct format")
-                    ref_start = int(args.region.split("-")[0])
-                    ref_end = int(args.region.split("-")[1])
-
-                    if ref_start < 1:
-                        raise Exception("Error: region start coordinate ({}) must be positive".format(ref_start))
-
-                    if ref_end < 1:
-                        raise Exception("Error: region end coordinate ({}) must be positive".format(ref_end))
-
-                    if data_is_rna == 1 and paf_record.target_start < ref_end:
-                        ref_end = paf_record.target_start
-                    elif data_is_rna == 0 and paf_record.target_end < ref_end:
-                        ref_end = paf_record.target_end
-
-                    # print("ref_start: " + str(ref_start))
-                    # print("ref_end: " + str(ref_end))
-
-                    if (ref_end - ref_start + 1) < base_limit:
-                        base_limit = ref_end - ref_start + 1
-
-                print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
 
                 x = []
                 x_real = []
                 y = []
                 read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
                 if read is not None:
-                    start_index = paf_record.query_start
-                    end_index = read['len_raw_signal']
                     x = list(range(1, end_index - start_index + 1))
                     x_real = list(range(start_index + 1, end_index + 1))  # 1based
                     y = read['signal'][start_index:end_index]
@@ -650,49 +713,34 @@ def run(args):
 
                 y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
 
-                strand_dir = "(DNA 5'->3')"
-                if data_is_rna == 1:
-                    fasta_seq = fasta_seq[:ref_end]
-                    fasta_seq = fasta_seq[::-1]
-                    strand_dir = "(RNA 3'->5')"
-                else:
-                    fasta_seq = fasta_seq[ref_start-1:]
-
-                moves_string = paf_record.tags['ss'][2]
                 moves_string = re.sub('D', 'D,', moves_string)
                 moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
                 moves = re.split(r',+', moves_string)
 
+                if data_is_rna == 0:
+                    strand_dir = "(DNA +)"
+                    if record_is_reverse:
+                        strand_dir = "(DNA -)"
+                        x_real.reverse()
+                        y = np.flip(y)
+                        moves.reverse()
+                if data_is_rna == 1:
+                    strand_dir = "(RNA 3'->5')"
+                    fasta_seq = fasta_seq[::-1]
+
                 signal_tuple = (x, x_real, y)
-                region_tuple = (ref_start, ref_end, 0, seq_len)
+                region_tuple = (ref_start, ref_end, reference_start, reference_start + ref_seq_len)
 
                 sig_algn_dic = {}
                 sig_algn_dic['start_kmer'] = 0
                 sig_algn_dic['ref_start'] = ref_start
                 sig_algn_dic['ref_end'] = ref_end
-                sig_algn_dic['use_paf'] = use_paf
+                sig_algn_dic['pa'] = args.no_pa
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 sig_algn_dic['ss'] = moves
 
-                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-                # if args.auto_base_shift:
-                #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-                #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-                if draw_data["base_shift"] < 0:
-                    abs_base_shift = abs(draw_data["base_shift"])
-                    x = signal_tuple[0]
-                    x_real = signal_tuple[1]
-                    y = signal_tuple[2]
-                    y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                    y = np.concatenate((y_prefix, y), axis=0)
-                    x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                    x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                    signal_tuple = (x, x_real, y)
-                    moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                    sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
                 if args.fixed_width:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
@@ -703,7 +751,7 @@ def run(args):
                 draw_data['y_max'] = np.nanmax(y)
                 p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
-                    p = bed_annotation.plot_bed_annotation(p=p, ref_id=read_id, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
+                    p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
 
                 if args.fixed_width:
                     layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
@@ -762,6 +810,8 @@ def run(args):
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
+            if args.read_list != "" and read_id not in read_id_list:
+                continue
             if not sam_record.has_tag("ss"):
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
             ref_seq_len = 0
@@ -785,10 +835,9 @@ def run(args):
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
 
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
             if args.region != "":
                 if not args.loose_bound:
@@ -904,24 +953,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -983,6 +1015,8 @@ def run(args):
             #     continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
+            if args.read_list != "" and read_id not in read_id_list:
+                continue
             if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
@@ -1008,10 +1042,11 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
+
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
             if args.region != "":
                 if not args.loose_bound:
@@ -1052,7 +1087,7 @@ def run(args):
                 raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
             if data_is_rna == 1:
                 print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
+                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq #get_seq is 1-based closed interval
                 fasta_seq = fasta_seq.upper()
             else:
                 if record_is_reverse:
@@ -1126,24 +1161,7 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
 
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -1193,9 +1211,10 @@ def argparser():
 
     parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
+    parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
     parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
     parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
-    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
+    parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")

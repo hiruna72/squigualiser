@@ -5,9 +5,10 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS, FixedTicker
 from bokeh.layouts import column
 from bokeh.colors import RGB
+from bokeh.io import export_svg
 import pyslow5
 import copy
 import argparse
@@ -201,12 +202,12 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     source = ColumnDataSource(data=dict(x=fixed_width_x[:x_coordinate], y=y[:x_coordinate]+y_shift, x_real=x_real[:x_coordinate], y_real=y[:x_coordinate]))
 
     if (draw_data['overlap_only'] and num_plots == 0) or not draw_data['overlap_only']:
-        p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75)
+        p.quad(top=y_max+y_shift, bottom=y_min+y_shift, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
         p.add_glyph(line_segment_source, glyph)
         p.add_layout(base_annotation_labels)
         if draw_data["plot_num_samples"]:
             p.add_layout(move_annotation_labels)
-            x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=move_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+            x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=move_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
             let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
             move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
             """)
@@ -216,6 +217,17 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         if num_plots == 0:
             sample_label_colors_insert[0] = 'purple'
             sample_label_colors_match[0] = 'red'
+
+            xticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index+1, 5)]
+            mxticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index, 1)]
+            xticks_dic = {}
+            j = 0
+            for i in xticks:
+                xticks_dic[i] = str(j)
+                j += 5
+            p.xaxis.major_label_overrides = xticks_dic
+            p.xaxis.ticker = FixedTicker(ticks=xticks, minor_ticks=mxticks)
+
         sample_labels_match = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_match, alpha=0.5, legend_label='match', visible=False)
         sample_labels_insert = p.circle(fixed_width_x[:x_coordinate], y[:x_coordinate]+y_shift, radius=draw_data["point_size"], color=sample_label_colors_insert, alpha=0.5, legend_label='insertion', visible=False)
 
@@ -235,7 +247,10 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     signal_region = ""
     indels = f'deletions(bases): {num_Ds} insertions(samples): {num_Is}'
-    signal_region = f'[{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]'
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
+    signal_region = f'[{int(x_real[signal_start])}-{int(x_real[x_coordinate - 1])}]'
     y_plot = y[:x_coordinate]+y_shift
     y_median = np.nanmedian(y_plot)
     y_max = np.nanmax(y_plot)
@@ -254,13 +269,13 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
         p.add_layout(subplot_labels)
         p.add_layout(arrow)
     if subplot_labels:
-        x_callback_subplot_labels = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+        x_callback_subplot_labels = CustomJS(args=dict(subplot_labels=subplot_labels, init_font_size=subplot_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
         let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
         subplot_labels['text_font_size'] = String(xzoom) + 'pt';
         """)
         p.x_range.js_on_change('start', x_callback_subplot_labels)
     
-    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=PLOT_X_RANGE), code="""
+    x_callback_base_annotation = CustomJS(args=dict(base_annotation_labels=base_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     base_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
@@ -329,10 +344,6 @@ def run(args):
     # if not args.fixed_width:
     #     raise Exception("Error: pileup works only with fixed base width. Provide the argument --fixed_width")
 
-    if args.base_limit:
-        base_limit = args.base_limit
-    else:
-        base_limit = BASE_LIMIT
     print(f'signal file: {args.slow5}')
 
     if args.read_id != "":
@@ -359,6 +370,8 @@ def run(args):
     indt = "\t\t\t\t\t\t\t\t"
     draw_data = {}
     draw_data["point_size"] = args.point_size
+    draw_data["no_colours"] = args.no_colours
+    draw_data["xrange"] = args.xrange
     draw_data["sig_plot_limit"] = args.sig_plot_limit
     draw_data["fixed_base_width"] = args.base_width
     draw_data["plot_y_margin"] = PLOT_Y_MARGIN
@@ -449,10 +462,9 @@ def run(args):
             else:
                 raise Exception("Error: sam record does not have a 'si' tag.")
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             sam_record_reference_end = reference_start + ref_seq_len #1based closed
             if True: # if not args.loose_bound:
                 if data_is_rna == 1:
@@ -569,24 +581,8 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
             # print(len(sig_algn_dic['ss']))
-            # if args.auto_base_shift and num_plots == 0:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
 
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
@@ -683,10 +679,9 @@ def run(args):
                 ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
                 reference_start = int(paf_record[END_KMER]) + kmer_correction
             # print("ref_seq_len: " + str(ref_seq_len))
-            if ref_seq_len < BASE_LIMIT:
+            base_limit = args.base_limit
+            if ref_seq_len < base_limit:
                 base_limit = ref_seq_len
-            else:
-                base_limit = BASE_LIMIT
             paf_record_reference_end = reference_start + ref_seq_len #1based closed
             if True: # if not args.loose_bound:
                 if data_is_rna == 1:
@@ -802,24 +797,7 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift and num_plots == 0:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
@@ -893,8 +871,8 @@ def run(args):
         p.legend.background_fill_alpha = 0.5
 
         if max_location_plot > y_shift:
-            if max_location_plot > PLOT_X_RANGE:
-                new_x_range = Range1d(0, PLOT_X_RANGE, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
+            if max_location_plot > draw_data['xrange']:
+                new_x_range = Range1d(0, draw_data['xrange'], bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
             else:
                 new_x_range = Range1d(0, max_location_plot, bounds=(-1*PLOT_X_PADDING, max_location_plot+PLOT_X_PADDING))
             new_x_range.js_property_callbacks = p.x_range.js_property_callbacks
@@ -906,10 +884,18 @@ def run(args):
         if args.return_plot:
             return p, num_plots
         else:
-            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name + ".html"
-            output_file(pileup_output_file_name, title="pileup_" + args.tag_name)
+            pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name
+            if args.save_svg:
+                pileup_output_file_name += ".svg"
+                p.output_backend = "svg"
+                export_svg(p, filename=pileup_output_file_name)
+            else:
+                pileup_output_file_name += ".html"
+                output_file(pileup_output_file_name, title=read_id)
+                save(p)
             print(f'output file: {os.path.abspath(pileup_output_file_name)}')
-            save(p)
+
+
     elif num_plots == 0 and args.return_plot:
         return None, num_plots
 
@@ -937,7 +923,7 @@ def argparser():
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
     parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
-    parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
+    parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only reverse mapped reads")
     parser.add_argument('--plot_num_samples', required=False, action='store_true', help="annotate the number of samples for each move")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
@@ -956,6 +942,9 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
     parser.add_argument('--print_bed_labels',  required=False, action='store_true', help="draw bed annotations with labels")
+    parser.add_argument('--no_colours', required=False, action='store_false', help="hide base colours")
+    parser.add_argument('--save_svg', required=False, action='store_true', help="save as svg. tweak --region and --xrange to capture the necessary part of the plot")
+    parser.add_argument('--xrange', required=False, type=int, default=PLOT_X_RANGE, help="initial x range")
     parser.add_argument('--cprofile', required=False, action='store_true', help="run cProfile for benchmarking")
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-o', '--output_dir', type=str, default="", help="output dir")

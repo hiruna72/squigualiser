@@ -55,9 +55,37 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
     annotation_box_details = {'left': [], 'right': [], 'fill_color': []}
     annotation_label = []
     annotation_label_x = []
-    location_plot = 0
-    x_coordinate = 0
-    initial_x_coordinate = x_coordinate
+
+    initial_location_plot = 0
+    if draw_data["base_shift"] > 0:
+        abs_base_shift = abs(draw_data["base_shift"])
+        count_bases = 0
+        for i in moves:
+            if 'D' in i:
+                i = re.sub('D', '', i)
+                if count_bases + int(i) > abs_base_shift:
+                    initial_location_plot += (abs_base_shift - count_bases) * draw_data["fixed_base_width"]
+                    break
+                initial_location_plot += int(i) * draw_data["fixed_base_width"]
+                count_bases += int(i)
+            elif 'I' in i:
+                i = re.sub('I', '', i)
+                if draw_data['fixed_width']:
+                    pass
+                else:
+                    initial_location_plot += int(i)
+            else:
+                if draw_data['fixed_width']:
+                    initial_location_plot += draw_data["fixed_base_width"]
+                else:
+                    initial_location_plot += int(i)
+                count_bases += 1
+            if count_bases == abs_base_shift:
+                break
+
+    initial_x_coordinate = 0
+    x_coordinate = initial_x_coordinate
+    location_plot = initial_location_plot
     flag_base_index_bound = 0
 
     bed_index = 0
@@ -123,8 +151,11 @@ def draw_bed_annotation(p, bed_content, sig_algn_data, draw_data, base_limit, tr
         elif 'I' in i:
             i = re.sub('I', '', i)
             n_samples = int(i)
-            location_plot += n_samples
             x_coordinate += n_samples
+            if draw_data['fixed_width']:
+                pass
+            else:
+                location_plot += n_samples
         else:
             n_samples = int(i)
             if draw_data['fixed_width']:

@@ -108,9 +108,10 @@ Plot read/reference - signal alignments.
 * `--sig_scale`
 	(optional) Plot the scaled signal.
 	By default, the signal is not scaled but converted to pA values.
-	Supported scalings are: [medmad, znorm].
+	Supported scalings are: [medmad, znorm, scaledpA].
 	`medmad` is median absolute deviation scaling.  
 	`znorm` is zscore normalization scaling.
+	`scaledpA` uses `sc` and `sh` tags to scale the raw signal to the pore model.
 	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
 * `--no_pa`
 	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
@@ -132,6 +133,14 @@ Plot read/reference - signal alignments.
 	(optional) The maximum number of signal samples to draw on a plot [default value: 20000].
 * `--bed FILE`
 	(optional) The bed file with annotations.
+* `--no_colours`
+	(optional) hide base colours [default value: false].
+* `--no_samples`
+	(optional) hide sample points [default value: false].
+* `--save_svg`
+	(optional) save as svg. tweak --region and --xrange to capture the necessary part of the plot [default value: false].
+* `--xrange`
+	(optional) initial x range [default value: 350].
 
 ### plot_pileup
 
@@ -169,9 +178,10 @@ Plot reference - signal alignment pileups.
 * `--sig_scale`
 	(optional) Plot the scaled signal.
 	By default, the signal is not scaled but converted to pA values.
-	Supported scalings are: [medmad, znorm].
+	Supported scalings are: [medmad, znorm, scaledpA].
 	`medmad` is median absolute deviation scaling.  
 	`znorm` is zscore normalization scaling.
+	`scaledpA` uses `sc` and `sh` tags to scale the raw signal to the pore model.
 	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
 * `--no_pa`
 	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
@@ -203,6 +213,12 @@ Plot reference - signal alignment pileups.
 	(optional) Create a log file using python cprofile profiler [default value: false].
 * `--return_plot`
 	(optional) Return the plot object without saving to output. This is used in `plot_tracks` tool [default value: false]. Cannot be used in conjunction with `--output_dir`.
+* `--no_colours`
+	(optional) hide base colours [default value: false].
+* `--save_svg`
+	(optional) save as svg. tweak --region and --xrange to capture the necessary part of the plot [default value: false].
+* `--xrange`
+	(optional) initial x range [default value: 350].
 
 ### plot_tracks
 
@@ -297,9 +313,10 @@ Instead of generating figures `metric` will generate statistics after parsing th
 * `--sig_scale`
 	(optional) Plot the scaled signal.
 	By default, the signal is not scaled but converted to pA values.
-	Supported scalings are: [medmad, znorm].
+	Supported scalings are: [medmad, znorm, scaledpA].
 	`medmad` is median absolute deviation scaling.  
 	`znorm` is zscore normalization scaling.
+	`scaledpA` uses `sc` and `sh` tags to scale the raw signal to the pore model.
 	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
 * `--no_pa`
 	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
