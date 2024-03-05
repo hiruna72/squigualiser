@@ -23,11 +23,11 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 # Table of Contents
 1. [Quickstart](#quickstart)
 2. [Advanced Setup](#advanced-setup)
-3. [Signal to read visualisation](#signal-to-read-visualisation)
+3. [Signal-to-read visualisation](#signal-to-read-visualisation)
    1. [Option 1 - Using f5c resquiggle](#option-1---f5c-resquiggle)
    2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation)
-5. [Signal to reference visualisation](#signal-to-reference-visualisation)
+5. [Signal-to-reference visualisation](#signal-to-reference-visualisation)
    1. [Option 1 - Using f5c eventalign](#option-1-f5c-eventalign)
    2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table-1)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
@@ -181,13 +181,13 @@ SLOW5 files compressed with *zstd* offer smaller file size and better performanc
 </div>
 </details>
 
-## Signal to read visualisation
+## Signal-to-read visualisation
 
 This section explains how you can use squigualiser to visualise a raw signal alignment against its basecalled read. Click on the arrow to expand the revalent method.
 
 #### Option 1 - f5c resquiggle
 <details>
-<summary>Steps for using f5c resquiggle signal-read alignment</summary>
+<summary>Steps for using f5c resquiggle signal-to-read alignment</summary>
 <div markdown=1>
 
 1. Install f5c [v1.3 or higher](https://github.com/hasindu2008/f5c/releases) as explained in [f5c documentation](https://github.com/hasindu2008/f5c/#quick-start).
@@ -204,7 +204,7 @@ f5c resquiggle -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}
 * Refer [Note(2)](#notes) for more information about `--kmer-model [KMER_MODEL]`, which is optional.
 * Refer [Note(3)](#notes) for more information about RNA.
 
-3. Plot signal to read alignment
+3. Plot signal-to-read alignment
 
 ````
 OUTPUT_DIR=output_dir
@@ -246,7 +246,7 @@ squigualiser reform --sig_move_offset 0 --kmer_length 1 -c --bam basecalls.sam -
 * Refer [Note(5)](#notes) for a description about `sig_move_offset`.
 * Refer [Note(6)](#notes) for handling a potential SAM/BAM error.
 
-3. Plot signal to read alignment
+3. Plot signal-to-read alignment
 
 ````
 FASTA_FILE=read.fasta
@@ -274,13 +274,13 @@ squigualiser plot --file ${FASTA_FILE} --slow5 ${SIGNAL_FILE} --alignment ${ALIG
 ````
 REF=ref.fasta          #reference
 READ=sim.fasta         #simulated reads
-ALIGNMENT=sim.paf      #contains signal-read alignment
+ALIGNMENT=sim.paf      #contains signal-to-read alignment
 SIGNAL_FILE=sim.blow5  #simultated raw signal data
 
 squigulator -x dna-r10-prom ${REF} -n 1 -o ${SIGNAL_FILE} -q ${READ} -c ${ALIGNMENT} # instead of dna-r10-prom, you can specify any other profile
 ````
 
-3. Plot signal to read alignment.
+3. Plot signal-to-read alignment.
 
 ````
 OUTPUT_DIR=output_dir
@@ -290,7 +290,7 @@ squigualiser plot -f ${READ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} 
 </div>
 </details>
 
-## Signal to reference visualisation
+## Signal-to-reference visualisation
 
 This section explains how you can use squigualiser to visualise a raw signal alignment against a reference. Click on the arrow to expand the relevant method.
 
@@ -394,7 +394,7 @@ REALIGN_BAM=realign_output.bam
 squigualiser realign --bam ${MAPP_SAM} --paf ${REFORMAT_PAF} -o ${REALIGN_BAM}
 ````
 
-5. Plot signal to reference alignment
+5. Plot signal-to-reference alignment
 
 ````
 REGION=chr1:6811404-6811443
@@ -425,7 +425,7 @@ NUM_READS=50 #number of reads to simulate
 squigulator -x dna-r10-prom ${REF} -o ${SIGNAL_FILE} -a sim.sam -n ${NUM_READS} && samtools sort sim.sam -o ${ALIGNMENT} && samtools index ${ALIGNMENT}
 ```
 
-3. Plot signal to reference alignment.
+3. Plot signal-to-reference alignment.
 ````
 OUTPUT_DIR=output_dir
 REGION=chr1:6811404-6811443
@@ -468,10 +468,10 @@ tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 ![image](docs/figures/pileup/pileup_plot.png)
 
 Similar to IGV pileup view now you can view the signal pileup view. To create a pileup view the following conditions should be met.
-1. The plot is a signal to reference visualisation, not a signal to read.
+1. The plot is a signal-to-reference visualisation, not a signal-to-read.
 2. A genomic region should be specified using the argument `--region`
 
-First, create an alignment file by following the steps mentioned in [Signal to reference visualisation](#signal-to-reference-visualisation)
+First, create an alignment file by following the steps mentioned in [Signal-to-reference visualisation](#signal-to-reference-visualisation)
 
 ````
 REGION=chr1:6811011-6811198
@@ -555,7 +555,7 @@ The commands `plot` and `plot_pileup` can take the argument `--sig_scale`. Provi
 
 
 ## Calculate alignment statistics
-Calculate basic statistics of read/reference - signal alignments.
+Calculate basic statistics of signal-to-read/reference alignments.
 Check [here](docs/commands.md/#metric) for the command.
 Check [here](docs/different_alignments.md) for an example.
 
@@ -563,7 +563,7 @@ Check [here](docs/different_alignments.md) for an example.
 
 1. If your FASTQ file is a multi-line file (not to confuse with multi-read), then install [seqtk](https://github.com/lh3/seqtk) and use `seqtk seq -l0 in.fastq > out.fastq`  to convert multi-line FASTQ to 4-line FASTQ.
 2. The optional argument `--kmer-model KMER_MODEL` can be used to specify a custom k-mer model if you wish.
-3. To plot RNA signal-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also, provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
+3. To plot RNA signal-to-read alignment use the alignment file created using `f5c resquiggle --rna -c ${FASTQ} ${SIGNAL_FILE} -o ${ALIGNMENT}`. Also, provide the argument `--rna` to the visualising command. Currently, there exists no RNA kmer model for r10.4.1 chemistry.
 4. The input alignment format accepted by `squigualiser plot` is explained [here](https://hasindu2008.github.io/f5c/docs/output#resquiggle). This standard format made plotting a lot easier.
 5. The argument `sig_move_offset` is the number of moves `n` to skip in the signal to correct the start of the alignment. This will not skip bases in the fastq sequence. For example, to align the first move with the first kmer `--sig_move_offset 0` should be passed. To align from the second move onwards, `--sig_move_offset 1` should be used.
 6. Pysam does not allow reading SAM/BAM files without a `@SQ` line in the header. Hence, `squigualiser reform` script might error out with `NotImplementedError: can not iterate over samfile without header`. Add a fake `@SQ` header line with a zero length reference as follows,
@@ -579,12 +579,12 @@ Check [here](docs/different_alignments.md) for an example.
 
 ![image](docs/figures/preview.png)
 
-1. The first read is a signal-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
-2. The second read is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-2.1.html)).
-3. The third read is a signal-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
-4. The fourth read (RNA) is a signal-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
+1. The first read is a signal-to-read alignment using guppy_v.6.3.7 move table annotation ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.1.html)).
+2. The second read is a signal-to-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-2.1.html)).
+3. The third read is a signal-to-read alignment using the squigulator's simulated output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-1.11.html)).
+4. The fourth read (RNA) is a signal-to-read alignment using f5c resquiggle output ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_read/testcase-3.2.html)).
 
-* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
+* [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.1.html) signal-to-reference alignment aligns a signal to the region `chr1:4270161-4271160`.
 * [This](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/testcase-8.2.html) is the same plot with a fixed base width.
 
 These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
