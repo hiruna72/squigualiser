@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# steps
-# simulate a region using squigulator
+# ReadME first!!!
+# This is a long pipline and might not work in the first go.
+# Go all the way to the bottom and uncomment functions one by one, run and make sure all the commands work before moving to the next function.
+# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/main/docs/pipeline_basic.md
+# Good luck!
 
 RED='\033[0;31m' ; GREEN='\033[0;32m' ; NC='\033[0m' # No Color
 die() { echo -e "${RED}$1${NC}" >&2 ; echo ; exit 1 ; } # terminate script
@@ -29,13 +32,14 @@ SAMTOOLS=samtools
 SLOW5TOOLS=slow5tools
 SAMTOOLS=samtools
 MINIMAP2=minimap2
+SIGFISH=sigfish
 F5C=f5c
 BGZIP=bgzip
 TABIX=tabix
 
 GUPPY="none"
 BUTTERY_EEL_ENV_PATH="none"
-REFERENCE=""
+REFERENCE="/genome/hg38noAlt.fa"
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -51,6 +55,7 @@ SIGNAL_FILE="reads.blow5"
 READ_ID="35142bde-548d-4f55-bf50-21c4cdd254da"
 READ_REGION=${READ_ID}:1-500
 REF_REGION="chr1:92,783,745-92,783,946"
+# REF_REGION="chr1:92,783,725-92,783,840"
 SIM_REGION="sim_ref:1-190"
 SIG_SCALE="--sig_scale znorm"
 
@@ -218,6 +223,33 @@ simulate_ref_signal() {
 
 }
 
+simulate_ref_signal_given_seq() {
+	info "simulating using ${SIMULATING_PROFILE}"
+
+	test -d "$SIMULATE_REF_DIR" && rm -r "$SIMULATE_REF_DIR"
+	mkdir "$SIMULATE_REF_DIR" || die "Failed creating $SIMULATE_REF_DIR"
+	
+	# echo ">sim_ref" > ${SIMULATE_REF_DIR}/ref.fasta
+	# echo "TTTTTCTTTTTCTTTTCTTTTCTTTTTTTTTTTTTTTTTTGACAGGGAGTCTCGCTCTGTCGCCAGACTGGAGTGCAGTGGCGACGTTGGTTCACTGCAACCTC" >> ${SIMULATE_REF_DIR}/ref.fasta
+
+	# ${SQUIGULATOR} --seed 1 --full-contigs --ideal-time --amp-noise 0 -x ${SIMULATING_PROFILE} ${SIMULATE_REF_DIR}/ref.fasta -o ${SIMULATE_REF_DIR}/sim.slow5 -c ${SIMULATE_REF_DIR}/sim.paf -a ${SIMULATE_REF_DIR}/sim.sam -q ${SIMULATE_REF_DIR}/sim.fasta || die "squigulator failed"
+	# ${SAMTOOLS} sort ${SIMULATE_REF_DIR}/sim.sam -o ${SIMULATE_REF_DIR}/sim.bam || die "samtools sort failed"
+	# ${SAMTOOLS} index ${SIMULATE_REF_DIR}/sim.bam || die "samtools index failed"
+
+	REGION_FILE="${SIMULATE_REF_DIR}/region.file"
+	echo ${REF_REGION} > ${REGION_FILE}
+	cat ${REGION_FILE}
+	${SAMTOOLS} faidx ${REFERENCE} --region-file ${REGION_FILE} -o ${SIMULATE_REF_DIR}/ref.fasta || die "samtools faidx failed"
+	sed -i "1s/.*/>sim_ref/" ${SIMULATE_REF_DIR}/ref.fasta
+
+	${SQUIGULATOR} --seed 10 -n 2 --ideal-time --amp-noise 0 -x ${SIMULATING_PROFILE} ${SIMULATE_REF_DIR}/ref.fasta -o ${SIMULATE_REF_DIR}/sim.slow5 -c ${SIMULATE_REF_DIR}/sim.paf -a ${SIMULATE_REF_DIR}/sim.sam -q ${SIMULATE_REF_DIR}/sim.fasta || die "squigulator failed"
+	${SAMTOOLS} sort ${SIMULATE_REF_DIR}/sim.sam -o ${SIMULATE_REF_DIR}/sim.bam || die "samtools sort failed"
+	${SAMTOOLS} index ${SIMULATE_REF_DIR}/sim.bam || die "samtools index failed"
+
+
+}
+
+
 plot_realign_and_sim() {
 	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
 	info "plotting realigned and simulated signals"
@@ -328,6 +360,32 @@ plot_nanopolish_projected_signal(){
 
 }
 
+plot_sigfish() {
+	# set -x
+	# REGION_FILE="${SIMULATE_REF_DIR}/region.file"
+	# echo "chr1:92,767,585-92,786,990" > ${REGION_FILE}
+	# cat ${REGION_FILE}
+	# ${SAMTOOLS} faidx ${REFERENCE} --region-file ${REGION_FILE} -o ${OUTPUT_DIR}/ref.fasta || die "samtools faidx failed"
+	# sed -i "1s/.*/>sim_ref/" ${OUTPUT_DIR}/ref.fasta
+
+	# ${SIGFISH} dtw -t 8 ${OUTPUT_DIR}/ref.fasta ${SIGNAL_FILE} -a -q 100000| samtools sort - > ${OUTPUT_DIR}/sorted_sigfish.bam || die "sigfish failed"
+	# samtools index ${OUTPUT_DIR}/sorted_sigfish.bam || die "samtools index failed"
+	
+	TRACK_COMMAND_FILE=${SQUIG_PLOT_DIR}/track_commands_${FUNCNAME[0]}.txt
+	rm -f ${TRACK_COMMAND_FILE}
+	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
+	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup --read_list readlist -f ${OUTPUT_DIR}/ref.fasta -s ${SIGNAL_FILE} -a ${OUTPUT_DIR}/sorted_sigfish.bam --region sim_ref:16161-16260 --tag_name Method:sigfish_dtw --plot_limit 6 ${SIG_SCALE} --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} " >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name Squigualator_simulated_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
+
+	cat ${TRACK_COMMAND_FILE}
+
+	TESTCASE="${MODEL_TO_USE}_sigfish_dtw_vs_sim"
+	OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+	${PLOT_TRACK_TOOL} --shared_x -f ${TRACK_COMMAND_FILE} -o ${SQUIG_PLOT_DIR}/${TESTCASE} --tag_name ${TESTCASE} || die "testcase:$TESTCASE failed"
+
+}	
+
 ## stage 1
 
 # create_output_dir
@@ -349,11 +407,14 @@ plot_nanopolish_projected_signal(){
 # minimap2_align
 # realign
 # simulate_ref_signal
+# simulate_ref_signal_given_seq
 # plot_realign_and_sim
 # f5c_eventalign
 # plot_eventalign_and_sim
 # plot_eventalign_forward_reverse
 # plot_realign_forward_reverse
-plot_nanopolish_projected_signal
+# plot_nanopolish_projected_signal
+# set -x
+# plot_sigfish
 
 info "success"

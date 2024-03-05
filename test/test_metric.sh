@@ -35,7 +35,7 @@ RAW_DIR="${REL_PATH}/data/raw/pipelines/pipeline_0/dna_r10.4.1_e8.2_400bps"
 [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
 GENOME="${HUMAN_GENOME}"
 REGION="--region chr1:92,783,745-92,783,946"
-PROFILE="--profile guppy_dna_r10.4.1_e8.2_400bps_sup"
+PROFILE="--profile guppy_dna_r10.4.1_e8.2_400bps_sup" #should have used different profiles for different alignments
 TESTCASE=50.1
 info "testcase:$TESTCASE - help"
 ex && die "testcase:$TESTCASE failed"
@@ -76,6 +76,9 @@ TESTCASE=50.10
 info "testcase:$TESTCASE"
 ex --extend_0 --plot_reverse -f ${HUMAN_GENOME} -s ${RAW_DIR}/reads.blow5 ${REGION} ${PROFILE} -a ${RAW_DIR}/nanopolish_signal_projection/sorted_projected.paf.gz -o ${OUTPUT_DIR}/naopolish_projection_stat_rv.tsv || die "testcase:$TESTCASE failed"
 
+TESTCASE=50.11
+info "testcase:$TESTCASE"
+ex --extend_0 --extend_1 --plot_reverse -f ${HUMAN_GENOME} -s ${RAW_DIR}/reads.blow5 ${REGION} ${PROFILE} -a ${RAW_DIR}/nanopolish_signal_projection/sorted_projected.paf.gz -o ${OUTPUT_DIR}/naopolish_projection_stat_rv.tsv || die "testcase:$TESTCASE failed"
 
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0

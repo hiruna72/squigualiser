@@ -25,7 +25,7 @@ def create_kmer_model(moves, sequence, raw_signal, kmer_length, sig_move_offset)
 
     for i in range(0, len_seq-kmer_length + 1 - sig_move_offset):
         end_raw = start_raw + int(moves[i + sig_move_offset])
-        value = raw_signal[start_raw : end_raw]
+        value = raw_signal[start_raw: end_raw]
         start_raw = end_raw
         key = sequence[i:i+kmer_length]
         if key not in model:
@@ -46,6 +46,8 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     start_offset = 0
     end_offset = kmer_length
     f, axes = plt.subplots(nrows=end_offset-start_offset, ncols=1, figsize=(12, 9))
+    # Adjust space between subplots
+    plt.subplots_adjust(hspace=1)
     for offset in range(start_offset, end_offset):
         i = 0
         for base in test_array[offset]:
@@ -55,11 +57,11 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
                 sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset])
             i += 1
         if kmer_length == 1:
-            axes.set_title('base offset: {}'.format(offset))
+            axes.set_title('base shift (offset): {}'.format(-1*offset), size=10, loc='right')
         else:
-            axes[offset-start_offset].set_title('base offset: {}'.format(offset))
+            axes[offset-start_offset].set_title('base shift (offset): {}'.format(-1*offset), size=10, loc='right')
     plt.legend(prop={'size': 10}, title='Base')
-    plt.suptitle("{}".format(plt_title), size=16)
+    plt.suptitle("{}".format(plt_title), size=10)
     plt.draw()
     plt.savefig(output_pdf, format='pdf')
 def calculate_distance(kmer_length, test_array):
@@ -68,15 +70,17 @@ def calculate_distance(kmer_length, test_array):
     offset_dist = []
 
     for offset in range(start_offset, end_offset):
-        max_mean = -1
-        min_mean = 10000
+        max_median = -1
+        min_median = 10000
         for base in test_array[offset]:
             median = np.median(base)
-            if median < min_mean:
-                min_mean = median
-            if median > max_mean:
-                max_mean = median
-        offset_dist.append(max_mean-min_mean)
+            if median < min_median:
+                min_median = median
+            if median > max_median:
+                max_median = median
+        distance = max_median - min_median
+        print("offset: {} max_median: {} min_median: {} max_median-min_median: {}".format(offset, max_median, min_median, distance))
+        offset_dist.append(distance)
 
     # for offset in range(start_offset, end_offset):
     #     std_total = 0
@@ -203,8 +207,8 @@ def run(args):
             model_ = obj[header_line_count:]
             for line in model_:
                 values_ = line.split('\t')
+                values_[0] = values_[0].replace('U', 'T')
                 model[values_[0]] = float(values_[1])
-            print(kmer_length)
             test_array = []
             for base_offset in range(0, kmer_length):
                 freq = [[], [], [], []]
@@ -212,11 +216,19 @@ def run(args):
                     freq[BASE_INDEX[kmer[base_offset]]].append(value)
                 test_array.append(freq)
             max_offset, max_dist = calculate_distance(kmer_length, test_array)
-            print("best_base_offset:{}\tdist:{}".format(max_offset, max_dist))
+            forward_shift = -1 * max_offset
+            reverse_shift = -1 * (kmer_length - max_offset - 1)
+            if args.rna:
+                print("RNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, reverse_shift, forward_shift, round(max_dist, 4)))
+            else:
+                print("DNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, forward_shift, reverse_shift, round(max_dist, 4)))
             if args.output != "":
                 output_pdf = PdfPages(args.output)
                 print("output file: {}".format(args.output))
-                plt_title = "{}\nkmer_len:{}\nbest_base_offset:{} max_dist:{}".format(args.tag_name, kmer_length, max_offset, str(round(max_dist, 4)))
+                if args.rna:
+                    plt_title = "RNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (derived): {}\nbest base shift (offset) for reverse mapped reads (shown below): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), reverse_shift, forward_shift)
+                else:
+                    plt_title = "DNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (shown below): {}\nbest base shift (offset) for reverse mapped reads (derived): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
                 plot_distributions(kmer_length, test_array, output_pdf, plt_title)
                 output_pdf.close()
     else:

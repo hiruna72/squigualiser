@@ -19,7 +19,7 @@ def get_base_color_map():
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
     return base_color_map
 
-def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq):
+def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_data, fasta_seq, draw_data):
     if sig_algn_data["data_is_rna"]:
         ref_region_start_diff = region_tuple[1] - region_tuple[3]
     else:
@@ -62,15 +62,36 @@ def adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dat
         y = signal_tuple[2][eat_signal:]
         signal_tuple = (x, x_real, y)
         sig_algn_data['ss'] = moves
+
+    if draw_data["base_shift"] < 0:
+        abs_base_shift = abs(draw_data["base_shift"])
+        x = signal_tuple[0]
+        x_real = signal_tuple[1]
+        y = signal_tuple[2]
+        y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
+        y = np.concatenate((y_prefix, y), axis=0)
+        x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
+        x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
+        signal_tuple = (x, x_real, y)
+        moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
+        sig_algn_data['ss'] = moves_prefix + sig_algn_data['ss']
+
+    base_shift_seq = 'N' * draw_data['base_shift']
+    if draw_data["base_shift"] > 0:
+        fasta_seq = base_shift_seq + fasta_seq[:-1*draw_data["base_shift"]]
+
     return signal_tuple, region_tuple, sig_algn_data, fasta_seq
 def create_figure(args, plot_mode):
     p_defualt = None
     if plot_mode == 0:
         y_axis_label = "signal value (raw)"
+        x_axis_label = "signal value (raw)"
+        if args.fixed_width:
+            x_axis_label = "base index"
         if args.no_pa:
             y_axis_label = "signal value (pA)"
         tools_to_show = 'hover,box_zoom,pan,reset,save,wheel_zoom,zoom_in,zoom_out'
-        p_default = figure(x_axis_label='signal index',
+        p_default = figure(x_axis_label=x_axis_label,
                    y_axis_label=y_axis_label,
                    sizing_mode="stretch_width",
                    height=PLOT_HEIGHT,
@@ -125,12 +146,8 @@ profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
         "kmer_model_rna_r9.4.1_70bps_5_mer": [-3, -1],
         "kmer_model_dna_r10.4.1_e8.2_400bps_9_mer": [-6, -2],
-        "guppy_dna_r9.4.1_450bps_fast_prom": [0, 0],
-        "guppy_dna_r9.4.1_450bps_hac_prom": [0, 0],
-        "guppy_dna_r9.4.1_450bps_sup_prom": [0, 0],
-        "guppy_dna_r10.4.1_e8.2_400bps_fast": [0, 0],
-        "guppy_dna_r10.4.1_e8.2_400bps_hac": [0, 0],
-        "guppy_dna_r10.4.1_e8.2_400bps_sup": [0, 0]}
+        "kmer_model_rna004_130bps_9mer": [-5, -3],
+        "corrected_at_reform": [0, 0]}
 def list_profiles_base_shift():
     # print(profile_dic)
     print("{}\t{}\t{}".format("name", "base_shift_forward", "base_shift_reverse"))

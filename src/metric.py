@@ -50,8 +50,9 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
     match_samples = []
     insertion_samples = []
     deletion_bases = []
-
+    ss_string = []
     for i in moves:
+        ss_string.append(i)
         previous_x_coordinate = x_coordinate
         if 'D' in i:
             i = re.sub('D', '', i)
@@ -77,6 +78,7 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
         else:
             n_samples = int(i)
             match_samples.append(n_samples)
+            sig_algn_data['ref_pos_dic'][base_index] = y[x_coordinate:x_coordinate+n_samples]
             x_coordinate += n_samples
             base = fasta_sequence[base_index]
             base_index += 1
@@ -84,15 +86,18 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
             break
         if x_coordinate - initial_x_coordinate > draw_data["sig_plot_limit"]:
             break
-
+    signal_start = initial_x_coordinate
+    if draw_data["base_shift"] < 0:
+        signal_start = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
     if sig_algn_data["data_is_rna"] == 1:
-        region_str = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_end"], sig_algn_data["ref_end"] - base_index+1)
-        # plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_end"]:,}-{sig_algn_data["ref_end"] - base_index+1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {total_length_deletions} insertions(samples): {total_length_insertions}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        ref_region = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_end"], sig_algn_data["ref_end"] - base_index+1)
+        signal_region = "{}-{}".format(x_real[signal_start], x_real[x_coordinate - 1])
     else:
-        region_str = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_start"], sig_algn_data["ref_start"] + base_index-1)
-        # plot_title = f'{sig_algn_data["tag_name"]}[{sig_algn_data["ref_start"]:,}-{sig_algn_data["ref_start"] + base_index-1:,}]{indt}signal: [{int(x_real[0])}-{int(x_real[x_coordinate - 1])}]{indt}deletions(bases): {total_length_deletions} insertions(samples): {total_length_insertions}{indt}{read_id}{indt}signal dir:{draw_data["sig_dir"]}'
+        ref_region = "{}:{}-{}".format(sig_algn_data["ref_name"], sig_algn_data["ref_start"], sig_algn_data["ref_start"] + base_index-1)
+        signal_region = "{}-{}".format(x_real[signal_start], x_real[x_coordinate - 1])
 
-    metric_record['region'] = region_str
+    metric_record['ref_region'] = ref_region
+    metric_record['signal_region'] = signal_region
     metric_record['total_matches'] = base_index - total_length_deletions
     metric_record['total_deletion_occurrences'] = len(deletion_bases)
     metric_record['total_insertion_occurrences'] = len(insertion_samples)
@@ -141,9 +146,10 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
         metric_record['mean_insertion'] = "."
         metric_record['stdev_insertion'] = "."
 
-    fout.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+    fout.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
     metric_record['read_id'],
-    metric_record['region'],
+    metric_record['ref_region'],
+    metric_record['signal_region'],
     metric_record['total_matches'],
     metric_record['total_deletion_occurrences'],
     metric_record['total_insertion_occurrences'],
@@ -174,6 +180,9 @@ def get_metric(args, fout, metric_record, read_id, signal_tuple, sig_algn_data, 
         deletion_bases,
         insertion_samples))
 
+    if args.extend_0:
+        fout.write("\t{}".format(ss_string))
+
     fout.write("\n")
 
 def run(args):
@@ -187,11 +196,16 @@ def run(args):
             raise Exception("Error: the following argument is required: -s/--slow5")
         if args.alignment == "":
             raise Exception("Error: the following argument is required: -a/--alignment")
+        if args.region == "":
+            raise Exception("Error: the following argument is required: --region")
         if args.output == "":
             raise Exception("Error:the following argument is required: -o/--output")
     fout = open(args.output, "w")
     if args.read_id != "":
         args.plot_limit = 1
+    if args.read_list != "":
+        print(f'read_id list file: {args.read_list}')
+        read_id_list = list(line.strip() for line in open(args.read_list))
 
     use_fasta = 0
     if args.file:
@@ -256,7 +270,7 @@ def run(args):
     if args.profile != "":
         kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
 
-    metric_header = ("read_id\tregion\t"
+    metric_header = ("read_id\tref_region\tsignal_region\t"
                      "total_matches\ttotal_deletion_occurrences\ttotal_insertion_occurrences\t"
                      "total_length_deletions\ttotal_length_insertions\t"
                      "min_match\tmax_match\tmode_match\tmedian_matches\tmean_matches\tstdev_matches\t"
@@ -264,7 +278,13 @@ def run(args):
                      "min_insertion\tmax_insertion\tmode_insertion\tmedian_insertion\tmean_insertion\tstdev_insertion")
     if args.extend_0:
         metric_header += "\tmatches\tdeletions\tinsertions"
+    if args.extend_1:
+        metric_header += "\tss_string"
     fout.write("{}\n".format(metric_header))
+
+    if args.output_current_column:
+        column_raw_samples = {}
+
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
         with open(args.alignment, "r") as handle:
@@ -278,6 +298,8 @@ def run(args):
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
                 read_id = paf_record.query_name
                 if args.read_id != "" and read_id != args.read_id:
+                    continue
+                if args.read_list != "" and read_id not in read_id_list:
                     continue
                 if read_id not in set(sequence_reads.keys()):
                     raise Exception("Error: read_id {} is not found in {}".format(read_id, args.file))
@@ -343,7 +365,6 @@ def run(args):
 
                 # print("plot region: {}-{}\tread_id: {}".format(ref_start, ref_end, read_id))
                 metric_record['read_id'] = read_id
-                metric_record['region'] = "{}:{}-{}".format("", ref_start, ref_end)
 
                 x = []
                 x_real = []
@@ -399,20 +420,7 @@ def run(args):
                 sig_algn_dic['ss'] = moves
                 sig_algn_dic['ref_name'] = ""
 
-                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-                if draw_data["base_shift"] < 0:
-                    abs_base_shift = abs(draw_data["base_shift"])
-                    x = signal_tuple[0]
-                    x_real = signal_tuple[1]
-                    y = signal_tuple[2]
-                    y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                    y = np.concatenate((y_prefix, y), axis=0)
-                    x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                    x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                    signal_tuple = (x, x_real, y)
-                    moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                    sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+                signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
                 draw_data['y_min'] = np.nanmin(y)
                 draw_data['y_max'] = np.nanmax(y)
@@ -425,31 +433,26 @@ def run(args):
     elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
         print("Info: Signal to reference method using SAM/BAM ...")
         fasta_reads = Fasta(args.file)
-        if args.region != "":
-            # check if there exists a .bam.bai
-            index_file = args.alignment + ".bai"
-            if not os.path.exists(index_file):
-                raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
+        # check if there exists a .bam.bai
+        index_file = args.alignment + ".bai"
+        if not os.path.exists(index_file):
+            raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
 
-            args_region = re.sub(',', '', args.region)
-            # print(args_region)
-            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
-            if not pattern.match(args_region):
-                raise Exception("Error: region provided is not in correct format")
-            args_ref_name = args_region.split(":")[0]
-            args_ref_start = int(args_region.split(":")[1].split("-")[0])
-            args_ref_end = int(args_region.split(":")[1].split("-")[1])
+        args_region = re.sub(',', '', args.region)
+        # print(args_region)
+        # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
+        pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
+        if not pattern.match(args_region):
+            raise Exception("Error: region provided is not in correct format")
+        args_ref_name = args_region.split(":")[0]
+        args_ref_start = int(args_region.split(":")[1].split("-")[0])
+        args_ref_end = int(args_region.split(":")[1].split("-")[1])
 
-            samfile = pysam.AlignmentFile(args.alignment, mode='rb')
-        else:
-            args_ref_name = None
-            args_ref_start = None
-            args_ref_end = None
-            samfile = pysam.AlignmentFile(args.alignment, mode='r')
+        samfile = pysam.AlignmentFile(args.alignment, mode='rb')
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
             metric_record = {}
+            ref_pos_dic = [[] for _ in range(abs(args_ref_end-args_ref_start+1))]
             if args_ref_name is not None and args_ref_name != sam_record.reference_name:
                 raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + args_ref_name + "]")
             read_id = sam_record.query_name
@@ -460,6 +463,8 @@ def run(args):
             if args.plot_reverse is False and sam_record.is_reverse is True:
                 continue
             if args.read_id != "" and read_id != args.read_id:
+                continue
+            if args.read_list != "" and read_id not in read_id_list:
                 continue
             if not sam_record.has_tag("ss"):
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
@@ -542,7 +547,6 @@ def run(args):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
             metric_record['read_id'] = read_id
-            metric_record['region'] = "{}:{}-{}".format(ref_name, ref_start, ref_end)
 
             x = []
             x_real = []
@@ -604,27 +608,11 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
             sig_algn_dic['ref_name'] = ref_name
+            sig_algn_dic['ref_pos_dic'] = ref_pos_dic
 
             # print(len(moves))
             # print(fasta_seq)
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             # print(len(sig_algn_dic['ss']))
             draw_data['y_min'] = np.nanmin(y)
@@ -634,6 +622,38 @@ def run(args):
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
+
+            if args.output_current:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        print("nan", end="")
+                    if i < len(ref_pos_dic) - 1:
+                        print("\t", end="")
+                print()
+            if args.output_current_1:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        continue
+                    if i < len(ref_pos_dic) - 1:
+                        print(",", end="")
+                print()
+            if args.output_current_column:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        if i in column_raw_samples:
+                            column_raw_samples[i] += rounded_sublist
+                        else:
+                            column_raw_samples[i] = rounded_sublist
     elif use_paf == 1 and plot_sig_ref_flag == 1:
         print("Info: Signal to reference method using PAF ...")
         fasta_reads = Fasta(args.file)
@@ -655,6 +675,7 @@ def run(args):
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
             metric_record = {}
+            ref_pos_dic = [[] for _ in range(abs(args_ref_end-args_ref_start+1))]
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
             if args_ref_name is not None and args_ref_name != paf_record[SEQUENCE_ID]:
@@ -663,6 +684,8 @@ def run(args):
             # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
             #     continue
             if args.read_id != "" and read_id != args.read_id:
+                continue
+            if args.read_list != "" and read_id not in read_id_list:
                 continue
             if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
@@ -749,7 +772,6 @@ def run(args):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
             metric_record['read_id'] = read_id
-            metric_record['region'] = "{}:{}-{}".format(ref_name, ref_start, ref_end)
 
             x = []
             x_real = []
@@ -809,25 +831,9 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
             sig_algn_dic['ref_name'] = ref_name
+            sig_algn_dic['ref_pos_dic'] = ref_pos_dic
 
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq)
-
-            # if args.auto_base_shift:
-            #     draw_data["base_shift"] = plot_utils.calculate_base_shift(signal_tuple[2], fasta_seq, sig_algn_dic['ss'], args)
-            #     print("automatically calculated base_shift: {}".format(draw_data["base_shift"]))
-
-            if draw_data["base_shift"] < 0:
-                abs_base_shift = abs(draw_data["base_shift"])
-                x = signal_tuple[0]
-                x_real = signal_tuple[1]
-                y = signal_tuple[2]
-                y_prefix = [np.nan] * abs_base_shift * draw_data["fixed_base_width"]
-                y = np.concatenate((y_prefix, y), axis=0)
-                x_real = np.concatenate(([1] * abs_base_shift * draw_data["fixed_base_width"], x_real), axis=0)
-                x = list(range(1, len(x) + 1 + abs_base_shift * draw_data["fixed_base_width"]))
-                signal_tuple = (x, x_real, y)
-                moves_prefix = [str(draw_data["fixed_base_width"])] * abs_base_shift
-                sig_algn_dic['ss'] = moves_prefix + sig_algn_dic['ss']
+            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             # print(len(moves))
             # print(fasta_seq)
@@ -839,8 +845,52 @@ def run(args):
             num_plots += 1
             if num_plots == args.plot_limit:
                 break
+
+            if args.output_current:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        print("nan", end="")
+                    if i < len(ref_pos_dic) - 1:
+                        print("\t", end="")
+                print()
+            if args.output_current_1:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        continue
+                    if i < len(ref_pos_dic) - 1:
+                        print(",", end="")
+                print()
+            if args.output_current_column:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        if i in column_raw_samples:
+                            column_raw_samples[i] += rounded_sublist
+                        else:
+                            column_raw_samples[i] = rounded_sublist
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
+
+    if args.output_current_column:
+        for key, item in column_raw_samples.items():
+            # print(', '.join(map(str, item)))
+            array = np.array(item)
+
+            median = np.median(array)
+            darray = array/median
+            print(', '.join(map(str, darray)))
+
+            # darray = plot_utils.scale_signal(array, 'medmad', {})
+            # print(', '.join(map(str, darray)))
 
     print("Number of records: {}".format(num_plots))
     if num_plots == 0:
@@ -856,10 +906,11 @@ def argparser():
 
     parser.add_argument('-f', '--file', required=False, type=str, default="", help="fasta/fa/fastq/fq/fq.gz sequence file")
     parser.add_argument('-r', '--read_id', required=False, type=str, default="", help="plot the read with read_id")
+    parser.add_argument('-l', '--read_list', required=False, type=str, default="", help="a file with read_ids to plot")
     parser.add_argument('-s', '--slow5', required=False, type=str, default="", help="slow5 file")
     parser.add_argument('-a', '--alignment', required=False, type=str, default="", help="for read-signal alignment use PAF\nfor reference-signal alignment use SAM/BAM")
+    parser.add_argument('--region', required=True, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--base_limit', required=False, type=int, help="maximum number of bases to plot")
-    parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
@@ -875,6 +926,10 @@ def argparser():
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('-o', '--output', required=False, type=str, default="", help="output file")
     parser.add_argument('--extend_0', required=False, action='store_true', help="print matches, deletions, insertions arrays")
+    parser.add_argument('--extend_1', required=False, action='store_true', help="print ss string for the given region")
+    parser.add_argument('--output_current', required=False, action='store_true', help="print signal values")
+    parser.add_argument('--output_current_1', required=False, action='store_true', help="print signal values without any nans/tabs")
+    parser.add_argument('--output_current_column', required=False, action='store_true', help="print signal values per column")
     return parser
 
 if __name__ == "__main__":

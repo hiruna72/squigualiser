@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# steps
-# simulate a region using squigulator
+# ReadME first!!!
+# This is a long pipline and might not work in the first go.
+# Go all the way to the bottom and uncomment functions one by one, run and make sure all the commands work before moving to the next function.
+# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/main/docs/pipeline_basic.md
+# Good luck!
 
 RED='\033[0;31m' ; GREEN='\033[0;32m' ; NC='\033[0m' # No Color
 die() { echo -e "${RED}$1${NC}" >&2 ; echo ; exit 1 ; } # terminate script
@@ -35,7 +38,7 @@ TABIX=tabix
 
 GUPPY="none"
 BUTTERY_EEL_ENV_PATH="none"
-REFERENCE=""
+REFERENCE="/genome/hg38noAlt.fa"
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -50,7 +53,9 @@ SIGNAL_FILE="reads.blow5"
 
 READ_ID="251256d6-1c5d-4756-91bf-8fa5dc6fd1c8"
 READ_REGION=${READ_ID}:1-500
-REF_REGION="chr1:92778190-92778210"
+# REF_REGION="chr1:92778190-92778210"
+# REF_REGION="chr1:92790650-92790700"
+REF_REGION="chr1:92790650-92790820"
 SIM_REGION="sim_ref:1-20"
 SIG_SCALE="--sig_scale znorm"
 
@@ -251,10 +256,10 @@ f5c_eventalign() {
 	info "f5c eventalign..."
 	
 	f5c index ${SEQUENCE_FILE} --slow5 ${SIGNAL_FILE} || die "f5c index failed"
-	# f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | head -n -1 | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
-	# ${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
+	f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} --sam | ${SAMTOOLS} sort -o ${EVENTALIGN_BAM}
+	${SAMTOOLS} index ${EVENTALIGN_BAM} || die "samtools index failed"
 
-	f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} -c -o ${EVENTALIGN_PAF}
+	# f5c eventalign -b ${MAPPED_BAM} -r ${SEQUENCE_FILE} -g ${REFERENCE} --slow5 ${SIGNAL_FILE} -c -o ${EVENTALIGN_PAF}
 
 }
 
@@ -273,17 +278,17 @@ plot_eventalign_and_sim() {
 	mkdir -p "${SQUIG_PLOT_DIR}" || die "Failed creating ${SQUIG_PLOT_DIR}"
 	info "plotting eventalign and simulated signals"
 
-	sort -k6,6 -k8,8n ${EVENTALIGN_PAF} -o ${SORTED_EVENTALIGN_PAF}
-	cat ${SORTED_EVENTALIGN_PAF} | grep -f ${READ_ID_LIST} > ${EVENTALIGN_PAF_FILTERED}
-	bgzip -f ${EVENTALIGN_PAF_FILTERED}
-	tabix -0 -b 8 -e 9 -s 6 ${EVENTALIGN_PAF_FILTERED_GZ}
+	# sort -k6,6 -k8,8n ${EVENTALIGN_PAF} -o ${SORTED_EVENTALIGN_PAF}
+	# cat ${SORTED_EVENTALIGN_PAF} | grep -f ${READ_ID_LIST} > ${EVENTALIGN_PAF_FILTERED}
+	# bgzip -f ${EVENTALIGN_PAF_FILTERED}
+	# tabix -0 -b 8 -e 9 -s 6 ${EVENTALIGN_PAF_FILTERED_GZ}
 
 	TRACK_COMMAND_FILE="${SQUIG_PLOT_DIR}/track_commands_${FUNCNAME[0]}.txt"
 	rm -f ${TRACK_COMMAND_FILE}
 	echo "num_commands=2" > ${TRACK_COMMAND_FILE}
 	echo "plot_heights=*" >> ${TRACK_COMMAND_FILE}
 	# echo "squigualiser plot_pileup --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_PAF_FILTERED_GZ} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 20  --base_shift -5 ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
-	echo "squigualiser plot_pileup --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_PAF_FILTERED_GZ} --region ${REF_REGION} --tag_name ${MODEL_TO_USE}_eventalign --plot_limit 20  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
+	echo "squigualiser plot_pileup -l readlist --bed ${METH_BED} -f ${REFERENCE} -s ${SIGNAL_FILE} -a ${EVENTALIGN_BAM} --region ${REF_REGION} --tag_name supplementary_file --plot_limit 20  --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT} ${SIG_SCALE}" >> ${TRACK_COMMAND_FILE}
 	echo "squigualiser plot_pileup -f ${SIMULATE_REF_DIR}/ref.fasta -s ${SIMULATE_REF_DIR}/sim.slow5 -a ${SIMULATE_REF_DIR}/sim.bam --region ${SIM_REGION} --tag_name ${MODEL_TO_USE}_sim_read --no_overlap --profile ${PROFILE_TO_DETERMINE_BASE_SHIFT}" >> ${TRACK_COMMAND_FILE}
 
 	cat ${TRACK_COMMAND_FILE}
@@ -314,7 +319,7 @@ plot_eventalign_and_sim() {
 # plot_sim_and_real_signal
 # minimap2_align
 # realign
-simulate_ref_signal
+#simulate_ref_signal
 # plot_realign_and_sim
 # f5c_eventalign
 # f5c_methylation

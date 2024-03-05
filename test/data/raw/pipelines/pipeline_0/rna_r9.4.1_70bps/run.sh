@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# steps
-# simulate a region using squigulator
+# ReadME first!!!
+# This is a long pipline and might not work in the first go.
+# Go all the way to the bottom and uncomment functions one by one, run and make sure all the commands work before moving to the next function.
+# Details of the variables and functions can be found at https://github.com/hiruna72/squigualiser/blob/main/docs/pipeline_basic.md
+# Good luck!
 
 RED='\033[0;31m' ; GREEN='\033[0;32m' ; NC='\033[0m' # No Color
 die() { echo -e "${RED}$1${NC}" >&2 ; echo ; exit 1 ; } # terminate script
@@ -31,11 +34,11 @@ F5C=f5c
 BGZIP=bgzip
 TABIX=tabix
 
-GUPPY=
-BUTTERY_EEL_ENV_PATH=
-REFERENCE=
+GUPPY="set path"
+BUTTERY_EEL_ENV_PATH="set path"
+REFERENCE="set path"
 
-MODEL_TO_USE=${R9_RNA_MODEL_FAST}
+MODEL_TO_USE=${R9_RNA_MODEL_HAC}
 CHUNK_SIZE="--chunk_size 500"
 
 SIMULATING_PROFILE="rna-r9-prom"
@@ -49,7 +52,7 @@ SIGNAL_FILE="reads.blow5"
 READ_ID="ef9f8dfb-21ed-4119-8bf2-cc98e2f31877"
 READ_REGION=${READ_ID}:1-500
 REF_REGION="R1_92_1:500-999"
-SIM_REGION="sim_ref:1-500"
+SIM_REGION="sim_ref:1-200"
 SIG_SCALE="--sig_scale znorm"
 
 ## variable the user can change end here
@@ -321,12 +324,12 @@ plot_realign_and_eventalign() {
 
 ## stage 4
 
-# minimap2_align
-# realign
-# simulate_ref_signal
-# plot_realign_and_sim
-# f5c_eventalign
-# plot_eventalign_and_sim
-# plot_realign_and_eventalign
+#minimap2_align
+#realign
+#simulate_ref_signal
+#plot_realign_and_sim
+#f5c_eventalign
+#plot_eventalign_and_sim
+#plot_realign_and_eventalign
 
 info "success"
