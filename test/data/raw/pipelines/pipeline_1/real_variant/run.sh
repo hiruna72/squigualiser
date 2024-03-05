@@ -36,9 +36,9 @@ F5C=f5c
 BGZIP=bgzip
 TABIX=tabix
 
-GUPPY=
-BUTTERY_EEL_ENV_PATH=
-REFERENCE=
+GUPPY="none"
+BUTTERY_EEL_ENV_PATH="none"
+REFERENCE="/genome/hg38noAlt.fa"
 
 MODEL_TO_USE=${R10_MODEL_SUP}
 CHUNK_SIZE="--chunk_size 500"
@@ -342,7 +342,8 @@ plot_realign_reverse() {
 # simulate_ref_signal
 # plot_realign_and_sim
 # f5c_eventalign
-# plot_eventalign_and_sim
+set -x
+plot_eventalign_and_sim
 #plot_eventalign_reverse
 #plot_realign_reverse
 

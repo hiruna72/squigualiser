@@ -35,7 +35,7 @@ RAW_DIR="${REL_PATH}/data/raw/pipelines/pipeline_0/dna_r10.4.1_e8.2_400bps"
 [ "${HUMAN_GENOME}" ] || die "Please set the env variable to the human genome path. export HUMAN_GENOME=path/to/file"
 GENOME="${HUMAN_GENOME}"
 REGION="--region chr1:92,783,745-92,783,946"
-PROFILE="--profile guppy_dna_r10.4.1_e8.2_400bps_sup"
+PROFILE="--profile guppy_dna_r10.4.1_e8.2_400bps_sup" #should have used different profiles for different alignments
 TESTCASE=50.1
 info "testcase:$TESTCASE - help"
 ex && die "testcase:$TESTCASE failed"
