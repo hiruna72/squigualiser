@@ -207,6 +207,7 @@ def run(args):
             model_ = obj[header_line_count:]
             for line in model_:
                 values_ = line.split('\t')
+                values_[0] = values_[0].replace('U', 'T')
                 model[values_[0]] = float(values_[1])
             test_array = []
             for base_offset in range(0, kmer_length):
@@ -217,11 +218,17 @@ def run(args):
             max_offset, max_dist = calculate_distance(kmer_length, test_array)
             forward_shift = -1 * max_offset
             reverse_shift = -1 * (kmer_length - max_offset - 1)
-            print("kmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, forward_shift, reverse_shift, round(max_dist, 4)))
+            if args.rna:
+                print("RNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, reverse_shift, forward_shift, round(max_dist, 4)))
+            else:
+                print("DNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, forward_shift, reverse_shift, round(max_dist, 4)))
             if args.output != "":
                 output_pdf = PdfPages(args.output)
                 print("output file: {}".format(args.output))
-                plt_title = "{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (shown below): {}\nbest base shift (offset) for reverse mapped reads (derived): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
+                if args.rna:
+                    plt_title = "RNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (derived): {}\nbest base shift (offset) for reverse mapped reads (shown below): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), reverse_shift, forward_shift)
+                else:
+                    plt_title = "DNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (shown below): {}\nbest base shift (offset) for reverse mapped reads (derived): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
                 plot_distributions(kmer_length, test_array, output_pdf, plt_title)
                 output_pdf.close()
     else:

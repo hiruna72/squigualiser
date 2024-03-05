@@ -634,6 +634,17 @@ def run(args):
                     if i < len(ref_pos_dic) - 1:
                         print("\t", end="")
                 print()
+            if args.output_current_1:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        continue
+                    if i < len(ref_pos_dic) - 1:
+                        print(",", end="")
+                print()
             if args.output_current_column:
                 for i in range(0, len(ref_pos_dic)):
                     sublist = ref_pos_dic[i]
@@ -846,6 +857,26 @@ def run(args):
                     if i < len(ref_pos_dic) - 1:
                         print("\t", end="")
                 print()
+            if args.output_current_1:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        print(",".join(map(str, rounded_sublist)), end="")
+                    else:
+                        continue
+                    if i < len(ref_pos_dic) - 1:
+                        print(",", end="")
+                print()
+            if args.output_current_column:
+                for i in range(0, len(ref_pos_dic)):
+                    sublist = ref_pos_dic[i]
+                    if not any(np.isnan(x) for x in sublist) and len(sublist) > 0:
+                        rounded_sublist = [round(x, 2) for x in sublist]
+                        if i in column_raw_samples:
+                            column_raw_samples[i] += rounded_sublist
+                        else:
+                            column_raw_samples[i] = rounded_sublist
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
@@ -897,6 +928,7 @@ def argparser():
     parser.add_argument('--extend_0', required=False, action='store_true', help="print matches, deletions, insertions arrays")
     parser.add_argument('--extend_1', required=False, action='store_true', help="print ss string for the given region")
     parser.add_argument('--output_current', required=False, action='store_true', help="print signal values")
+    parser.add_argument('--output_current_1', required=False, action='store_true', help="print signal values without any nans/tabs")
     parser.add_argument('--output_current_column', required=False, action='store_true', help="print signal values per column")
     return parser
 

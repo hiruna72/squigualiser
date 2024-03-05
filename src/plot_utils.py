@@ -146,6 +146,7 @@ profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
         "kmer_model_rna_r9.4.1_70bps_5_mer": [-3, -1],
         "kmer_model_dna_r10.4.1_e8.2_400bps_9_mer": [-6, -2],
+        "kmer_model_rna004_130bps_9mer": [-5, -3],
         "corrected_at_reform": [0, 0]}
 def list_profiles_base_shift():
     # print(profile_dic)
