@@ -53,7 +53,7 @@ The easiest way to setup squigualiser would be to use precompiled binaries. Clic
 <div markdown=1>
 
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.6.1/squigualiser-v0.6.1-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
