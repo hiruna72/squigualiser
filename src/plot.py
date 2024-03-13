@@ -975,7 +975,7 @@ def run(args):
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
             if args.save_svg:
                 output_file_name += ".svg"
-                layout_.output_backend = "svg"
+                layout_[0].output_backend = "svg"
                 export_svgs(layout_, filename=output_file_name)
             else:
                 output_file_name += ".html"
@@ -1183,7 +1183,7 @@ def run(args):
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
             if args.save_svg:
                 output_file_name += ".svg"
-                layout_.output_backend = "svg"
+                layout_[0].output_backend = "svg"
                 export_svgs(layout_, filename=output_file_name)
             else:
                 output_file_name += ".html"
