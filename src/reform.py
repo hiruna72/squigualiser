@@ -163,6 +163,9 @@ def run(args):
             kmer_idx = 0
 
             while move_count < sig_move_offset + 1:
+                if i >= len(mv):
+                    print(sam_record.query_name)
+                    print("i >= len(mv)")
                 value = mv[i]
                 if value == 1:
                     move_count += 1
