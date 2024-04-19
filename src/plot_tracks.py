@@ -80,7 +80,7 @@ def run(args):
     else:
         j = 0
         for p in pileup:
-            p.height = int(plot_heights[i])
+            p.height = int(plot_heights[j])
             j += 1
 
     if not os.path.exists(args.output_dir):
