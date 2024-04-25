@@ -37,9 +37,11 @@ ex() {
   squigualiser reform "$@"
 }
 
-RAW_DIR="${REL_PATH}/data/raw/reform"
-EXP_DIR="${REL_PATH}/data/exp/reform"
+RAW_DIR_ROOT="${REL_PATH}/data/raw/reform"
+EXP_DIR_ROOT="${REL_PATH}/data/exp/reform"
 
+RAW_DIR=${RAW_DIR_ROOT}
+EXP_DIR=${EXP_DIR_ROOT}
 TESTCASE=0.1
 info "testcase:$TESTCASE - help"
 ex && die "testcase:$TESTCASE failed"
@@ -127,8 +129,8 @@ info "testcase:$TESTCASE - read:2,kmer:1,move:0,output:paf"
 ex -k1 -m0 -c --bam "${RAW_DIR}/slow5-dorado.sam" --output "${OUTPUT_DIR}/dr2k1m0.paf" || die "testcase:$TESTCASE failed"
 diff "${EXP_DIR}/dr2k1m0.paf" "${OUTPUT_DIR}/dr2k1m0.paf" || die "testcase:${TESTCASE} diff failed"
 
-RAW_DIR=${RAW_DIR}/rna
-EXP_DIR=${EXP_DIR}/rna
+RAW_DIR=${RAW_DIR_ROOT}/rna
+EXP_DIR=${EXP_DIR_ROOT}/rna
 TESTCASE=2.1
 info "testcase:$TESTCASE - read:2,kmer:1,move:0,output:paf rna"
 ex --rna -k1 -m0 -c --bam "${RAW_DIR}/guppy_rna.sam" --output "${OUTPUT_DIR}/rna_2.1.paf" || die "testcase:$TESTCASE failed"
@@ -146,6 +148,19 @@ ex --rna -k1 -m0 -c --bam "${RAW_DIR}/guppy_rna_all.sam" --output "${OUTPUT_DIR}
 TESTCASE=2.4
 info "testcase:$TESTCASE - read:all,kmer:1,move:0,output:tsv rna"
 ex --rna -k1 -m0 --bam "${RAW_DIR}/guppy_rna_all.sam" --output "${OUTPUT_DIR}/rna_2.4.tsv" || die "testcase:$TESTCASE failed"
+
+RAW_DIR=${RAW_DIR_ROOT}/dorado
+EXP_DIR=${EXP_DIR_ROOT}/dorado
+TESTCASE=3.0
+info "testcase:$TESTCASE - read:all,kmer:1,move:0,output:tsv rna"
+ex -k1 -m0 --bam "${RAW_DIR}/dorado_v0.bam" --output "${OUTPUT_DIR}/dorado_v0_3.0.tsv" || die "testcase:$TESTCASE failed"
+diff "${EXP_DIR}/dorado_v0_3.0.tsv" "${OUTPUT_DIR}/dorado_v0_3.0.tsv" || die "testcase:${TESTCASE} diff failed"
+
+TESTCASE=3.1
+info "testcase:$TESTCASE - read:all,kmer:1,move:0,output:tsv rna"
+ex -k1 -m0 -c --bam "${RAW_DIR}/dorado_v0.bam" --output "${OUTPUT_DIR}/dorado_v0_3.1.paf" || die "testcase:$TESTCASE failed"
+diff "${EXP_DIR}/dorado_v0_3.1.paf" "${OUTPUT_DIR}/dorado_v0_3.1.paf" || die "testcase:${TESTCASE} diff failed"
+
 
 info "all $TESTCASE testcases passed"
 rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
