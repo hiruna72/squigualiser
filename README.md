@@ -3,7 +3,7 @@
 squigualiser is a tool to Visualise nanopore raw signal-base alignment.
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
-Google Chrome is the recommended web browser to visualise these plots.
+**Google Chrome** is the recommended web browser to visualise these plots.
 
 Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
 
@@ -41,6 +41,7 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 11. [Plot conventions](#plot-conventions)
 12. [Calculate alignment statistics](#calculate-alignment-statistics)
 13. [Notes](#notes)
+    1. [FAST5 and POD5 support](#fast5-and-pod5-support)
 14. [Examples](#examples)
 
 
@@ -574,6 +575,12 @@ Check [here](docs/different_alignments.md) for an example.
 7. Squigulator's signal simulation is a good way to understand the nature of the alignments. Please refer to the documentation about [real_vs_simulated_signal](docs/real_vs_simulated_signal.md).
 8. For a explanation of the Guppy move table explanation see please refer [here](docs/move_table.md).
 
+### FAST5 and POD5 support
+Squigualiser randomly access signal files from BLOW5.
+Fast5 and Pod5 do not have such random access functionality.
+We provide methods to convert FAST5 and POD5 to BLOW5.
+1. FAST5 - `slow5tools f2s FAST5 -o BLOW5` [check here](https://github.com/hasindu2008/slow5tools?tab=readme-ov-file#examples)
+2. POD5 - `blue-crab p2s example.pod5 -o example.blow5` [check here](https://github.com/Psy-Fer/blue-crab?tab=readme-ov-file#usage)
 
 ## Examples
 
