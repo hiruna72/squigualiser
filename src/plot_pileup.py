@@ -5,8 +5,9 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS, FixedTicker
+from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS, FixedTicker, Spacer, Div
 from bokeh.layouts import column
+from bokeh.layouts import row
 from bokeh.colors import RGB
 from bokeh.io import export_svg
 import pyslow5
@@ -892,9 +893,12 @@ def run(args):
             else:
                 pileup_output_file_name += ".html"
                 output_file(pileup_output_file_name, title=read_id)
-                save(p)
-            print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+                message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+                layout_ = p, row(message_browser)
+                save(layout_)
 
+            print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+            print('Bokeh version: 3.1.1 (Google Chrome is recommended)')
 
     elif num_plots == 0 and args.return_plot:
         return None, num_plots

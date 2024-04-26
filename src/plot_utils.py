@@ -102,7 +102,7 @@ def create_figure(args, plot_mode):
         # tooltips=tool_tips)
         p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
-        p_default.toolbar.logo = None
+        # p_default.toolbar.logo = None
     elif plot_mode == 1:
         tools_to_show = 'hover,box_zoom,pan,save,wheel_zoom,reset,zoom_in,zoom_out'
         p_default = figure(output_backend="webgl",
@@ -116,7 +116,7 @@ def create_figure(args, plot_mode):
         # p.yaxis.visible = False
         p_default.select(dict(type=WheelZoomTool)).maintain_focus = False
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
-        p_default.toolbar.logo = None
+        # p_default.toolbar.logo = None
     return p_default
 def scale_signal(y, sig_scale, scale_params):
     if sig_scale == "medmad":

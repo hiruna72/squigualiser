@@ -5,6 +5,8 @@ hiruna@unsw.edu.au
 """
 from bokeh.plotting import output_file, save
 from bokeh.layouts import column
+from bokeh.models import Div
+from bokeh.layouts import row
 import argparse
 import os
 # import plot
@@ -91,8 +93,11 @@ def run(args):
     pileup_output_file_name = args.output_dir + "/" + plot_title + ".html"
     pileup_fig = column(pileup, sizing_mode='stretch_both')
     output_file(pileup_output_file_name, title=plot_title)
-    save(pileup_fig)
+    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    layout_ = pileup_fig, row(message_browser)
+    save(layout_)
     print(f'output file: {os.path.abspath(pileup_output_file_name)}')
+    print('Bokeh version: 3.1.1 (Google Chrome is recommended)')
 
 def argparser():
     # parser = argparse.ArgumentParser()
