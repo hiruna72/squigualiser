@@ -6,7 +6,7 @@ hiruna@unsw.edu.au
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div
-from bokeh.layouts import row
+from bokeh.layouts import row, column
 from bokeh.colors import RGB
 from bokeh.io import export_svg, export_svgs
 import pyslow5
@@ -277,7 +277,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     p.x_range.js_on_change('start', x_callback_move_annotation)
     message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
 
-    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves, Spacer(width=40), message_browser)
+    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
 def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
@@ -533,7 +533,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.x_range.js_on_change('start', x_callback_move_annotation)
     message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
 
-    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves, Spacer(width=40), message_browser)
+    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
 
 def run(args):
