@@ -245,10 +245,10 @@ def calculate_base_shift(moves, raw_signal, sequence, kmer_length, record_is_rev
     # output_pdf.close()
 
     if record_is_reverse or rna:
-        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or use a preset base shift (--profile)".format(reverse_shift, num_kmers, kmer_length))
+        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or increase the region interval or use a preset base shift (--profile)".format(num_kmers, kmer_length, reverse_shift))
         return reverse_shift
     else:
-        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or use a preset base shift (--profile)".format(forward_shift, num_kmers, kmer_length))
+        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or increase the region interval or use a preset base shift (--profile)".format(num_kmers, kmer_length, forward_shift))
         return forward_shift
 
 def run(args):

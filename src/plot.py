@@ -625,6 +625,7 @@ def run(args):
     if args.plot_reverse:
         draw_data["sig_dir"] = "<-"
 
+    # priority order --base_shift < --auto < --profile
     kmer_correction = 0
     if args.profile == "":
         draw_data["base_shift"] = args.base_shift
@@ -635,6 +636,10 @@ def run(args):
         else:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
         kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
+    if args.auto:
+        kmer_correction = 0
+        draw_data["base_shift"] = 0
+        print("Info: Base shift will be automatically calculated and set.")
     if args.kmer_length < abs(draw_data["base_shift"]):
         print("Info: increased the kmer length to {} match with the base shift".format(abs(draw_data["base_shift"])+1))
         draw_data["kmer_length"] = abs(draw_data["base_shift"]) + 1
@@ -665,6 +670,9 @@ def run(args):
                 args_ref_end = None
 
             for paf_record in parse_paf(handle):
+                if args.auto:
+                    kmer_correction = 0
+                    draw_data["base_shift"] = 0
                 if paf_record.query_name != paf_record.target_name:
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
                 read_id = paf_record.query_name
@@ -820,10 +828,11 @@ def run(args):
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 sig_algn_dic['ss'] = moves
 
-                if args.auto:
-                    draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
-
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+                if args.auto:
+                    caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
+                    draw_data["base_shift"] = caculated_base_shift
+                signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
                 if args.fixed_width:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
@@ -882,6 +891,9 @@ def run(args):
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
+            if args.auto:
+                kmer_correction = 0
+                draw_data["base_shift"] = 0
             if args_ref_name is not None and args_ref_name != sam_record.reference_name:
                 raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + args_ref_name + "]")
             read_id = sam_record.query_name
@@ -1036,10 +1048,12 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
-            if args.auto:
-                draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, sam_record.is_reverse, data_is_rna)
 
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+            if args.auto:
+                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, sam_record.is_reverse, data_is_rna)
+                draw_data["base_shift"] = caculated_base_shift
+            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -1092,6 +1106,9 @@ def run(args):
             args_ref_end = None
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
+            if args.auto:
+                kmer_correction = 0
+                draw_data["base_shift"] = 0
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
             if args_ref_name is not None and args_ref_name != paf_record[SEQUENCE_ID]:
@@ -1247,10 +1264,11 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
 
-            if args.auto:
-                draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
-
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+            if args.auto:
+                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
+                draw_data["base_shift"] = caculated_base_shift
+            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
