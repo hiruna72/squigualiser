@@ -23,13 +23,14 @@ import os
 import pysam
 from src import bed_annotation
 from src import plot_utils
+from src import calculate_offsets
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
 # start_kmer is always 0based closed
 # end_kmer is always 0based open
 
-KMER_LENGTH = 9
+DEFAULT_KMER_SIZE = 9
 FIXED_BASE_WIDTH = 10
 FIXED_INSERTION_WIDTH = 10
 BASE_LIMIT = 1000
@@ -624,15 +625,15 @@ def run(args):
     if args.plot_reverse:
         draw_data["sig_dir"] = "<-"
 
+    kmer_correction = 0
     if args.profile == "":
         draw_data["base_shift"] = args.base_shift
     else:
+        args.auto = False
         if args.plot_reverse:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
         else:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
-    kmer_correction = 0
-    if args.profile != "":
         kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
     if args.kmer_length < abs(draw_data["base_shift"]):
         print("Info: increased the kmer length to {} match with the base shift".format(abs(draw_data["base_shift"])+1))
@@ -818,6 +819,9 @@ def run(args):
                 sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
                 sig_algn_dic['data_is_rna'] = data_is_rna
                 sig_algn_dic['ss'] = moves
+
+                if args.auto:
+                    draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
@@ -1032,6 +1036,9 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
+            if args.auto:
+                draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, sam_record.is_reverse, data_is_rna)
+
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
@@ -1240,6 +1247,9 @@ def run(args):
             sig_algn_dic['data_is_rna'] = data_is_rna
             sig_algn_dic['ss'] = moves
 
+            if args.auto:
+                draw_data["base_shift"] = calculate_offsets.calculate_base_shift(moves, y, fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
+
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             if args.fixed_width:
@@ -1296,7 +1306,7 @@ def argparser():
     parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
-    parser.add_argument('-k', '--kmer_length', required=False, type=int, default=KMER_LENGTH, help="kmer length")
+    parser.add_argument('-k', '--kmer_length', required=False, type=int, default=DEFAULT_KMER_SIZE, help="kmer length")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
@@ -1308,6 +1318,7 @@ def argparser():
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
+    parser.add_argument('--auto', required=False, action='store_true', help="calculate base shift automatically")
     parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
     parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
     parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")

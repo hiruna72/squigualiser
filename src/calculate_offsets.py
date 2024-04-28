@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 
-DEFAULT_KMER_SIZE = 6
+DEFAULT_KMER_SIZE = 9
 BASE_INDEX = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 BASE_MAP = {0: 'A', 1: 'C', 2: 'G', 3: 'T'}
 MAX_DIST_THRESHOLD = 0.0
@@ -51,10 +51,11 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     for offset in range(start_offset, end_offset):
         i = 0
         for base in test_array[offset]:
+            # print(base)
             if kmer_length == 1:
                 sns.kdeplot(base, label=BASE_MAP[i])
             else:
-                sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset])
+                sns.kdeplot(base, label=BASE_MAP[i], ax=axes[offset-start_offset], warn_singular=False)
             i += 1
         if kmer_length == 1:
             axes.set_title('base shift (offset): {}'.format(-1*offset), size=10, loc='right')
@@ -64,7 +65,7 @@ def plot_distributions(kmer_length, test_array, output_pdf, plt_title):
     plt.suptitle("{}".format(plt_title), size=10)
     plt.draw()
     plt.savefig(output_pdf, format='pdf')
-def calculate_distance(kmer_length, test_array):
+def calculate_distance(kmer_length, test_array, verbose=0):
     start_offset = 0
     end_offset = kmer_length
     offset_dist = []
@@ -73,13 +74,16 @@ def calculate_distance(kmer_length, test_array):
         max_median = -1
         min_median = 10000
         for base in test_array[offset]:
+            if len(base) == 0:
+                continue
             median = np.median(base)
             if median < min_median:
                 min_median = median
             if median > max_median:
                 max_median = median
         distance = max_median - min_median
-        print("offset: {} max_median: {} min_median: {} max_median-min_median: {}".format(offset, max_median, min_median, distance))
+        if verbose:
+            print("offset: {} max_median: {} min_median: {} max_median-min_median: {}".format(offset, max_median, min_median, distance))
         offset_dist.append(distance)
 
     # for offset in range(start_offset, end_offset):
@@ -181,6 +185,72 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
         raise Exception("Error: no reads were processed. Check the dataset and the read_id if provided.")
     index = np.argsort(max_offset_arr)[len(max_offset_arr)//2]
     return max_offset_arr[index], max_dist_arr[index]
+
+def calculate_base_shift(moves, raw_signal, sequence, kmer_length, record_is_reverse, rna):
+    if not 'T' in sequence and 'A' in sequence and 'C' in sequence and 'G' in sequence:
+        if 'N' in sequence:
+            sequence = sequence.replace('N', 'T')
+        elif 'U' in sequence:
+            sequence = sequence.replace('U', 'T')
+
+    len_seq = len(sequence)
+    model = {}
+    start_raw = 0
+    if kmer_length > len_seq:
+        print("The sequence length ({}) is smaller than the kmer length ({}). Cannot calculate an accurate approximation for the base shift. Skipping base shift calculation...".format(len_seq, kmer_length))
+        return 0
+
+    base_index = 0
+    for i in moves:
+        if 'D' in i:
+            i = re.sub('D', '', i)
+            base_index += int(i)
+        elif 'I' in i:
+            i = re.sub('I', '', i)
+            start_raw += int(i)
+        else:
+            end_raw = start_raw + int(i)
+            value = raw_signal[start_raw: end_raw]
+            start_raw = end_raw
+            key = sequence[base_index:base_index+kmer_length]
+            if key not in model:
+                model[key] = np.median(value)
+            else:
+                value_ = np.append(value, model[key])
+                model[key] = np.median(value_)
+            base_index += 1
+        if base_index >= len_seq - kmer_length + 1:
+            break
+    # for key, value in model.items():
+    #     print("{}:{}".format(key, value))
+    num_kmers = len(model)
+
+    test_array = []
+    for base_offset in range(0, kmer_length):
+        freq = [[], [], [], []]
+        for kmer, value in model.items():
+            freq[BASE_INDEX[kmer[base_offset]]].append(value)
+        test_array.append(freq)
+    max_offset, max_dist = calculate_distance(kmer_length, test_array)
+    forward_shift = -1 * max_offset
+    reverse_shift = -1 * (kmer_length - max_offset - 1)
+
+    # print("forward_shift: {} reverse_shift: {}".format(forward_shift, reverse_shift))
+    # output_pdf = PdfPages("delete.pdf")
+    # if rna:
+    #     plt_title = "RNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (derived): {}\nbest base shift (offset) for reverse mapped reads (shown below): {}\n".format("", kmer_length, str(round(max_dist, 4)), reverse_shift, forward_shift)
+    # else:
+    #     plt_title = "DNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (shown below): {}\nbest base shift (offset) for reverse mapped reads (derived): {}\n".format("", kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
+    # plot_distributions(kmer_length, test_array, output_pdf, plt_title)
+    # output_pdf.close()
+
+    if record_is_reverse or rna:
+        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or use a preset base shift (--profile)".format(reverse_shift, num_kmers, kmer_length))
+        return reverse_shift
+    else:
+        print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or use a preset base shift (--profile)".format(forward_shift, num_kmers, kmer_length))
+        return forward_shift
+
 def run(args):
     if args.kmer_length < 1:
         raise Exception("Error: kmer length must be a positive integer")
