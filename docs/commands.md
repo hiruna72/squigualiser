@@ -95,6 +95,8 @@ Plot read/reference - signal alignments.
    Specifies name/location of the output directory. A valid relative or absolute path can be provided. Data will be overwritten but the directory will not be recreated.
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot.
+* `-k, --kmer_length INT`
+   (optional) kmer length to consider for the base shift calculation and plotting.
 * `--plot_reverse`
 	(optional) Plot only the reverse mapped reads [default value: false].
 * `--rna`
@@ -171,6 +173,8 @@ Plot reference - signal alignment pileups.
 	(optional) Path to a file containing a list of read_ids to plot only the reads listed.
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot
+* `-k, --kmer_length INT`
+   (optional) kmer length to consider for the base shift calculation and plotting.
 * `--plot_reverse`
 	(optional) Plot only the reverse mapped reads.
 * `--rna`
