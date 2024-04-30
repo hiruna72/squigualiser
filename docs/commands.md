@@ -197,8 +197,6 @@ Plot reference - signal alignment pileups.
 	(optional) Calculate and automatically set the base shift. [default value: false]
 *  `--profile STR`:<br/>
    (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`. The precedence is in the order of `--base_shift < --auto < --profile`.
-* `--profile STR`:<br/>
-   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`  
 *  `--list_profile`:<br/>
     (optional) Print the available profiles and exit.
 * `--plot_limit INT`
