@@ -1,6 +1,7 @@
 # squigualiser
 
 squigualiser is a tool to Visualise nanopore raw signal-base alignment.
+
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 Google Chrome is the recommended web browser to visualise these plots.
