@@ -31,6 +31,7 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
    1. [Option 1 - Using f5c eventalign](#option-1-f5c-eventalign)
    2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table-1)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
+   4. [Option 4 - Using uncalled4 align](#option-4-uncalled4-align)
 6. [Pileup view](#pileup-view)
 7. [Plot multiple tracks](#plot-multiple-tracks)
 8. [BED annotations](#bed-annotations)
@@ -459,6 +460,37 @@ sort -k6,6 -k9,9n sim.paf -o sorted_sim.paf
 bgzip sorted_sim.paf
 tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 
+````
+
+</div>
+</details>
+
+#### Option 4: Uncalled4 align
+<details><summary>Steps for using uncalled4 align</summary>
+<div markdown=1>
+
+1. Align reads to reference genome using uncalled4 following the [steps mentioned in uncalled4 guide](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
+
+````
+REF=genome.fa #reference
+MAP_BAM=mapped.bam
+FASTQ=read.fastq
+SIGNAL=reads.blow5
+ALIGNMENT=uncalled4.bam
+
+samtools fastq -T "mv,ts" ${BASECALLER_MOVES_BAM} > ${FASTQ}
+minimap2 -y -ax map-ont ${REF} -t32 --secondary=no ${FASTQ} | samtools sort -o ${MAP_BAM}
+samtools index ${MAP_BAM}
+uncalled4 align --kit "SQK-LSK114" ${REF} ${SIGNAL} --bam-in ${MAP_ BAM} --bam-f5c -o ${ALIGNMENT}
+samtools index ${ALIGNMENT}
+
+````
+2. Plot signal to reference alignment.
+
+````
+OUTPUT_DIR=output_dir
+REGION=chr1:6811404-6811443
+squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "uncalled4"
 ````
 
 </div>
