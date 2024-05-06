@@ -1,9 +1,10 @@
 # squigualiser
 
 squigualiser is a tool to Visualise nanopore raw signal-base alignment.
+
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
-Google Chrome is the recommended web browser to visualise these plots.
+**Google Chrome** is the recommended web browser to visualise these plots.
 
 Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
 
@@ -33,6 +34,7 @@ Squigualiser preprint - https://www.biorxiv.org/content/10.1101/2024.02.19.58111
    1. [Option 1 - Using f5c eventalign](#option-1-f5c-eventalign)
    2. [Option 2 - Using basecaller move table](#option-2---basecaller-move-table-1)
    3. [Option 3 - Using squigulator signal simulation](#option-3---squigulator-signal-simulation-1)
+   4. [Option 4 - Using uncalled4 align](#option-4-uncalled4-align)
 6. [Pileup view](#pileup-view)
 7. [Plot multiple tracks](#plot-multiple-tracks)
 8. [BED annotations](#bed-annotations)
@@ -43,6 +45,7 @@ Squigualiser preprint - https://www.biorxiv.org/content/10.1101/2024.02.19.58111
 11. [Plot conventions](#plot-conventions)
 12. [Calculate alignment statistics](#calculate-alignment-statistics)
 13. [Notes](#notes)
+    1. [FAST5 and POD5 support](#fast5-and-pod5-support)
 14. [Examples](#examples)
 
 
@@ -53,7 +56,7 @@ The easiest way to setup squigualiser would be to use precompiled binaries. Clic
 <div markdown=1>
 
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
+wget https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.6.1/squigualiser-v0.6.1-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
@@ -65,7 +68,7 @@ cd squigualiser
 <div markdown=1>
    
 ```
-curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
+curl -L https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
@@ -465,6 +468,37 @@ tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 </div>
 </details>
 
+#### Option 4: Uncalled4 align
+<details><summary>Steps for using uncalled4 align</summary>
+<div markdown=1>
+
+1. Align reads to reference genome using uncalled4 following the [steps mentioned in uncalled4 guide](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
+
+````
+REF=genome.fa #reference
+MAP_BAM=mapped.bam
+FASTQ=read.fastq
+SIGNAL=reads.blow5
+ALIGNMENT=uncalled4.bam
+
+samtools fastq -T "mv,ts" ${BASECALLER_MOVES_BAM} > ${FASTQ}
+minimap2 -y -ax map-ont ${REF} -t32 --secondary=no ${FASTQ} | samtools sort -o ${MAP_BAM}
+samtools index ${MAP_BAM}
+uncalled4 align --kit "SQK-LSK114" ${REF} ${SIGNAL} --bam-in ${MAP_ BAM} --bam-f5c -o ${ALIGNMENT}
+samtools index ${ALIGNMENT}
+
+````
+2. Plot signal to reference alignment.
+
+````
+OUTPUT_DIR=output_dir
+REGION=chr1:6811404-6811443
+squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} --region ${REGION} --tag_name "uncalled4"
+````
+
+</div>
+</details>
+
 ## Pileup view
 ![image](docs/figures/pileup/igv.png)
 ![image](docs/figures/pileup/pileup_plot.png)
@@ -576,6 +610,12 @@ Check [here](docs/different_alignments.md) for an example.
 7. Squigulator's signal simulation is a good way to understand the nature of the alignments. Please refer to the documentation about [real_vs_simulated_signal](docs/real_vs_simulated_signal.md).
 8. For a explanation of the Guppy move table explanation see please refer [here](docs/move_table.md).
 
+### FAST5 and POD5 support
+Squigualiser randomly access signal files from BLOW5.
+Fast5 and Pod5 do not have such random access functionality.
+We provide methods to convert FAST5 and POD5 to BLOW5.
+1. FAST5 - `slow5tools f2s FAST5 -o BLOW5` [check here](https://github.com/hasindu2008/slow5tools?tab=readme-ov-file#examples)
+2. POD5 - `blue-crab p2s example.pod5 -o example.blow5` [check here](https://github.com/Psy-Fer/blue-crab?tab=readme-ov-file#usage)
 
 ## Examples
 

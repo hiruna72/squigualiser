@@ -5,8 +5,8 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker
-from bokeh.layouts import row
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div
+from bokeh.layouts import row, column
 from bokeh.colors import RGB
 from bokeh.io import export_svg, export_svgs
 import pyslow5
@@ -23,12 +23,14 @@ import os
 import pysam
 from src import bed_annotation
 from src import plot_utils
+from src import calculate_offsets
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
 # start_kmer is always 0based closed
 # end_kmer is always 0based open
 
+DEFAULT_KMER_SIZE = 9
 FIXED_BASE_WIDTH = 10
 FIXED_INSERTION_WIDTH = 10
 BASE_LIMIT = 1000
@@ -64,6 +66,13 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     base_label_colors = []
     sample_label_colors = []
     location_plot = 0
+
+    kmer_x = []
+    kmer_y = []
+    kmer_label = []
+    kmer_label_position = y_max
+    kmer_start = sig_algn_data["start_kmer"] + draw_data["base_shift"]
+    kmer_length = draw_data["kmer_length"]
 
     move_x = []
     move_y = []
@@ -105,6 +114,13 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
                 label = str(base) + "\n" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('red')
+
+                if kmer_start+kmer_length < len(fasta_sequence) and kmer_start > -1:
+                    kmer_text = "{}'{}'{}".format(fasta_sequence[kmer_start:base_index],fasta_sequence[base_index],fasta_sequence[base_index+1:kmer_start+kmer_length])
+                    kmer_label.append(kmer_text)
+                    kmer_x.append(prev_loc)
+                    kmer_y.append(kmer_label_position)
+                kmer_start += 1
 
                 prev_loc += draw_data["fixed_base_width"]
                 prev_x_cord += draw_data["fixed_base_width"]
@@ -157,6 +173,14 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
             label = str(base) + "\n" + str(base_index + 1)
             base_label.append(label)
             base_label_colors.append('black')
+
+            if kmer_start+kmer_length < len(fasta_sequence) and kmer_start > -1:
+                kmer_text = "{}'{}'{}".format(fasta_sequence[kmer_start:base_index],fasta_sequence[base_index],fasta_sequence[base_index+1:kmer_start+kmer_length])
+                kmer_label.append(kmer_text)
+                kmer_x.append(previous_location)
+                kmer_y.append(kmer_label_position)
+            kmer_start += 1
+
             for j in range(0, n_samples):
                 sample_label_colors.append('red')
 
@@ -182,16 +206,24 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    kmer_annotation = ColumnDataSource(data=dict(kmer_x=kmer_x, kmer_y=kmer_y, kmer_label=kmer_label))
+    kmer_annotation_labels = LabelSet(x='kmer_x', y='kmer_y', text='kmer_label', x_offset=5, y_offset=5, source=kmer_annotation, text_font_size="9pt", angle=45, angle_units='deg')
+
+    btn_kmer_label = "{}-mer".format(kmer_length)
+    toggle_kmers = Toggle(label=btn_kmer_label, button_type="primary", active=True, height=30, width=60)
+    toggle_kmers.js_link('active', kmer_annotation_labels, 'visible')
+
     move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
     move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
 
-    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
+    toggle_moves = Toggle(label="num samples", button_type="danger", active=False, height=30, width=60)
     toggle_moves.js_link('active', move_annotation_labels, 'visible')
 
     source = ColumnDataSource(data=dict(x=x[:x_coordinate], y=y[:x_coordinate], x_real=x_real[:x_coordinate]))
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
+    p.add_layout(kmer_annotation_labels)
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
@@ -232,12 +264,21 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     """)
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
+    x_callback_kmer_annotation = CustomJS(args=dict(kmer_annotation_labels=kmer_annotation_labels, init_font_size=kmer_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    kmer_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_kmer_annotation)
+
+
     x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
+    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+
+    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
 def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
@@ -255,6 +296,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     base_label = []
     base_label_colors = []
     sample_label_colors = []
+
+    kmer_x = []
+    kmer_y = []
+    kmer_label = []
+    kmer_label_position = y_max
+    kmer_start = sig_algn_data["start_kmer"] + draw_data["base_shift"]
+    kmer_length = draw_data["kmer_length"]
 
     move_x = []
     move_y = []
@@ -296,6 +344,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
                 label = str(base) + "\n" + str(base_index + 1)
                 base_label.append(label)
                 base_label_colors.append('red')
+
+                if kmer_start+kmer_length < len(fasta_sequence) and kmer_start > -1:
+                    kmer_text = "{}'{}'{}".format(fasta_sequence[kmer_start:base_index],fasta_sequence[base_index],fasta_sequence[base_index+1:kmer_start+kmer_length])
+                    kmer_label.append(kmer_text)
+                    kmer_x.append(prev_loc)
+                    kmer_y.append(kmer_label_position)
+                kmer_start += 1
 
                 prev_loc += draw_data["fixed_base_width"]
                 prev_x_cord += draw_data["fixed_base_width"]
@@ -362,6 +417,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
             base_label.append(label)
             base_label_colors.append('black')
 
+            if kmer_start+kmer_length < len(fasta_sequence) and kmer_start > -1:
+                kmer_text = "{}'{}'{}".format(fasta_sequence[kmer_start:base_index],fasta_sequence[base_index],fasta_sequence[base_index+1:kmer_start+kmer_length])
+                kmer_label.append(kmer_text)
+                kmer_x.append(previous_location)
+                kmer_y.append(kmer_label_position)
+            kmer_start += 1
+
             move_x.append(previous_location+draw_data["fixed_base_width"]/2)
             move_y.append(label_position/2)
             move_label.append(str(n_samples))
@@ -386,10 +448,17 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     toggle_bases = Toggle(label="base", button_type="primary", active=True, height=30, width=60)
     toggle_bases.js_link('active', base_annotation_labels, 'visible')
 
+    kmer_annotation = ColumnDataSource(data=dict(kmer_x=kmer_x, kmer_y=kmer_y, kmer_label=kmer_label))
+    kmer_annotation_labels = LabelSet(x='kmer_x', y='kmer_y', text='kmer_label', x_offset=5, y_offset=5, source=kmer_annotation, text_font_size="9pt", angle=45, angle_units='deg')
+
+    btn_kmer_label = "{}-mer".format(kmer_length)
+    toggle_kmers = Toggle(label=btn_kmer_label, button_type="primary", active=True, height=30, width=60)
+    toggle_kmers.js_link('active', kmer_annotation_labels, 'visible')
+
     move_annotation = ColumnDataSource(data=dict(move_x=move_x, move_y=move_y, move_label=move_label, colors=move_label_colors))
     move_annotation_labels = LabelSet(x='move_x', y='move_y', text='move_label', x_offset=5, y_offset=5, source=move_annotation, text_font_size="9pt", text_color='colors', visible=False)
 
-    toggle_moves = Toggle(label="num samples", button_type="primary", active=False, height=30, width=60)
+    toggle_moves = Toggle(label="num samples", button_type="danger", active=False, height=30, width=60)
     toggle_moves.js_link('active', move_annotation_labels, 'visible')
 
     fixed_width_x = fixed_width_x[1:]
@@ -398,6 +467,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.quad(top=y_max, bottom=y_min, left=base_box_details['left'], right=base_box_details['right'], color=base_box_details['fill_color'], alpha=0.75, visible=draw_data['no_colours'])
     p.add_glyph(line_segment_source, glyph)
     p.add_layout(base_annotation_labels)
+    p.add_layout(kmer_annotation_labels)
     p.add_layout(move_annotation_labels)
 
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
@@ -451,13 +521,20 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     """)
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
+    x_callback_kmer_annotation = CustomJS(args=dict(kmer_annotation_labels=kmer_annotation_labels, init_font_size=kmer_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
+    let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
+    kmer_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
+    """)
+    p.x_range.js_on_change('start', x_callback_kmer_annotation)
+
     x_callback_move_annotation = CustomJS(args=dict(move_annotation_labels=move_annotation_labels, init_font_size=base_annotation_labels.text_font_size[:-2], init_xrange=draw_data['xrange']), code="""
     let xzoom = (init_font_size * init_xrange) / (cb_obj.end - cb_obj.start);
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
+    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
 
-    layout_ = p, row(toggle_bases, toggle_samples, toggle_moves)
+    layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
 
 def run(args):
@@ -544,20 +621,28 @@ def run(args):
     draw_data["fixed_width"] = args.fixed_width
     draw_data["sig_dir"] = "->"
     draw_data["bed_labels"] = args.print_bed_labels
+    draw_data["kmer_length"] = args.kmer_length
     if args.plot_reverse:
         draw_data["sig_dir"] = "<-"
 
+    # priority order --base_shift < --auto < --profile
+    kmer_correction = 0
     if args.profile == "":
         draw_data["base_shift"] = args.base_shift
     else:
+        args.auto = False
         if args.plot_reverse:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[1]
         else:
             draw_data["base_shift"] = plot_utils.search_for_profile_base_shift(args.profile)[0]
-    kmer_correction = 0
-    if args.profile != "":
         kmer_correction = -1*(plot_utils.search_for_profile_base_shift(args.profile)[0] + plot_utils.search_for_profile_base_shift(args.profile)[1])
-
+    if args.auto:
+        kmer_correction = 0
+        draw_data["base_shift"] = 0
+        print("Info: Base shift will be automatically calculated and set.")
+    if args.kmer_length < abs(draw_data["base_shift"]):
+        print("Info: increased the kmer length to {} match with the base shift".format(abs(draw_data["base_shift"])+1))
+        draw_data["kmer_length"] = abs(draw_data["base_shift"]) + 1
 
     if use_paf == 1 and plot_sig_ref_flag == 0:
         print("Info: Signal to read method using PAF ...")
@@ -585,6 +670,9 @@ def run(args):
                 args_ref_end = None
 
             for paf_record in parse_paf(handle):
+                if args.auto:
+                    kmer_correction = 0
+                    draw_data["base_shift"] = 0
                 if paf_record.query_name != paf_record.target_name:
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
                 read_id = paf_record.query_name
@@ -741,6 +829,10 @@ def run(args):
                 sig_algn_dic['ss'] = moves
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+                if args.auto:
+                    caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
+                    draw_data["base_shift"] = caculated_base_shift
+                signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
                 if args.fixed_width:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: "
@@ -799,6 +891,9 @@ def run(args):
             samfile = pysam.AlignmentFile(args.alignment, mode='r')
 
         for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
+            if args.auto:
+                kmer_correction = 0
+                draw_data["base_shift"] = 0
             if args_ref_name is not None and args_ref_name != sam_record.reference_name:
                 raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + args_ref_name + "]")
             read_id = sam_record.query_name
@@ -953,7 +1048,12 @@ def run(args):
             sig_algn_dic['ss'] = moves
             # print(len(moves))
             # print(fasta_seq)
+
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+            if args.auto:
+                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, sam_record.is_reverse, data_is_rna)
+                draw_data["base_shift"] = caculated_base_shift
+            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -975,7 +1075,7 @@ def run(args):
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
             if args.save_svg:
                 output_file_name += ".svg"
-                layout_.output_backend = "svg"
+                layout_[0].output_backend = "svg"
                 export_svgs(layout_, filename=output_file_name)
             else:
                 output_file_name += ".html"
@@ -1006,6 +1106,9 @@ def run(args):
             args_ref_end = None
 
         for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
+            if args.auto:
+                kmer_correction = 0
+                draw_data["base_shift"] = 0
             if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
                 raise Exception("Error: this paf file is a signal to read mapping.")
             if args_ref_name is not None and args_ref_name != paf_record[SEQUENCE_ID]:
@@ -1162,6 +1265,10 @@ def run(args):
             sig_algn_dic['ss'] = moves
 
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
+            if args.auto:
+                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
+                draw_data["base_shift"] = caculated_base_shift
+            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
 
             if args.fixed_width:
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
@@ -1183,7 +1290,7 @@ def run(args):
             output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
             if args.save_svg:
                 output_file_name += ".svg"
-                layout_.output_backend = "svg"
+                layout_[0].output_backend = "svg"
                 export_svgs(layout_, filename=output_file_name)
             else:
                 output_file_name += ".html"
@@ -1217,6 +1324,7 @@ def argparser():
     parser.add_argument('--base_limit', required=False, type=int, default=BASE_LIMIT, help="maximum number of bases to plot")
     parser.add_argument('--region', required=False, type=str, default="", help="[start-end] 1-based closed interval region to plot. For SAM/BAM eg: chr1:6811428-6811467 or chr1:6,811,428-6,811,467. For PAF eg:100-200.")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify the plot")
+    parser.add_argument('-k', '--kmer_length', required=False, type=int, default=DEFAULT_KMER_SIZE, help="kmer length")
     parser.add_argument('--plot_reverse', required=False, action='store_true', help="plot only the reverse mapped reads.")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_ref', required=False, action='store_true', help="plot signal to reference mapping")
@@ -1228,6 +1336,7 @@ def argparser():
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
+    parser.add_argument('--auto', required=False, action='store_true', help="calculate base shift automatically")
     parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
     parser.add_argument('--list_profile', action='store_true', help="list the available profiles")
     parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")
