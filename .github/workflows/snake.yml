@@ -106,7 +106,7 @@ jobs:
       with:
        submodules: recursive
     - name: install packages
-      run: pip3 install numpy
+      run: pip3 install numpy --break-system-packages
     - name: install
       run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . && squigualiser --help
     - name: test_reform
