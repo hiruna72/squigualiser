@@ -14,7 +14,6 @@ import copy
 import argparse
 import re
 import logging
-from src import readpaf_local
 from sys import stdin
 from pyfaidx import Fasta
 from pyfastx import Fastq
@@ -24,6 +23,7 @@ import pysam
 from src import bed_annotation
 from src import plot_utils
 from src import calculate_offsets
+from src import readpaf_local
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
