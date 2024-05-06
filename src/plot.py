@@ -14,7 +14,6 @@ import copy
 import argparse
 import re
 import logging
-from readpaf import parse_paf
 from sys import stdin
 from pyfaidx import Fasta
 from pyfastx import Fastq
@@ -24,6 +23,7 @@ import pysam
 from src import bed_annotation
 from src import plot_utils
 from src import calculate_offsets
+from src import readpaf_local
 
 # ref_start is always 1based closed
 # ref_end is always 1based closed
@@ -669,7 +669,7 @@ def run(args):
                 args_ref_start = None
                 args_ref_end = None
 
-            for paf_record in parse_paf(handle):
+            for paf_record in readpaf_local.parse_paf(handle):
                 if args.auto:
                     kmer_correction = 0
                     draw_data["base_shift"] = 0

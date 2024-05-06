@@ -1,7 +1,6 @@
 bokeh==3.1.1
 numpy
 pyslow5
-readpaf
 pyfaidx
 pyfastx
 pysam
