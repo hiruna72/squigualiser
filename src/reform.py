@@ -1,6 +1,5 @@
 import os
 import argparse
-from readpaf import parse_paf
 import pysam
 
 DEFAULT_KMER_SIZE = 9

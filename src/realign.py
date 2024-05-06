@@ -1,6 +1,6 @@
 import os
 import argparse
-from readpaf import parse_paf
+from src import readpaf_local
 import pysam
 
 BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, BAM_CPAD, BAM_CEQUAL, BAM_CDIFF, BAM_CBACK = range(10)
@@ -30,7 +30,7 @@ def run(args):
     # inefficient
     paf_file = open(args.paf, "r")
     paf_dic = {}
-    for record in parse_paf(paf_file):
+    for record in readpaf_local.parse_paf(paf_file):
         paf_dic[record.query_name] = record
 
     processed_sam_record_count = 0

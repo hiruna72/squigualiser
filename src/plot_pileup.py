@@ -15,7 +15,6 @@ import copy
 import argparse
 import re
 import logging
-from readpaf import parse_paf
 from sys import stdin
 from pyfaidx import Fasta
 from pyfastx import Fastq
