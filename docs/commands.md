@@ -95,6 +95,8 @@ Plot read/reference - signal alignments.
    Specifies name/location of the output directory. A valid relative or absolute path can be provided. Data will be overwritten but the directory will not be recreated.
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot.
+* `-k, --kmer_length INT`
+   (optional) kmer length to consider for the base shift calculation and plotting.
 * `--plot_reverse`
 	(optional) Plot only the reverse mapped reads [default value: false].
 * `--rna`
@@ -123,8 +125,10 @@ Plot read/reference - signal alignments.
 	(optional) The base width when plotting with fixed base width [default value: 10]. 
 * `--base_shift INT`
 	(optional) The number of bases to shift to align fist signal move [default value: 0]. More information on this can be found at [here](pore_model.md)
+* `--auto`
+	(optional) Calculate and automatically set the base shift. [default value: false]
 *  `--profile STR`:<br/>
-   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`  
+   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`. The precedence is in the order of `--base_shift < --auto < --profile`.
 *  `--list_profile`:<br/>
     (optional) Print the available profiles and exit.
 * `--plot_limit INT`
@@ -169,6 +173,8 @@ Plot reference - signal alignment pileups.
 	(optional) Path to a file containing a list of read_ids to plot only the reads listed.
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot
+* `-k, --kmer_length INT`
+   (optional) kmer length to consider for the base shift calculation and plotting.
 * `--plot_reverse`
 	(optional) Plot only the reverse mapped reads.
 * `--rna`
@@ -191,8 +197,10 @@ Plot reference - signal alignment pileups.
 	(optional) The base width when plotting with fixed base width [default value: 10]. 
 * `--base_shift INT`
 	(optional) The number of bases to shift to align fist signal move [default value: 0]. More information on this can be found at [here](pore_model.md)
+* `--auto`
+	(optional) Calculate and automatically set the base shift. [default value: false]
 *  `--profile STR`:<br/>
-   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`  
+   (optional) This is used to determine base shift using preset values. The available profiles can be listed using `--list_profile`. The precedence is in the order of `--base_shift < --auto < --profile`.
 *  `--list_profile`:<br/>
     (optional) Print the available profiles and exit.
 * `--plot_limit INT`
