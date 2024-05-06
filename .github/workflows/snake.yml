@@ -108,7 +108,7 @@ jobs:
     - name: install packages
       run: pip3 install numpy --break-system-packages
     - name: install
-      run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . && squigualiser --help
+      run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . --break-system-packages && squigualiser --help
     - name: test_reform
       run: test/test_reform.sh
     - name: test_realign
