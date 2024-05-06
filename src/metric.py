@@ -7,7 +7,7 @@ import numpy as np
 import pyslow5
 import argparse
 import re
-from readpaf import parse_paf
+from src import readpaf_local
 from pyfaidx import Fasta
 from pyfastx import Fastq
 import os
@@ -292,7 +292,7 @@ def run(args):
                 sequence_reads = Fasta(args.file)
             else:
                 sequence_reads = Fastq(args.file)
-            for paf_record in parse_paf(handle):
+            for paf_record in readpaf_local.parse_paf(handle):
                 metric_record = {}
                 if paf_record.query_name != paf_record.target_name:
                     raise Exception("Error: this paf file is a signal to reference mapping. Please provide the argument --sig_ref ")
@@ -880,19 +880,28 @@ def run(args):
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
+    flag_discard = 0
     if args.output_current_column:
         for key, item in column_raw_samples.items():
             # print(', '.join(map(str, item)))
             array = np.array(item)
 
             median = np.median(array)
+            if median == 0:
+                print("median is zero!")
+                flag_discard = 1
+                break
             darray = array/median
+
             print(', '.join(map(str, darray)))
 
             # darray = plot_utils.scale_signal(array, 'medmad', {})
             # print(', '.join(map(str, darray)))
 
-    print("Number of records: {}".format(num_plots))
+    if flag_discard:
+        print("discard")
+    else:
+        print("Number of records: {}".format(num_plots))
     if num_plots == 0:
         print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
 

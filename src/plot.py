@@ -14,7 +14,7 @@ import copy
 import argparse
 import re
 import logging
-from readpaf import parse_paf
+from src import readpaf_local
 from sys import stdin
 from pyfaidx import Fasta
 from pyfastx import Fastq
@@ -669,7 +669,7 @@ def run(args):
                 args_ref_start = None
                 args_ref_end = None
 
-            for paf_record in parse_paf(handle):
+            for paf_record in readpaf_local.parse_paf(handle):
                 if args.auto:
                     kmer_correction = 0
                     draw_data["base_shift"] = 0

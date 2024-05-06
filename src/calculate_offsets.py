@@ -1,6 +1,6 @@
 import os
 import argparse
-from readpaf import parse_paf
+from src import readpaf_local
 import pysam
 import pyslow5
 from pyfaidx import Fasta
@@ -136,7 +136,7 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
         else:
             sequence_reads = Fastq(sequence_file)
         num_reads = 0
-        for paf_record in parse_paf(handle):
+        for paf_record in readpaf_local.parse_paf(handle):
             read_id = paf_record.query_name
             if args.read_id != "" and args.read_id != read_id:
                 continue
