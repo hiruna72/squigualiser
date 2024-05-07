@@ -41,13 +41,14 @@ Squigualiser preprint - https://www.biorxiv.org/content/10.1101/2024.02.19.58111
 8. [BED annotations](#bed-annotations)
 9. [Squigualiser GUI](#Squigualiser-gui)
 10. [Visualisation Enhancements](#Visualisation-Enhancements)
-   1. [Base shift](#base-shift)
-   2. [Signal scaling](#signal-scaling)
+    1. [Base shift](#base-shift)
+    2. [Signal scaling](#signal-scaling)
 11. [Plot conventions](#plot-conventions)
 12. [Calculate alignment statistics](#calculate-alignment-statistics)
 13. [Notes](#notes)
     1. [FAST5 and POD5 support](#fast5-and-pod5-support)
 14. [Examples](#examples)
+15. [Links to additional docs](#links-to-additional-docs)
 
 
 ## Quickstart
@@ -633,6 +634,28 @@ We provide methods to convert FAST5 and POD5 to BLOW5.
 These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
+
+## Links to additional docs
+
+- [Base Shift and Event Alignment](docs/base_shift_and_eventalignment.md)
+- [Base Shift of Reverse Mapped Reads](docs/base_shift_of_reverse_mapped_reads.md)
+- [Basecalling](docs/basecalling.md)
+- [Calculate Offsets](docs/calculate_offsets.md)
+- [Commands](docs/commands.md)
+- [Different Alignments](docs/different_alignments.md)
+- [Metric](docs/metric.md)
+- [Move Table](docs/move_table.md)
+- [Pipeline Basic](docs/pipeline_basic.md)
+- [Pipeline Methylation Detection DNA](docs/pipeline_methylation_detection_DNA.md)
+- [Pipeline Variant Detection Extended](docs/pipeline_variant_detection_extended.md)
+- [Pipeline Variant Detection Real](docs/pipeline_variant_detection_real.md)
+- [Pipeline Variant Detection Simulated](docs/pipeline_variant_detection_simulated.md)
+- [Pore Model](docs/pore_model.md)
+- [Profiles](docs/profiles.md)
+- [Real vs Simulated Signal](docs/real_vs_simulated_signal.md)
+- [Realign](docs/realign.md)
+- [Reform](docs/reform.md)
+- [RNA Visualisation](docs/RNA_visualisation.md)
 
 ## Acknowledgement
 Some code snippets have been taken from [readpaf](https://pypi.org/project/readpaf/), [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel), [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)
