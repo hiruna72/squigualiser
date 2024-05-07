@@ -474,7 +474,7 @@ tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 <details><summary>Steps for using uncalled4 align</summary>
 <div markdown=1>
 
-1. Align reads to reference genome using uncalled4 following the [steps mentioned in uncalled4 guide](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
+1. Align reads to reference genome using uncalled4 following the steps below. [More information](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
 
 ````
 REF=genome.fa #reference
