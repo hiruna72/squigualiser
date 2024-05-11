@@ -251,6 +251,37 @@ def calculate_base_shift(moves, raw_signal, sequence, kmer_length, record_is_rev
         print("Only {} ditinct {}-mers were found in the sequence. The calculated base shift value ({}) might not be correct. Reduce kmer length (-k) or increase the region interval or use a preset base shift (--profile)".format(num_kmers, kmer_length, forward_shift))
         return forward_shift
 
+def calculate_similarity(x, y):
+    bins = np.linspace(min(min(x), min(y)), max(max(x), max(y)), 10)
+    x, _ = np.histogram(x, bins)
+    y, _ = np.histogram(y, bins)
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    std_x = np.std(x)
+    std_y = np.std(y)
+    covariance = np.mean((x - mean_x) * (y - mean_y))
+    pearson_corr = covariance / (std_x * std_y)
+    return pearson_corr
+
+def select_diverse_groups(density_plots, threshold=0.96):
+    """Select groups with diverse density plots based on cosine similarity."""
+    group_similarities = []
+    group_idx = 0
+    for group_plots in density_plots:
+        # print(group_idx)
+        num_arrays = len(group_plots)
+        similarities = []
+        for i in range(num_arrays):
+            for j in range(i + 1, num_arrays):
+                similarity = calculate_similarity(group_plots[i], group_plots[j])
+                # print(similarity)
+                similarities.append(similarity)
+        group_similarities.append(np.mean(similarities))
+        group_idx += 1
+    # print(group_similarities)
+    diverse_groups = [group_idx for group_idx, similarity in enumerate(group_similarities) if similarity < threshold]
+    return diverse_groups
+
 def run(args):
     if args.kmer_length < 1:
         raise Exception("Error: kmer length must be a positive integer")
@@ -292,6 +323,9 @@ def run(args):
                 print("RNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, reverse_shift, forward_shift, round(max_dist, 4)))
             else:
                 print("DNA\nkmer length: {}\nbest base shift (offset) for forward mapped reads: {}\nbest base shift (offset) for reverse mapped reads: {}\ndifference between highest and lowest medians of the distributions: {}".format(kmer_length, forward_shift, reverse_shift, round(max_dist, 4)))
+            if args.calculate_significant_indices:
+                diverse_groups = select_diverse_groups(test_array)
+                print("k-mer models significant base indices {}".format(diverse_groups))
             if args.output != "":
                 output_pdf = PdfPages(args.output)
                 print("output file: {}".format(args.output))
@@ -301,6 +335,7 @@ def run(args):
                     plt_title = "DNA\n{}\nkmer length: {}\ndifference between highest and lowest medians of the distributions: {}\nbest base shift (offset) for forward mapped reads (shown below): {}\nbest base shift (offset) for reverse mapped reads (derived): {}\n".format(args.tag_name, kmer_length, str(round(max_dist, 4)), forward_shift, reverse_shift)
                 plot_distributions(kmer_length, test_array, output_pdf, plt_title)
                 output_pdf.close()
+
     else:
         if args.file == "":
             raise Exception("Error: please provide a sequence file")
@@ -372,7 +407,10 @@ def argparser():
     parser.add_argument('-o', '--output', required=False, type=str, default="", help="output .pdf file. (works only when a read_id is specified)")
     parser.add_argument('--tag_name', required=False, type=str, default="", help="a tag name to easily identify")
     parser.add_argument('--use_model', required=False, action='store_true', help="calculate offset using the model file. else use the move table.")
+    parser.add_argument('--calculate_significant_indices', required=False, action='store_true', help="calculate significant indices of a k-mer model")
     return parser
+
+
 
 if __name__ == "__main__":
     parser = argparser()
