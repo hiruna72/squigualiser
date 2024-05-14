@@ -19,6 +19,8 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 
 Squigualiser preprint - https://www.biorxiv.org/content/10.1101/2024.02.19.581111v2
 
+Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualisation of raw nanopore signal data with Squigualiser. Biorxiv, pp.2024-02.
+
 ![image](docs/figures/different_aligments/method_eventalign.png)
 * Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`.
 * Click the [link](https://hiruna72.github.io/squigualiser/docs/figures/different_aligments/dna_r10.4.1_e8.2_400bps_sup.cfg_evligned_vs_sim.html) to open it on your browser.
