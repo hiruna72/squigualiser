@@ -17,7 +17,7 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 [![BioConda Install](https://img.shields.io/conda/dn/bioconda/slow5tools.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/slow5tools)
 -->
 
-Squigualiser paper - [https://www.biorxiv.org/content/10.1101/2024.02.19.581111v2](https://doi.org/10.1093/bioinformatics/btae501)
+Squigualiser paper - [https://doi.org/10.1093/bioinformatics/btae501](https://doi.org/10.1093/bioinformatics/btae501)
 
 Squigualiser supplementary material - https://zenodo.org/records/13733728
 
