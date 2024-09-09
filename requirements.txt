@@ -1,5 +1,5 @@
 bokeh==3.1.1
-numpy
+numpy<2
 pyslow5
 pyfaidx
 pyfastx
