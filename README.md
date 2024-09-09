@@ -17,9 +17,11 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 [![BioConda Install](https://img.shields.io/conda/dn/bioconda/slow5tools.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/slow5tools)
 -->
 
-Squigualiser preprint - https://www.biorxiv.org/content/10.1101/2024.02.19.581111v2
+Squigualiser paper - [https://www.biorxiv.org/content/10.1101/2024.02.19.581111v2](https://doi.org/10.1093/bioinformatics/btae501)
 
-Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualisation of raw nanopore signal data with Squigualiser. Biorxiv, pp.2024-02.
+Squigualiser supplementary material - https://zenodo.org/records/13733728
+
+Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualization of nanopore sequencing signal data with Squigualiser. Bioinformatics, 40(8), p.btae501.
 
 ![image](docs/figures/different_aligments/method_eventalign.png)
 * Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`.
