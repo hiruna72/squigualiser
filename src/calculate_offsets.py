@@ -162,6 +162,8 @@ def calculate_offsets(args, sig_move_offset, output_pdf, s5):
                     fasta_seq = fasta_seq.replace('N', 'T')
                 elif 'U' in fasta_seq:
                     fasta_seq = fasta_seq.replace('U', 'T')
+            if not ('T' in fasta_seq and 'A' in fasta_seq and 'C' in fasta_seq and 'G' in fasta_seq):
+                continue
             if args.rna:
                 fasta_seq = fasta_seq[::-1]
 
