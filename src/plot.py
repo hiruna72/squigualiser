@@ -5,7 +5,7 @@ hiruna@unsw.edu.au
 """
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
-from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div
+from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div, Span
 from bokeh.layouts import row, column
 from bokeh.colors import RGB
 from bokeh.io import export_svg, export_svgs
@@ -48,6 +48,45 @@ BAM_CMATCH, BAM_CINS, BAM_CDEL, BAM_CREF_SKIP, BAM_CSOFT_CLIP, BAM_CHARD_CLIP, B
 READ_ID, LEN_RAW_SIGNAL, START_RAW, END_RAW, STRAND, SEQUENCE_ID, LEN_KMER, START_KMER, END_KMER, MATCHES, LEN_KMER, MAPQ = range(12)
 SI_START_RAW, SI_END_RAW, SI_START_KMER, SI_END_KMER = range(4)
 BED_CHROM, BED_CHROM_START, BED_CHROM_END, BED_NAME, BED_SCORE, BED_STRAND, BED_THICK_START, BED_THICK_END, BED_ITEM_RGB, BED_BLOCK_COUNT, BED_BLOCK_SIZES, BLOCK_STARTS = range(12)
+
+
+def plot_sig_annotation(p, sigann, y_min, y_max, x, x_real, x_coordinate, draw_data):
+    shift = 0
+    if draw_data["base_shift"] < 0:
+        shift = abs(draw_data["base_shift"]) * draw_data["fixed_base_width"]
+
+    y_min = y_min-0.05*(y_max-y_min)
+    y_max = y_max+0.05*(y_max-y_min)
+    sig_start = x_real[shift] - 1
+    sig_end = x_real[x_coordinate-1]
+    sigann.sort()
+    sigann_updated = []
+    trim_left = 0
+    j = 0
+    while j < len(sigann) and sigann[j] <= sig_end: 
+        if sigann[j] == sig_start:
+            trim_left = j
+        j += 1
+    trim_right = j
+    sigann = sigann[trim_left:trim_right]
+    for i in sigann:
+        sigann_updated.append(x[shift+i-sig_start-1])
+
+    # print(sigann)
+    # print(sigann_updated)
+
+    p.segment(
+        x0=sigann_updated,    # X-coordinates of the starting points
+        y0=[y_min] * len(sigann_updated),  # Starting y-coordinates
+        x1=sigann_updated,    # X-coordinates of the ending points
+        y1=[y_max] * len(sigann_updated),  # Ending y-coordinates
+        line_color="black",
+        line_width=2,
+        line_alpha=0.4,
+        line_dash="dashed"
+    )
+    return p
+
 
 def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_limit, draw_data):
     x = signal_tuple[0]
@@ -470,6 +509,8 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     p.add_layout(kmer_annotation_labels)
     p.add_layout(move_annotation_labels)
 
+    p = plot_sig_annotation(p=p, sigann=draw_data["sigann_labels"], y_min=draw_data['y_min'], y_max=draw_data['y_max'], x=fixed_width_x, x_real=x_real, x_coordinate=x_coordinate, draw_data=draw_data)
+
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
 
     xticks = [i*draw_data["fixed_base_width"] for i in range(0, base_index+1, 5)]
@@ -599,6 +640,17 @@ def run(args):
     if args.bed:
         print(f'bed file: {args.bed}')
         bed_dic = bed_annotation.create_bed_dic(args)
+
+    sigann_dict = {}
+    if args.sigann:
+        print(f'Signal point annotation file: {args.sigann}')
+        with open(args.sigann, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:  # Skip empty lines
+                    read_id, array_str = line.split(' ', 1)  # Split only on the first space
+                    array = [int(value) for value in array_str.split(',') if value]  # Parse the array
+                    sigann_dict[read_id] = array
 
     if args.plot_reverse:
         print("Info: reads mapped to the reverse strand will be plotted")
@@ -841,10 +893,12 @@ def run(args):
 
                 draw_data['y_min'] = np.nanmin(y)
                 draw_data['y_max'] = np.nanmax(y)
+                draw_data["sigann_labels"] = sigann_dict[read_id]
+
                 p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
                     p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
-
+                
                 if args.fixed_width:
                     layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
                 else:
@@ -864,443 +918,6 @@ def run(args):
                 num_plots += 1
                 if num_plots == args.plot_limit:
                     break
-    elif use_paf == 0 and plot_sig_ref_flag == 1: # using sam/bam
-        print("Info: Signal to reference method using SAM/BAM ...")
-        fasta_reads = Fasta(args.file)
-        if args.region != "":
-            # check if there exists a .bam.bai
-            index_file = args.alignment + ".bai"
-            if not os.path.exists(index_file):
-                raise Exception("Error: please provide a bam file that is sorted and indexed to extract the regions")
-
-            args_region = re.sub(',', '', args.region)
-            # print(args_region)
-            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
-            if not pattern.match(args_region):
-                raise Exception("Error: region provided is not in correct format")
-            args_ref_name = args_region.split(":")[0]
-            args_ref_start = int(args_region.split(":")[1].split("-")[0])
-            args_ref_end = int(args_region.split(":")[1].split("-")[1])
-
-            samfile = pysam.AlignmentFile(args.alignment, mode='rb')
-        else:
-            args_ref_name = None
-            args_ref_start = None
-            args_ref_end = None
-            samfile = pysam.AlignmentFile(args.alignment, mode='r')
-
-        for sam_record in samfile.fetch(contig=args_ref_name, start=args_ref_start, stop=args_ref_end):
-            if args.auto:
-                kmer_correction = 0
-                draw_data["base_shift"] = 0
-            if args_ref_name is not None and args_ref_name != sam_record.reference_name:
-                raise Exception("Error: sam record's reference name [" + sam_record.reference_name + "] and the name specified are different [" + args_ref_name + "]")
-            read_id = sam_record.query_name
-            if sam_record.is_supplementary or sam_record.is_unmapped or sam_record.is_secondary:
-                continue
-            if args.plot_reverse is True and sam_record.is_reverse is False:
-                continue
-            if args.plot_reverse is False and sam_record.is_reverse is True:
-                continue
-            if args.read_id != "" and read_id != args.read_id:
-                continue
-            if args.read_list != "" and read_id not in read_id_list:
-                continue
-            if not sam_record.has_tag("ss"):
-                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
-            ref_seq_len = 0
-            data_is_rna = 0
-            start_index = -1
-            if sam_record.has_tag("si"):
-                si_tag = sam_record.get_tag("si").split(',')
-                start_index = int(si_tag[SI_START_RAW])
-                end_index = int(si_tag[SI_END_RAW])
-                ref_seq_len = int(si_tag[SI_END_KMER]) - int(si_tag[SI_START_KMER])
-                reference_start = int(si_tag[SI_START_KMER])
-                if int(si_tag[SI_START_KMER]) > int(si_tag[SI_END_KMER]):  # if RNA start_kmer>end_kmer in paf
-                    data_is_rna = 1
-                    if not args.rna:
-                        print("Info: data is detected as RNA")
-                        raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
-                    ref_seq_len = int(si_tag[SI_START_KMER]) - int(si_tag[SI_END_KMER])
-                    reference_start = int(si_tag[SI_END_KMER]) + kmer_correction
-
-            else:
-                raise Exception("Error: sam record does not have a 'si' tag.")
-            # print("ref_seq_len: " + str(ref_seq_len))
-
-            base_limit = args.base_limit
-            if ref_seq_len < base_limit:
-                base_limit = ref_seq_len
-            sam_record_reference_end = reference_start + ref_seq_len #1based closed
-            if args.region != "":
-                if not args.loose_bound:
-                    if data_is_rna == 1:
-                        if args_ref_start < reference_start + 1 - kmer_correction:
-                            continue
-                    else:
-                        if args_ref_start < reference_start + 1:
-                            continue
-                    if args_ref_end > sam_record_reference_end:
-                        continue
-
-            ref_name = sam_record.reference_name
-            ref_start = reference_start + 1
-            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
-            if args.region != "":
-                if args_ref_start > ref_start:
-                    ref_start = args_ref_start
-                    if (ref_start + base_limit - 1) < sam_record_reference_end:
-                        ref_end = ref_start + base_limit - 1
-                    else:
-                        ref_end = sam_record_reference_end
-                if args_ref_end < ref_end:
-                    ref_end = args_ref_end
-            if ref_end < ref_start:
-                print("Warning: a corner case has hit because  the kmer_length used is larger than 1. This alignment will be skipped")
-                continue
-            base_limit = ref_end - ref_start + 1
-            # print("ref_start: {}".format(ref_start))
-            # print("ref_end: {}".format(ref_end))
-            # print("ref_seq_len: {}".format(ref_seq_len))
-            # print("{}".format(sam_record.cigarstring))
-            # print("base_limit: {}".format(base_limit))
-            if sam_record.is_reverse and data_is_rna == 1:
-                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
-
-            if data_is_rna == 1:
-                print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-                fasta_seq = fasta_seq.upper()
-            else:
-                if sam_record.is_reverse:
-                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-                    fasta_seq = fasta_seq.upper()
-                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-                    fasta_seq = "".join(nn[n] for n in fasta_seq)
-                else:
-                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-                    fasta_seq = fasta_seq.upper()
-            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
-                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
-
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index+1, end_index+1))             # 1based
-                y = read['signal'][start_index:end_index]
-
-            scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
-                scaling_str = args.sig_scale
-            elif not args.sig_scale == "":
-                raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
-
-            scale_params = {}
-            if args.sig_scale == "scaledpA":
-                if not args.no_pa:
-                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
-                for tag in ["sc", "sh"]:
-                    if sam_record.has_tag(tag):
-                        scale_params[tag] = sam_record.get_tag(tag)
-                    else:
-                        raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
-
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
-
-            moves_string = sam_record.get_tag("ss")
-            moves_string = re.sub('D', 'D,', moves_string)
-            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-            moves = re.split(r',+', moves_string)
-
-            if data_is_rna == 0:
-                strand_dir = "(DNA +)"
-                if sam_record.is_reverse:
-                    strand_dir = "(DNA -)"
-                    x_real.reverse()
-                    y = np.flip(y)
-                    moves.reverse()
-            if data_is_rna == 1:
-                strand_dir = "(RNA 3'->5')"
-                fasta_seq = fasta_seq[::-1]
-                if sam_record.is_reverse:
-                    raise Exception("Error: data is rna and sam record is reverse mapped. This is not implemented yet. Please report")
-
-            signal_tuple = (x, x_real, y)
-            region_tuple = (ref_start, ref_end, reference_start, reference_start+ref_seq_len)
-
-            sig_algn_dic = {}
-            sig_algn_dic['start_kmer'] = 0
-            sig_algn_dic['ref_start'] = ref_start
-            sig_algn_dic['ref_end'] = ref_end
-            sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
-            sig_algn_dic['data_is_rna'] = data_is_rna
-            sig_algn_dic['ss'] = moves
-            # print(len(moves))
-            # print(fasta_seq)
-
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
-            if args.auto:
-                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, sam_record.is_reverse, data_is_rna)
-                draw_data["base_shift"] = caculated_base_shift
-            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
-
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
-
-            # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
-            p = plot_utils.create_figure(args, plot_mode=0)
-            if args.bed:
-                p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
-
-            if args.fixed_width:
-                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-            else:
-                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
-            if args.save_svg:
-                output_file_name += ".svg"
-                layout_[0].output_backend = "svg"
-                export_svgs(layout_, filename=output_file_name)
-            else:
-                output_file_name += ".html"
-                output_file(output_file_name, title=read_id)
-                save(layout_)
-            print(f'output file: {os.path.abspath(output_file_name)}')
-
-            num_plots += 1
-            if num_plots == args.plot_limit:
-                break
-    elif use_paf == 1 and plot_sig_ref_flag == 1:
-        print("Info: Signal to reference method using PAF ...")
-        fasta_reads = Fasta(args.file)
-        tbxfile = pysam.TabixFile(args.alignment)
-        if args.region != "":
-            args_region = re.sub(',', '', args.region)
-            # print(args_region)
-            # pattern = re.compile("^[a-z]+[0-9]+\:[0-9]+\-[0-9]+")
-            pattern = re.compile("^.*\:[0-9]+\-[0-9]+")
-            if not pattern.match(args_region):
-                raise Exception("Error: region provided is not in correct format")
-            args_ref_name = args_region.split(":")[0]
-            args_ref_start = int(args_region.split(":")[1].split("-")[0])
-            args_ref_end = int(args_region.split(":")[1].split("-")[1])
-        else:
-            args_ref_name = None
-            args_ref_start = None
-            args_ref_end = None
-
-        for paf_record in tbxfile.fetch(args_ref_name, args_ref_start, args_ref_end, parser=pysam.asTuple()):
-            if args.auto:
-                kmer_correction = 0
-                draw_data["base_shift"] = 0
-            if paf_record[READ_ID] == paf_record[SEQUENCE_ID]:
-                raise Exception("Error: this paf file is a signal to read mapping.")
-            if args_ref_name is not None and args_ref_name != paf_record[SEQUENCE_ID]:
-                raise Exception("Error: sam record's reference name [" + paf_record[SEQUENCE_ID] + "] and the name specified are different [" + args_ref_name + "]")
-            read_id = paf_record[READ_ID]
-            # if read_id != "285802f0-8f4d-4f03-8d11-ef8a395576e4":
-            #     continue
-            if args.read_id != "" and read_id != args.read_id:
-                continue
-            if args.read_list != "" and read_id not in read_id_list:
-                continue
-            if args.plot_reverse is True and paf_record[STRAND] == "+":
-                continue
-            if args.plot_reverse is False and paf_record[STRAND] == "-":
-                continue
-            moves_string = ""
-            for i in range(12, len(paf_record)):
-                tag = paf_record[i].split(':')[0]
-                if tag == "ss":
-                    moves_string = paf_record[i].split(':')[2]
-            if moves_string == "":
-                raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
-
-            data_is_rna = 0
-            start_index = int(paf_record[START_RAW])
-            end_index = int(paf_record[END_RAW])
-            ref_seq_len = int(paf_record[END_KMER]) - int(paf_record[START_KMER])
-            reference_start = int(paf_record[START_KMER])
-            if int(paf_record[START_KMER]) > int(paf_record[END_KMER]):  # if RNA start_kmer>end_kmer in paf
-                data_is_rna = 1
-                if not args.rna:
-                    print("Info: data is detected as RNA")
-                    raise Exception("Error: data is not specified as RNA. Please provide the argument --rna ")
-                ref_seq_len = int(paf_record[START_KMER]) - int(paf_record[END_KMER])
-                reference_start = int(paf_record[END_KMER]) + kmer_correction
-            # print("ref_seq_len: " + str(ref_seq_len))
-
-            base_limit = args.base_limit
-            if ref_seq_len < base_limit:
-                base_limit = ref_seq_len
-
-            paf_record_reference_end = reference_start + ref_seq_len #1based closed
-            if args.region != "":
-                if not args.loose_bound:
-                    if data_is_rna == 1:
-                        if args_ref_start < reference_start + 1 - kmer_correction:
-                            continue
-                    else:
-                        if args_ref_start < reference_start + 1:
-                            continue
-                    if args_ref_end > paf_record_reference_end:
-                        continue
-
-            ref_name = paf_record[SEQUENCE_ID]
-            ref_start = reference_start + 1
-            ref_end = ref_start + base_limit - 1 #ref_end is 1based closed
-            if args.region != "":
-                if args_ref_start > ref_start:
-                    ref_start = args_ref_start
-                    if (ref_start + base_limit - 1) < paf_record_reference_end:
-                        ref_end = ref_start + base_limit - 1
-                    else:
-                        ref_end = paf_record_reference_end
-                if args_ref_end < ref_end:
-                    ref_end = args_ref_end
-            if ref_end < ref_start:
-                print("Warning: a corner case has hit because the kmer_length used is larger than 1. This alignment will be skipped")
-                continue
-            base_limit = ref_end - ref_start + 1
-            # print("ref_start: {}".format(ref_start))
-            # print("ref_end: {}".format(ref_end))
-            # print("ref_seq_len: {}".format(ref_seq_len))
-            # print("base_limit: {}".format(base_limit))
-
-            record_is_reverse = 0
-            if paf_record[STRAND] == "-":
-                record_is_reverse = 1
-            if record_is_reverse and data_is_rna == 1:
-                raise Exception("Error: A transcript is  always sequenced from 3` to 5`. Squigualiser only supports reads mapped to the transcriptome.")
-            if data_is_rna == 1:
-                print("plot (RNA 5'->3') region: {}:{}-{}\tread_id: {}".format(ref_name, ref_end, ref_start, read_id))
-                fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq #get_seq is 1-based closed interval
-                fasta_seq = fasta_seq.upper()
-            else:
-                if record_is_reverse:
-                    print("plot (-) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-                    fasta_seq = fasta_seq.upper()
-                    nn = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
-                    fasta_seq = "".join(nn[n] for n in fasta_seq)
-                else:
-                    print("plot (+) region: {}:{}-{}\tread_id: {}".format(ref_name, ref_start, ref_end, read_id))
-                    fasta_seq = fasta_reads.get_seq(name=ref_name, start=ref_start, end=ref_end).seq
-                    fasta_seq = fasta_seq.upper()
-            if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
-                raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
-
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                y = read['signal'][start_index:end_index]
-
-            scaling_str = "no scaling"
-            if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
-                scaling_str = args.sig_scale
-            elif not args.sig_scale == "":
-                raise Exception("Error: given --sig_scale method: {} is not supported".format(args.sig_scale))
-
-            scale_params = {}
-            if args.sig_scale == "scaledpA":
-                if not args.no_pa:
-                    raise Exception("Error: given --sig_scale method: {} required the signal to be converted to pA levels. Please remove --no_pa argument".format(args.sig_scale))
-                for tag in ["sc", "sh"]:
-                    for i in range(12, len(paf_record)):
-                        if tag == paf_record[i].split(':')[0]:
-                            scale_params[tag] = float(paf_record[i].split(':')[2])
-                    if tag not in scale_params:
-                        raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
-
-            moves_string = re.sub('D', 'D,', moves_string)
-            moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
-            moves = re.split(r',+', moves_string)
-
-            if data_is_rna == 0:
-                strand_dir = "(DNA +)"
-                if record_is_reverse:
-                    strand_dir = "(DNA -)"
-                    x_real.reverse()
-                    y = np.flip(y)
-                    moves.reverse()
-            if data_is_rna == 1:
-                strand_dir = "(RNA 3'->5')"
-                fasta_seq = fasta_seq[::-1]
-
-            signal_tuple = (x, x_real, y)
-            region_tuple = (ref_start, ref_end, reference_start, reference_start + ref_seq_len)
-
-            sig_algn_dic = {}
-            sig_algn_dic['start_kmer'] = 0
-            sig_algn_dic['ref_start'] = ref_start
-            sig_algn_dic['ref_end'] = ref_end
-            sig_algn_dic['pa'] = args.no_pa
-            sig_algn_dic['plot_sig_ref_flag'] = plot_sig_ref_flag
-            sig_algn_dic['data_is_rna'] = data_is_rna
-            sig_algn_dic['ss'] = moves
-
-            signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
-            if args.auto:
-                caculated_base_shift = calculate_offsets.calculate_base_shift(sig_algn_dic['ss'], signal_tuple[2], fasta_seq, args.kmer_length, record_is_reverse, data_is_rna)
-                draw_data["base_shift"] = caculated_base_shift
-            signal_tuple, sig_algn_dic, fasta_seq = plot_utils.treat_for_base_shift(draw_data, signal_tuple, sig_algn_dic, fasta_seq)
-
-            if args.fixed_width:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
-            else:
-                sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
-            # print(len(moves))
-            # print(fasta_seq)
-            # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
-            p = plot_utils.create_figure(args, plot_mode=0)
-            if args.bed:
-                p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
-            if args.fixed_width:
-                layout_ = plot_function_fixed_width(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-            else:
-                layout_ = plot_function(p=p, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
-
-            output_file_name = args.output_dir + "/" + read_id + "_" + args.tag_name
-            if args.save_svg:
-                output_file_name += ".svg"
-                layout_[0].output_backend = "svg"
-                export_svgs(layout_, filename=output_file_name)
-            else:
-                output_file_name += ".html"
-                output_file(output_file_name, title=read_id)
-                save(layout_)
-            print(f'output file: {os.path.abspath(output_file_name)}')
-
-            num_plots += 1
-            if num_plots == args.plot_limit:
-                break
     else:
         raise Exception("Error: You should not have ended up here. Please check your arguments")
 
@@ -1342,6 +959,7 @@ def argparser():
     parser.add_argument('--plot_limit', required=False, type=int, default=PLOT_LIMIT, help="limit the number of plots generated")
     parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
     parser.add_argument('--bed', required=False, help="bed file with annotations")
+    parser.add_argument('--sigann', required=False, help="file with signal point annotations (0-based)")
     parser.add_argument('--print_bed_labels', required=False, action='store_true', help="draw bed annotations with labels")
     parser.add_argument('--no_colours', required=False, action='store_false', help="hide base colours")
     parser.add_argument('--no_samples', required=False, action='store_false', help="hide sample points")
