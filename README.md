@@ -43,8 +43,8 @@ Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H.
 6. [Pileup view](#pileup-view)
 7. [Plot multiple tracks](#plot-multiple-tracks)
 8. [BED annotations](#bed-annotations)
-9. [Squigualiser GUI](#Squigualiser-gui)
-10. [Visualisation Enhancements](#Visualisation-Enhancements)
+9. [Squigualiser GUI](#squigualiser-gui)
+10. [Visualisation Enhancements](#visualisation-enhancements)
     1. [Base shift](#base-shift)
     2. [Signal scaling](#signal-scaling)
 11. [Plot conventions](#plot-conventions)
@@ -62,7 +62,7 @@ The easiest way to setup squigualiser would be to use precompiled binaries. Clic
 <div markdown=1>
 
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.6.1/squigualiser-v0.6.1-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.6.3/squigualiser-v0.6.3-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
@@ -74,11 +74,21 @@ cd squigualiser
 <div markdown=1>
    
 ```
+python3.8 -m venv venv3
+source venv3/bin/activate
+pip install --upgrade pip
+pip install squigualiser
+squigualiser --help
+```
+
+Following is outdated.
+```
 curl -L https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
+
 
 </div>
 </details>
