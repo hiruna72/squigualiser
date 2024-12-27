@@ -85,7 +85,7 @@ def run(args):
     with pysam.AlignmentFile(args.bam, "rb", check_sq=False) as bam:
         for sam_record in bam:
             len_seq = len(sam_record.get_forward_sequence()) - kmer_length + 1 # to get the number of kmers
-            if sam_record.has_tag("sp"):
+            if sam_record.has_tag("sp") or sam_record.has_tag("pi"):
                 count_split_reads += 1
                 continue
             if sam_record.has_tag("dx") and int(sam_record.get_tag("dx")) == 1:
