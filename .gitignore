@@ -9,6 +9,7 @@ __pycache__
 idealg_v
 build
 venv3
+venv38
 test/data/outplot
 cprofile_run.log
 test/data/raw/pipelines/pipeline_*/*/RUN*
