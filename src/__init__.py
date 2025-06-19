@@ -27,7 +27,7 @@ def main():
         epilog='''
 See https://slow5.bioinf.science/squigualiser for a detailed description of these command-line options.
     
-Citation: Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualisation of raw nanopore signal data with Squigualiser. bioRxiv, pp.2024-02.
+Citation: Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualization of nanopore sequencing signal data with Squigualiser. Bioinformatics, 40(8), p.btae501.
                ''',
         formatter_class=RawTextHelpFormatter)
 
