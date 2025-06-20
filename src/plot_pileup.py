@@ -285,8 +285,6 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     return p, location_plot, base_index
 def run(args):
-    if args.save_svg:
-        plot_utils.check_browser_available()
 
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
@@ -919,6 +917,7 @@ def run(args):
         else:
             pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name
             if args.save_svg:
+                plot_utils.svg_export_works(args.output_dir)  # will raise if it fails
                 pileup_output_file_name += ".svg"
                 p.output_backend = "svg"
                 export_svg(p, filename=pileup_output_file_name)

@@ -538,8 +538,6 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     return layout_
 
 def run(args):
-    if args.save_svg:
-        plot_utils.check_browser_available()
         
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
@@ -608,6 +606,9 @@ def run(args):
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
+    
+    if args.save_svg:
+        plot_utils.svg_export_works(args.output_dir)  # will raise if it fails
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
