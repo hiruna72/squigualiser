@@ -19,6 +19,24 @@ import os
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+
+def read_readid_color_file(filepath, default_color='#1f77b4'):
+    readid_to_color = {}
+    with open(filepath, 'r') as f:
+        for line in f:
+            if line.strip() == '':
+                continue  # skip empty lines
+            parts = line.strip().split()
+            if len(parts) == 1:
+                read_id = parts[0]
+                color = default_color
+            elif len(parts) == 2:
+                read_id, color = parts
+            else:
+                raise ValueError(f"Invalid line (too many columns): {line.strip()}")
+            readid_to_color[read_id] = color
+    return readid_to_color
+
 def svg_export_works(output_dir):
     try:
         # Create dummy Bokeh plot

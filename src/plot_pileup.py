@@ -235,11 +235,11 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     if not draw_data['overlap_only']:
         if num_plots != -1:
-            p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
+            p.line('x', 'y', name="sig_plot_line", line_width=2, source=source, color=draw_data['signal_color'])
     if not draw_data['no_overlap']:
         leg_lable = "read_" + str(num_plots+1)
         if num_plots != -1:
-            p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable)
+            p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable, color=draw_data['signal_color'])
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -284,6 +284,8 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
     return p, location_plot, base_index
+
+
 def run(args):
 
     if args.list_profile:
@@ -349,9 +351,11 @@ def run(args):
 
     if args.read_id != "":
         args.plot_limit = 1
+    read_id_list = {}
     if args.read_list != "":
         print(f'read_id list file: {args.read_list}')
-        read_id_list = list(line.strip() for line in open(args.read_list))
+        # read_id_list = list(line.strip() for line in open(args.read_list))
+        read_id_list = plot_utils.read_readid_color_file(args.read_list)
 
     bed_dic = {}
     if args.bed:
@@ -381,6 +385,7 @@ def run(args):
     draw_data["plot_num_samples"] = args.plot_num_samples
     draw_data["bed_labels"] = args.print_bed_labels
     draw_data["kmer_length"] = args.kmer_length
+    draw_data["signal_color"] = '#1f77b4'
 
     # priority order --base_shift  < --auto < --profile
     kmer_correction = 0
@@ -450,11 +455,13 @@ def run(args):
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if args.read_list != "" and read_id not in read_id_list:
+            if args.read_list != "" and read_id not in read_id_list.keys():
                 continue
             if not sam_record.has_tag("ss"):
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
+            draw_data["signal_color"] = read_id_list.get(read_id, '#1f77b4')  # Default color if not found in read_id_list
+            
             ref_seq_len = 0
             data_is_rna = 0
             start_index = -1
@@ -675,12 +682,15 @@ def run(args):
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if args.read_list != "" and read_id not in read_id_list:
+            if args.read_list != "" and read_id not in read_id_list.keys():
                 continue
             if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
+            
+            draw_data["signal_color"] = read_id_list.get(read_id, '#1f77b4')  # Default color if not found in read_id_list
+            
             moves_string = ""
             for i in range(12, len(paf_record)):
                 tag = paf_record[i].split(':')[0]
