@@ -285,6 +285,9 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     return p, location_plot, base_index
 def run(args):
+    if args.save_svg:
+        plot_utils.check_browser_available()
+
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
         return

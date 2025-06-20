@@ -5,6 +5,7 @@ hiruna@unsw.edu.au
 """
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool
+from bokeh.io.webdriver import webdriver_control
 import re
 import numpy as np
 
@@ -14,6 +15,16 @@ import seaborn as sns
 
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
+
+def check_browser_available():
+    try:
+        # Attempt to get a usable WebDriver
+        driver = webdriver_control.get()
+        driver.quit()  # clean up the browser session
+    except RuntimeError as e:
+        print("Error: SVG output requires a headless browswer. No supported headless browser (Firefox+geckodriver or Chromium+chromedriver) found in PATH.")
+        print("Install with conda: conda install -c conda-forge firefox geckodriver")
+        raise Exception("No headless browser found.")
 
 def get_base_color_map():
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}

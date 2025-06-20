@@ -538,6 +538,9 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     return layout_
 
 def run(args):
+    if args.save_svg:
+        plot_utils.check_browser_available()
+        
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
         return
