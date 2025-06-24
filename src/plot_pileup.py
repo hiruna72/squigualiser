@@ -601,8 +601,8 @@ def run(args):
 
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
-            y_min = math.floor(np.nanmin(y))
-            y_max = math.ceil(np.nanmax(y))
+            y_min = math.floor(np.nanmin(signal_tuple[2]))
+            y_max = math.ceil(np.nanmax(signal_tuple[2]))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
@@ -819,8 +819,8 @@ def run(args):
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             # print(len(sig_algn_dic['ss']))
-            y_min = math.floor(np.nanmin(y))
-            y_max = math.ceil(np.nanmax(y))
+            y_min = math.floor(np.nanmin(signal_tuple[2]))
+            y_max = math.ceil(np.nanmax(signal_tuple[2]))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
@@ -951,6 +951,7 @@ def argparser():
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--remove_signal_outliers', required=False, action='store_true', help="remove signal outliers that are outside the raw value range [0, 2000]")
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
     parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")

@@ -19,6 +19,33 @@ import os
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+MIN_RAW_SIGNAL_VALUE = 0
+MAX_RAW_SIGNAL_VALUE = 2000
+
+def scale_signal(y, sig_scale, scale_params):
+    if sig_scale == "medmad":
+        arr = np.ma.array(y).compressed()
+        read_median = np.median(arr)
+        if read_median == np.nan:
+            raise Exception("Error: calculated median is NaN")
+        mad = np.median(np.abs(arr - read_median))
+        if mad == np.nan:
+            raise Exception("Error: calculated mad is NaN")
+        read_mad = mad * 1.4826
+        if read_mad < 1.0:
+            read_mad = 1.0
+        y = (y - read_mad) / read_mad
+    elif sig_scale == "znorm":
+        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+        # Calculate the z-score from scratch
+        y = (y - np.mean(y)) / np.std(y)
+    elif sig_scale == "scaledpA":
+        y = (y - scale_params["sh"]) / scale_params["sc"]
+    elif not sig_scale == "":
+        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
+    return y
+
+
 def load_signal(args, read_id, s5, start_index, end_index, scale_params):
     x = []
     x_real = []
@@ -29,7 +56,18 @@ def load_signal(args, read_id, s5, start_index, end_index, scale_params):
             end_index = read['len_raw_signal']
         x = list(range(1, end_index - start_index + 1))
         x_real = list(range(start_index + 1, end_index + 1))  # 1based
-        y = scale_signal(read['signal'], args.sig_scale, scale_params)
+        y = read['signal']
+        
+        if args.remove_signal_outliers:
+            y_median = np.median(y)
+            read2 = s5.get_read(read_id, pA=False)
+            y2 = read2['signal']
+            # Mark outliers that are outside the range MIN_RAW_SIGNAL_VALUE and MAX_RAW_SIGNAL_VALUE using y2 on y
+            num_outliers = np.sum((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE))
+            if num_outliers > 0:
+                print(f"{num_outliers} outliers found in read {read_id} and replaced with median value {y_median}") 
+                y = np.where((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE), y_median, y)
+        y = scale_signal(y, args.sig_scale, scale_params)
         y = y[start_index:end_index]
     return x, x_real, y
 
@@ -172,28 +210,6 @@ def create_figure(args, plot_mode):
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         # p_default.toolbar.logo = None
     return p_default
-def scale_signal(y, sig_scale, scale_params):
-    if sig_scale == "medmad":
-        arr = np.ma.array(y).compressed()
-        read_median = np.median(arr)
-        if read_median == np.nan:
-            raise Exception("Error: calculated median is NaN")
-        mad = np.median(np.abs(arr - read_median))
-        if mad == np.nan:
-            raise Exception("Error: calculated mad is NaN")
-        read_mad = mad * 1.4826
-        if read_mad < 1.0:
-            read_mad = 1.0
-        y = (y - read_mad) / read_mad
-    elif sig_scale == "znorm":
-        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-        # Calculate the z-score from scratch
-        y = (y - np.mean(y)) / np.std(y)
-    elif sig_scale == "scaledpA":
-        y = (y - scale_params["sh"]) / scale_params["sc"]
-    elif not sig_scale == "":
-        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
-    return y
 
 profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_5_mer": [-2, -2],

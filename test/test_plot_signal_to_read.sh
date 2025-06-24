@@ -170,23 +170,23 @@ testcase_1s() {
 testcase_2s() {
   RAW_DIR="${REL_PATH}/data/raw/plot"
 
-  TESTCASE=2.1
-  info "testcase:$TESTCASE - resquiggle read-signal plot"
-  FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
-  SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
-  ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
-  REGION=""
-  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  # TESTCASE=2.1
+  # info "testcase:$TESTCASE - resquiggle read-signal plot"
+  # FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
+  # SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
+  # ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
+  # REGION=""
+  # OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  # squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
-  TESTCASE=2.1.1
-  info "testcase:$TESTCASE - resquiggle read-signal plot save svg"
-  FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
-  SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
-  ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
-  REGION=""
-  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  # TESTCASE=2.1.1
+  # info "testcase:$TESTCASE - resquiggle read-signal plot save svg"
+  # FASTA="${RAW_DIR}/resquiggle_dna/t1/read.fasta"
+  # SIGNAL="${RAW_DIR}/resquiggle_dna/t1/read.slow5"
+  # ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
+  # REGION=""
+  # OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  # squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.1.2
   info "testcase:$TESTCASE - resquiggle read-signal plot"

@@ -413,8 +413,8 @@ def run(args):
 
                 signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
-                draw_data['y_min'] = np.nanmin(y)
-                draw_data['y_max'] = np.nanmax(y)
+                draw_data['y_min'] = np.nanmin(signal_tuple[2])
+                draw_data['y_max'] = np.nanmax(signal_tuple[2])
 
                 get_metric(args=args, fout=fout, metric_record=metric_record, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
@@ -593,8 +593,8 @@ def run(args):
             signal_tuple, region_tuple, sig_algn_dic, fasta_seq = plot_utils.adjust_before_plotting(ref_seq_len, signal_tuple, region_tuple, sig_algn_dic, fasta_seq, draw_data)
 
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
+            draw_data['y_min'] = np.nanmin(signal_tuple[2])
+            draw_data['y_max'] = np.nanmax(signal_tuple[2])
             get_metric(args=args, fout=fout, metric_record=metric_record, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
             num_plots += 1
@@ -804,8 +804,8 @@ def run(args):
             # print(len(moves))
             # print(fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
+            draw_data['y_min'] = np.nanmin(signal_tuple[2])
+            draw_data['y_max'] = np.nanmax(signal_tuple[2])
             get_metric(args=args, fout=fout, metric_record=metric_record, read_id=read_id, signal_tuple=signal_tuple, sig_algn_data=sig_algn_dic, fasta_sequence=fasta_seq, base_limit=base_limit, draw_data=draw_data)
 
             num_plots += 1
@@ -893,6 +893,7 @@ def argparser():
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--remove_signal_outliers', required=False, action='store_true', help="remove signal outliers that are outside the raw value range [0, 2000]")
     parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
     parser.add_argument('--base_shift', required=False, type=int, default=PLOT_BASE_SHIFT, help="the number of bases to shift to align fist signal move")
     parser.add_argument('--profile', required=False, default="", type=str, help="determine base_shift using preset values")
