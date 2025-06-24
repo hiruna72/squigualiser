@@ -779,15 +779,6 @@ def run(args):
                 if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                     raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-                x = []
-                x_real = []
-                y = []
-                read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-                if read is not None:
-                    x = list(range(1, end_index - start_index + 1))
-                    x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                    y = read['signal'][start_index:end_index]
-
                 scaling_str = "no scaling"
                 if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                     scaling_str = args.sig_scale
@@ -803,7 +794,7 @@ def run(args):
                             raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
                         scale_params[tag] = paf_record.tags[tag][2]
 
-                y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+                x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
                 moves_string = re.sub('D', 'D,', moves_string)
                 moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
@@ -991,19 +982,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index+1, end_index+1))             # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -1020,7 +998,7 @@ def run(args):
                     else:
                         raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
 
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -1210,19 +1188,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -1239,7 +1204,8 @@ def run(args):
                             scale_params[tag] = float(paf_record[i].split(':')[2])
                     if tag not in scale_params:
                         raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')

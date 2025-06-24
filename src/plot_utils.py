@@ -19,6 +19,19 @@ import os
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
 
+def load_signal(args, read_id, s5, start_index, end_index, scale_params):
+    x = []
+    x_real = []
+    y = []
+    read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
+    if read is not None:
+        if end_index == -1:
+            end_index = read['len_raw_signal']
+        x = list(range(1, end_index - start_index + 1))
+        x_real = list(range(start_index + 1, end_index + 1))  # 1based
+        y = scale_signal(read['signal'], args.sig_scale, scale_params)
+        y = y[start_index:end_index]
+    return x, x_real, y
 
 def read_readid_color_file(filepath, default_color='#1f77b4'):
     readid_to_color = {}
