@@ -6,4 +6,5 @@ pyfastx
 pysam
 matplotlib==3.7
 seaborn
+urllib3<2.0
 selenium
