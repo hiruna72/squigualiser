@@ -40,6 +40,8 @@ jobs:
       run: test/test_reform.sh
     - name: test_realign
       run: test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: test/test_plot_signal_to_read.sh
   ubuntu_24:
     name: Ubuntu 24
     runs-on: ubuntu-24.04
