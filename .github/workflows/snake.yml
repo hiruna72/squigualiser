@@ -21,9 +21,11 @@ jobs:
     - name: install packages
       run: apt-get update && apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
     - name: install
-      run:  pip3 install --upgrade pip && pip3 install . && squigualiser --help
+      run:  python3 --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
     - name: test
       run: test/test_reform.sh
+    - name: test_signal_to_read_plot
+      run: test/test_plot_signal_to_read.sh
   ubuntu_22:
     name: ubuntu-22.04
     runs-on: ubuntu-22.04
@@ -34,7 +36,7 @@ jobs:
     - name: install packages
       run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
     - name: install
-      run:  pip3 install --upgrade pip && pip3 install . && squigualiser --help
+      run:  python --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
       # run:  python3 setup.py install --user && squigualiser --help
     - name: test_reform
       run: test/test_reform.sh
@@ -52,12 +54,14 @@ jobs:
     - name: install packages
       run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
     - name: install
-      run:  pip3 install --upgrade pip && pip3 install . && squigualiser --help
+      run:  python --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
       # run:  python3 setup.py install --user && squigualiser --help
     - name: test_reform
       run: test/test_reform.sh
     - name: test_realign
       run: test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: test/test_plot_signal_to_read.sh
 #  arm64:
 #    name: pyslow5 ubuntu arm
 #    runs-on: ubuntu-latest
@@ -113,12 +117,29 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: install
-      run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . && squigualiser --help
+    # - name: install
+    #   run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && python --version && pip3 install . && squigualiser --help
+    - name: Set up Python virtual environment
+      run: |
+        python3.11 -m venv venv
+        source venv/bin/activate
+        python --version
+        export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
+        pip install --upgrade pip
+        pip install .
+        squigualiser --help
     - name: test_reform
-      run: test/test_reform.sh
+      run: |
+        source venv/bin/activate
+        test/test_reform.sh
     - name: test_realign
-      run: test/test_realign.sh
+      run: |
+        source venv/bin/activate
+        test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: |
+        source venv/bin/activate
+        test/test_plot_signal_to_read.sh
   os_x_14:
     name: OSX 14
     runs-on: macos-14
@@ -130,7 +151,7 @@ jobs:
     #   run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . && squigualiser --help
     - name: Set up Python virtual environment
       run: |
-        python3 -m venv venv
+        python3.11 -m venv venv
         source venv/bin/activate
         python --version
         export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
