@@ -3,6 +3,7 @@ Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """
+import bokeh
 from bokeh.plotting import output_file, save
 from bokeh.layouts import column
 from bokeh.models import Div
@@ -93,11 +94,11 @@ def run(args):
     pileup_output_file_name = args.output_dir + "/" + plot_title + ".html"
     pileup_fig = column(pileup, sizing_mode='stretch_both')
     output_file(pileup_output_file_name, title=plot_title)
-    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
     layout_ = pileup_fig, row(message_browser)
     save(layout_)
     print(f'output file: {os.path.abspath(pileup_output_file_name)}')
-    print('Bokeh version: 3.1.1 (Google Chrome is recommended)')
+    print(f'Bokeh version: {bokeh.__version__} (Google Chrome is recommended)')
 
 def argparser():
     # parser = argparse.ArgumentParser()

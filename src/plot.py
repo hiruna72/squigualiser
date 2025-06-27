@@ -3,6 +3,7 @@ Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """
+import bokeh
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div
@@ -276,7 +277,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
 
     layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
@@ -532,7 +533,7 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
 
     layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
@@ -1277,6 +1278,8 @@ def run(args):
     print("Number of plots: {}".format(num_plots))
     if num_plots == 0:
         print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
+    else:
+        print(f'Bokeh version: {bokeh.__version__} (Google Chrome is recommended)')
 
     s5.close()
 def argparser():
