@@ -28,27 +28,24 @@ fi
 # Relative path to "slow5/tests/"
 REL_PATH="$(dirname $0)/"
 #...directories files tools arguments commands clean
-OUTPUT_DIR="${REL_PATH}/data/out/reform"
+OUTPUT_DIR="${REL_PATH}/data/out/calculate_offsets"
 test -d "$OUTPUT_DIR" && rm -r "$OUTPUT_DIR"
 mkdir "$OUTPUT_DIR" || die "Failed creating $OUTPUT_DIR"
 #commands ...
 
-ex() {
-  python src/reform.py "$@"
+RAW_DIR="${REL_PATH}/data/raw/calculate_offsets"
+
+testcase_60s() {
+  TESTCASE=60.1
+  info "testcase:$TESTCASE - help"
+  squigualiser calculate_offsets --help || die "testcase:$TESTCASE failed"
+
+  TESTCASE=60.2
+  info "testcase:$TESTCASE - help"
+  squigualiser calculate_offsets --model ${RAW_DIR}/poregen_5mer.model -o ${OUTPUT_DIR}/porgen_5mer.pdf --use_model || die "testcase:$TESTCASE failed"
+
 }
 
-RAW_DIR="${REL_PATH}/data/raw/reform"
-EXP_DIR="${REL_PATH}/data/exp/reform"
-
-#TESTCASE=0.1
-#info "testcase:$TESTCASE - help"
-#ex && die "testcase:$TESTCASE failed"
-#
-#TESTCASE=0.2
-#info "testcase:$TESTCASE - read:1,kmer:0,move:1,output:paf"
-#ex -k0 -m1 -c "${RAW_DIR}/guppy_one_read.bam" > ${OUTPUT_DIR}/out.paf && die "testcase:$TESTCASE failed"
-
-
-info "no testcases written here, check pipelines"
-rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
+testcase_60s
+# rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"
 exit 0
