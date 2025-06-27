@@ -14,7 +14,7 @@ jobs:
       image: ubuntu:20.04
     steps:
     - name: install git
-      run: apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:git-core/ppa && apt-get update -y && apt-get install git -y && apt-get install -y firefox geckodriver
+      run: apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:git-core/ppa && apt-get update -y && apt-get install git -y
     - uses: actions/checkout@v2
       with:
         submodules: recursive
@@ -26,6 +26,8 @@ jobs:
       run: test/test_reform.sh
     - name: test_signal_to_read_plot
       run: test/test_plot_signal_to_read.sh
+    - name: test_calculate_offsets
+      run: test/test_calculate_offsets.sh
   ubuntu_22:
     name: ubuntu-22.04
     runs-on: ubuntu-22.04
@@ -42,27 +44,29 @@ jobs:
     - name: test_realign
       run: test/test_realign.sh
     - name: test_signal_to_read_plot
+      run: test/test_plot_signal_to_read.sh --save_svg
+    - name: test_calculate_offsets
+      run: test/test_calculate_offsets.sh
+  ubuntu_24:
+    name: Ubuntu 24
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: install packages
+      run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
+    - name: install
+      run:  python --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
+      # run:  python3 setup.py install --user && squigualiser --help
+    - name: test_reform
+      run: test/test_reform.sh
+    - name: test_realign
+      run: test/test_realign.sh
+    - name: test_signal_to_read_plot
       run: test/test_plot_signal_to_read.sh
     - name: test_calculate_offsets
       run: test/test_calculate_offsets.sh
-  # ubuntu_24:
-  #   name: Ubuntu 24
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: recursive
-  #   - name: install packages
-  #     run: sudo apt-get update && sudo apt-get install -y zlib1g-dev gcc python3 python3-pip && pip3 install setuptools cython numpy
-  #   - name: install
-  #     run:  python --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
-  #     # run:  python3 setup.py install --user && squigualiser --help
-  #   - name: test_reform
-  #     run: test/test_reform.sh
-  #   - name: test_realign
-  #     run: test/test_realign.sh
-  #   - name: test_signal_to_read_plot
-  #     run: test/test_plot_signal_to_read.sh
 #  arm64:
 #    name: pyslow5 ubuntu arm
 #    runs-on: ubuntu-latest
@@ -85,17 +89,34 @@ jobs:
   #  name: macos-11
   #  runs-on: macos-11
   #  steps:
-  #  - uses: actions/checkout@v2
-  #    with:
-  #      submodules: recursive
-  #  - name: install packages
-  #    run: pip3 install numpy
-  #  - name: install
-  #    run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && pip3 install . && squigualiser --help
-  #  - name: test_reform
-  #    run: test/test_reform.sh
-  #  - name: test_realign
-  #    run: test/test_realign.sh
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: recursive
+  #   - name: Set up Python virtual environment
+  #     run: |
+  #       python3.9 -m venv venv
+  #       source venv/bin/activate
+  #       python --version
+  #       export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
+  #       pip install --upgrade pip
+  #       pip install .
+  #       squigualiser --help
+  #   - name: test_reform
+  #     run: |
+  #       source venv/bin/activate
+  #       test/test_reform.sh
+  #   - name: test_realign
+  #     run: |
+  #       source venv/bin/activate
+  #       test/test_realign.sh
+  #   - name: test_signal_to_read_plot
+  #     run: |
+  #       source venv/bin/activate
+  #       test/test_plot_signal_to_read.sh
+  #   - name: test_calculate_offsets
+  #     run: |
+  #       source venv/bin/activate
+  #       test/test_calculate_offsets.sh
   # os_x_12:
   #  name: macos-12
   #  runs-on: macos-12
@@ -111,61 +132,69 @@ jobs:
   #    run: test/test_reform.sh
   #  - name: test_realign
   #    run: test/test_realign.sh
-  # os_x_13:
-  #   name: OSX 13
-  #   runs-on: macos-13
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: recursive
-  #   # - name: install
-  #   #   run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && python --version && pip3 install . && squigualiser --help
-  #   - name: Set up Python virtual environment
-  #     run: |
-  #       python3.11 -m venv venv
-  #       source venv/bin/activate
-  #       python --version
-  #       export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
-  #       pip install --upgrade pip
-  #       pip install .
-  #       squigualiser --help
-  #   - name: test_reform
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_reform.sh
-  #   - name: test_realign
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_realign.sh
-  #   - name: test_signal_to_read_plot
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_plot_signal_to_read.sh
-  # os_x_14:
-  #   name: OSX 14
-  #   runs-on: macos-14
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: recursive
-  #   - name: Set up Python virtual environment
-  #     run: |
-  #       python3.11 -m venv venv
-  #       source venv/bin/activate
-  #       python --version
-  #       export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
-  #       pip install --upgrade pip
-  #       pip install .
-  #       squigualiser --help
-  #   - name: test_reform
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_reform.sh
-  #   - name: test_realign
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_realign.sh
-  #   - name: test_signal_to_read_plot
-  #     run: |
-  #       source venv/bin/activate
-  #       test/test_plot_signal_to_read.sh
+  os_x_13:
+    name: OSX 13
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    # - name: install
+    #   run:  export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no" && python --version && pip3 install . && squigualiser --help
+    - name: Set up Python virtual environment
+      run: |
+        python3.11 -m venv venv
+        source venv/bin/activate
+        python --version
+        export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
+        pip install --upgrade pip
+        pip install .
+        squigualiser --help
+    - name: test_reform
+      run: |
+        source venv/bin/activate
+        test/test_reform.sh
+    - name: test_realign
+      run: |
+        source venv/bin/activate
+        test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: |
+        source venv/bin/activate
+        test/test_plot_signal_to_read.sh
+    - name: test_calculate_offsets
+      run: |
+        source venv/bin/activate
+        test/test_calculate_offsets.sh
+  os_x_14:
+    name: OSX 14
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Set up Python virtual environment
+      run: |
+        python3.11 -m venv venv
+        source venv/bin/activate
+        python --version
+        export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
+        pip install --upgrade pip
+        pip install .
+        squigualiser --help
+    - name: test_reform
+      run: |
+        source venv/bin/activate
+        test/test_reform.sh
+    - name: test_realign
+      run: |
+        source venv/bin/activate
+        test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: |
+        source venv/bin/activate
+        test/test_plot_signal_to_read.sh
+    - name: test_calculate_offsets
+      run: |
+        source venv/bin/activate
+        test/test_calculate_offsets.sh
