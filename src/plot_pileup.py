@@ -289,6 +289,10 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
 def run(args):
 
+    if not args.list_profile and args.file == "":
+        print("\nPlease run with -h/--help to see the usage.")
+        exit(1)
+
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
         return

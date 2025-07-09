@@ -38,6 +38,11 @@ def search_for_profile(profile):
     else:
         raise Exception("Error: specified profile ({}) is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset.".format(profile))
 def run(args):
+
+    if not args.list_profile and args.bam == "":
+        print("\nPlease run with -h/--help to see the usage.")
+        exit(1)
+
     if args.list_profile:
         list_profiles()
         return
