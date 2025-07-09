@@ -1,0 +1,80 @@
+name: Dev_Package_Build
+
+on:
+  push:
+    branches: [ '**' ]
+    tags:
+      - '*'  # Run on any new tag
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      # - name: Download package.sh
+      #   run: |
+      #     wget https://raw.githubusercontent.com/hiruna72/squigualiser/refs/heads/dev/scripts/package.sh
+      #     chmod +x package.sh
+      - name: make docker-build dir
+        run: |
+          mkdir -p docker-build && \
+          cp scripts/package.sh docker-build/ && \
+          chmod +x docker-build/package.sh
+
+      - name: Run package.sh inside Ubuntu 14.04 Docker
+        run: |
+          docker run --rm -v ${{ github.workspace }}/docker-build:/host/ ubuntu:14.04 /bin/bash -c "
+            apt-get update && \
+            apt-get install -y git && \
+            /host/package.sh test_pypi && \
+            LATEST_TAG=\$(git ls-remote --tags https://github.com/hiruna72/squigualiser.git | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1) && \
+            echo Latest tag: \$LATEST_TAG && \
+            if [ -f squigualiser.tar.gz ]; then \
+              mv squigualiser.tar.gz /host/squigualiser-\$LATEST_TAG-linux-x86-64-binaries.tar.gz; \
+            else \
+              echo 'squigualiser.tar.gz not found!'; \
+              exit 1; \
+            fi
+          "
+
+      - name: decompress squigualiser tar.gz
+        run: |
+          if [ -f docker-build/squigualiser-*-linux-x86-64-binaries.tar.gz ]; then
+            cp docker-build/squigualiser-*-linux-x86-64-binaries.tar.gz .
+            echo "Decompressing squigualiser tar.gz"
+            tar -xzf squigualiser-*-linux-x86-64-binaries.tar.gz
+          else
+            echo "No squigualiser tar.gz found!"
+            exit 1
+          fi
+
+      - name: quick run
+        run: |
+          ./squigualiser/squigualiser --help || exit 1
+      
+      - name: export to PATH
+        run: |
+          echo "export PATH=\$PATH:$(pwd)/squigualiser" >> $GITHUB_ENV
+
+      - name: test_reform
+        run: test/test_reform.sh
+      - name: test_realign
+        run: test/test_realign.sh
+      - name: test_signal_to_read_plot
+        run: test/test_plot_signal_to_read.sh --save_svg
+      - name: test_calculate_offsets
+        run: test/test_calculate_offsets.sh
+      
+      - name: Upload squigualiser tar.gz
+        uses: actions/upload-artifact@v4
+        with:
+          name: squigualiser-binary
+          path: docker-build/squigualiser-*-linux-x86-64-binaries.tar.gz
+
+
+
+
