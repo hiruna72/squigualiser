@@ -56,9 +56,8 @@ jobs:
         run: |
           ./squigualiser/squigualiser --help || exit 1
       
-      - name: export to PATH
-        run: |
-          echo "export PATH=\$PATH:$(pwd)/squigualiser" >> $GITHUB_ENV
+      - name: Add squigualiser to PATH
+        run: echo "${{ github.workspace }}/squigualiser" >> $GITHUB_PATH
 
       - name: test_reform
         run: test/test_reform.sh
