@@ -1,19 +1,25 @@
 # squigualiser
 
 squigualiser is a tool to Visualise nanopore raw signal-base alignment.
+
 signals (**squig**gles) + vis**ualiser** = **squigualiser**
 
 **Google Chrome** is the recommended web browser to visualise these plots.
 
 Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
 
+[![BioConda Install](https://img.shields.io/conda/dn/bioconda/squigualiser.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/squigualiser)
 ![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
 [![GitHub Downloads](https://img.shields.io/github/downloads/hiruna72/squigualiser/total?logo=GitHub)](https://github.com/hiruna72/squigualiser/releases)
-<!---
-[![BioConda Install](https://img.shields.io/conda/dn/bioconda/slow5tools.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/slow5tools)
--->
+
+# Citation
+Squigualiser paper - [https://doi.org/10.1093/bioinformatics/btae501](https://doi.org/10.1093/bioinformatics/btae501)
+
+Squigualiser supplementary material - https://zenodo.org/records/13733728
+
+> Samarakoon, H., Liyanage, K., Ferguson, J.M., Parameswaran, S., Gamaarachchi, H. and Deveson, I.W., 2024. Interactive visualization of nanopore sequencing signal data with Squigualiser. Bioinformatics, 40(8), p.btae501.
 
 ![image](docs/figures/different_aligments/method_eventalign.png)
 * Figure - A [pileup view](#pileup-view) of DNA R10.4.1 signals that align to the region `chr1:92,783,745-92,783,946`.
@@ -35,15 +41,16 @@ Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the
 6. [Pileup view](#pileup-view)
 7. [Plot multiple tracks](#plot-multiple-tracks)
 8. [BED annotations](#bed-annotations)
-9. [Squigualiser GUI](#Squigualiser-gui)
-10. [Visualisation Enhancements](#Visualisation-Enhancements)
-   1. [Base shift](#base-shift)
-   2. [Signal scaling](#signal-scaling)
+9. [Squigualiser GUI](#squigualiser-gui)
+10. [Visualisation Enhancements](#visualisation-enhancements)
+    1. [Base shift](#base-shift)
+    2. [Signal scaling](#signal-scaling)
 11. [Plot conventions](#plot-conventions)
 12. [Calculate alignment statistics](#calculate-alignment-statistics)
 13. [Notes](#notes)
     1. [FAST5 and POD5 support](#fast5-and-pod5-support)
 14. [Examples](#examples)
+15. [Links to additional docs](#links-to-additional-docs)
 
 
 ## Quickstart
@@ -53,7 +60,7 @@ The easiest way to setup squigualiser would be to use precompiled binaries. Clic
 <div markdown=1>
 
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
+wget https://github.com/hiruna72/squigualiser/releases/download/v0.6.3/squigualiser-v0.6.3-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
@@ -65,11 +72,21 @@ cd squigualiser
 <div markdown=1>
    
 ```
-curl -L https://github.com/hiruna72/squigualiser/releases/download/v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
+python3.8 -m venv venv3
+source venv3/bin/activate
+pip install --upgrade pip
+pip install squigualiser
+squigualiser --help
+```
+
+Following is outdated.
+```
+curl -L https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
 tar xf squigualiser.tar.gz
 cd squigualiser
 ./squigualiser --help
 ```
+
 
 </div>
 </details>
@@ -469,7 +486,7 @@ tabix -0 -b 9 -e 8 -s 6 ${ALIGNMENT}
 <details><summary>Steps for using uncalled4 align</summary>
 <div markdown=1>
 
-1. Align reads to reference genome using uncalled4 following the [steps mentioned in uncalled4 guide](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
+1. Align reads to reference genome using uncalled4 following the steps below. [More information](https://github.com/skovaka/uncalled4?tab=readme-ov-file#align)
 
 ````
 REF=genome.fa #reference
@@ -629,6 +646,28 @@ We provide methods to convert FAST5 and POD5 to BLOW5.
 These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
+
+## Links to additional docs
+
+- [Base Shift and Event Alignment](docs/base_shift_and_eventalignment.md)
+- [Base Shift of Reverse Mapped Reads](docs/base_shift_of_reverse_mapped_reads.md)
+- [Basecalling](docs/basecalling.md)
+- [Calculate Offsets](docs/calculate_offsets.md)
+- [Commands](docs/commands.md)
+- [Different Alignments](docs/different_alignments.md)
+- [Metric](docs/metric.md)
+- [Move Table](docs/move_table.md)
+- [Pipeline Basic](docs/pipeline_basic.md)
+- [Pipeline Methylation Detection DNA](docs/pipeline_methylation_detection_DNA.md)
+- [Pipeline Variant Detection Extended](docs/pipeline_variant_detection_extended.md)
+- [Pipeline Variant Detection Real](docs/pipeline_variant_detection_real.md)
+- [Pipeline Variant Detection Simulated](docs/pipeline_variant_detection_simulated.md)
+- [Pore Model](docs/pore_model.md)
+- [Profiles](docs/profiles.md)
+- [Real vs Simulated Signal](docs/real_vs_simulated_signal.md)
+- [Realign](docs/realign.md)
+- [Reform](docs/reform.md)
+- [RNA Visualisation](docs/RNA_visualisation.md)
 
 ## Acknowledgement
 Some code snippets have been taken from [readpaf](https://pypi.org/project/readpaf/), [blue-crab](https://github.com/Psy-Fer/blue-crab), [buttery-eel](https://github.com/Psy-Fer/buttery-eel), [readfish](https://github.com/LooseLab/readfish) and [bonito](https://github.com/nanoporetech/bonito)
