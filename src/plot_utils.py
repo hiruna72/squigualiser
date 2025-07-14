@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 
-from bokeh.plotting import figure
 from bokeh.io.export import export_svgs
 import os
 
@@ -51,24 +50,26 @@ def load_signal(args, read_id, s5, start_index, end_index, scale_params):
     x_real = []
     y = []
     read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-    if read is not None:
-        if end_index == -1:
-            end_index = read['len_raw_signal']
-        x = list(range(1, end_index - start_index + 1))
-        x_real = list(range(start_index + 1, end_index + 1))  # 1based
-        y = read['signal']
-        
-        if args.remove_signal_outliers:
-            y_median = np.median(y)
-            read2 = s5.get_read(read_id, pA=False)
-            y2 = read2['signal']
-            # Mark outliers that are outside the range MIN_RAW_SIGNAL_VALUE and MAX_RAW_SIGNAL_VALUE using y2 on y
-            num_outliers = np.sum((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE))
-            if num_outliers > 0:
-                print(f"{num_outliers} outliers found in read {read_id} and replaced with median value {y_median}") 
-                y = np.where((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE), y_median, y)
-        y = scale_signal(y, args.sig_scale, scale_params)
-        y = y[start_index:end_index]
+    if read is None:
+        raise Exception("Error: read {} not found in the slow5 file".format(read_id))
+    
+    if end_index == -1:
+        end_index = read['len_raw_signal']
+    x = list(range(1, end_index - start_index + 1))
+    x_real = list(range(start_index + 1, end_index + 1))  # 1based
+    y = read['signal']
+    
+    if args.remove_signal_outliers:
+        y_median = np.median(y)
+        read2 = s5.get_read(read_id, pA=False)
+        y2 = read2['signal']
+        # Mark outliers that are outside the range MIN_RAW_SIGNAL_VALUE and MAX_RAW_SIGNAL_VALUE using y2 on y
+        num_outliers = np.sum((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE))
+        if num_outliers > 0:
+            print(f"{num_outliers} outliers found in read {read_id} and replaced with median value {y_median}") 
+            y = np.where((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE), y_median, y)
+    y = scale_signal(y, args.sig_scale, scale_params)
+    y = y[start_index:end_index]
     return x, x_real, y
 
 def read_readid_color_file(filepath, default_color='#1f77b4'):
