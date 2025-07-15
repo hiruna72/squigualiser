@@ -647,6 +647,10 @@ These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` 
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
 
+### Advanced Examples
+
+1. signal-to-referece alignments for both `lsk109_dna_r9.4.1_450bps_4kHz` and `lsk114_dna_r10.4.1_e8.2_400bps_5kHz` chemistry ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/plot_r9_r10_dna.html)).
+
 ## Links to additional docs
 
 - [Base Shift and Event Alignment](docs/base_shift_and_eventalignment.md)
