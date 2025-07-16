@@ -150,7 +150,7 @@ jobs:
       - name: make macos-build dir
         run: |
           mkdir -p macos-build && \
-          cp scripts/package/package.sh macos-build/ && \
+          cp test/package/package.sh macos-build/ && \
           chmod +x macos-build/package.sh
       - name: run without docker
         run: |

@@ -9,6 +9,9 @@ PYTHON_VERSION="python3.9"
 PY_VENV="squig-venv"
 ARCH=$(uname -m)
 OS=$(uname -s)
+REPO_LINK="https://github.com/hiruna72/squigualiser.git"
+BRANCH="dev"
+TOOL="squigualiser"
 
 echo "O/S:${OS} architecture:${ARCH} python:${PYTHON_VERSION}"
 
@@ -38,36 +41,36 @@ export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdefl
 
 if [[ "$1" == "test_pypi" ]]; then
     echo "Installing from Test PyPI"
-    pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple squigualiser --pre || die "test.pip install squigualiser failed"
+    pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ${TOOL} --pre || die "test.pip install ${TOOL} failed"
 else
     echo "Installing from PyPI"
-    pip install squigualiser --no-cache || die "pip install squigualiser failed"
+    pip install ${TOOL} --no-cache || die "pip install ${TOOL} failed"
 fi
 
 find ./ -name __pycache__ -type d | xargs rm -r || die "removing pycache failed"
-mv ${PY_VENV}/bin/squigualiser python/bin/ || die "moving squigualiser to bin failed"
+mv ${PY_VENV}/bin/${TOOL} python/bin/ || die "moving ${TOOL} to bin failed"
 cp -r ${PY_VENV}/lib/${PYTHON_VERSION}/site-packages/* python/lib/${PYTHON_VERSION}/site-packages/ || die "copying site-packages failed"
 
 if [ "${OS}" == "Linux"  ]; then
-    sed -i "s/${PY_VENV}\/bin\/${PYTHON_VERSION}/\/usr\/bin\/env ${PYTHON_VERSION}/g" python/bin/squigualiser  || die "changing headerline failed"
+    sed -i "s/${PY_VENV}\/bin\/${PYTHON_VERSION}/\/usr\/bin\/env ${PYTHON_VERSION}/g" python/bin/${TOOL}  || die "changing headerline failed"
 elif [ "${OS}" == "Darwin"  ]; then
-    sed -i '' "1s/.*/#\!\/usr\/bin\/env ${PYTHON_VERSION}/" python/bin/squigualiser || die "changing headerline failed"
+    sed -i '' "1s/.*/#\!\/usr\/bin\/env ${PYTHON_VERSION}/" python/bin/${TOOL} || die "changing headerline failed"
 fi
 
-git clone --depth 1 --branch main https://github.com/hiruna72/squigualiser.git  || die "Failed to clone squigualiser"
-cp -r squigualiser/docs python || die "docs copy failed"
-cp squigualiser/test/package/squigualiser python || die "script copy failed" 
-cp squigualiser/LICENSE python || die "license copy failed"
-cp squigualiser/README.md python || die "readme copy failed"
+git clone --depth 1 --branch ${BRANCH} ${REPO_LINK} || die "Failed to clone ${TOOL}"
+cp -r ${TOOL}/docs python || die "docs copy failed"
+cp ${TOOL}/test/package/${TOOL} python || die "script copy failed" 
+cp ${TOOL}/LICENSE python || die "license copy failed"
+cp ${TOOL}/README.md python || die "readme copy failed"
 
-rm -rf squigualiser || die "remove cloned dir failed"
+rm -rf ${TOOL} || die "remove cloned dir failed"
 
-mv python/ squigualiser || die "renaming python to squigualiser failed"
+mv python/ ${TOOL} || die "renaming python to ${TOOL} failed"
 
-tar zcvf squigualiser.tar.gz squigualiser/ || die "tar balling squigualiser failed"
+tar zcvf ${TOOL}.tar.gz ${TOOL}/ || die "tar balling ${TOOL} failed"
 
 # if user arg "docker" is provided, copy tarball to host directory
 if [[ "$2" == "docker" ]]; then
     echo "copying tar file to host directory"
-    cp squigualiser.tar.gz /host/ || die "copying tar file to host"
+    cp ${TOOL}.tar.gz /host/ || die "copying tar file to host"
 fi
