@@ -23,14 +23,14 @@ jobs:
       - name: make docker-build dir
         run: |
           mkdir -p docker-build && \
-          cp scripts/package.sh docker-build/ && \
+          cp test/package/package.sh docker-build/ && \
           chmod +x docker-build/package.sh
       - name: Run package.sh inside Ubuntu 14.04 Docker
         run: |
           docker run --rm -v ${{ github.workspace }}/docker-build:/host/ ubuntu:14.04 /bin/bash -c "
             apt-get update && \
             apt-get install -y git && \
-            /host/package.sh test_pypi && \
+            /host/package.sh test_pypi docker && \
             LATEST_TAG=\$(git ls-remote --tags https://github.com/hiruna72/squigualiser.git | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1) && \
             echo Latest tag: \$LATEST_TAG && \
             if [ -f squigualiser.tar.gz ]; then \
@@ -90,12 +90,12 @@ jobs:
       - name: make macos-build dir
         run: |
           mkdir -p macos-build && \
-          cp scripts/package_macos.sh macos-build/ && \
-          chmod +x macos-build/package_macos.sh
+          cp test/package/package.sh macos-build/ && \
+          chmod +x macos-build/package.sh
       - name: run without docker
         run: |
           cd macos-build && \
-          ./package_macos.sh test_pypi && \
+          ./package.sh test_pypi && \
           LATEST_TAG=$(git ls-remote --tags https://github.com/hiruna72/squigualiser.git | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
           echo Latest tag: $LATEST_TAG && \
           if [ -f squigualiser.tar.gz ]; then \
@@ -140,7 +140,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: macos-build/squigualiser-*-macos-x86-64-binaries.tar.gz
   build-package-macos-arm64:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v2
         with:
@@ -150,12 +150,12 @@ jobs:
       - name: make macos-build dir
         run: |
           mkdir -p macos-build && \
-          cp scripts/package_macos_arm64.sh macos-build/ && \
-          chmod +x macos-build/package_macos_arm64.sh
+          cp scripts/package/package.sh macos-build/ && \
+          chmod +x macos-build/package.sh
       - name: run without docker
         run: |
           cd macos-build && \
-          ./package_macos_arm64.sh test_pypi && \
+          ./package.sh test_pypi && \
           LATEST_TAG=$(git ls-remote --tags https://github.com/hiruna72/squigualiser.git | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
           echo Latest tag: $LATEST_TAG && \
           if [ -f squigualiser.tar.gz ]; then \
