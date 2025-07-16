@@ -6,7 +6,7 @@ die (){
 }
 
 PYTHON_VERSION="python3.9"
-PY_VENV=""
+PY_VENV="squig-venv"
 ARCH=$(uname -m)
 OS=$(uname -s)
 
