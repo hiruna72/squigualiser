@@ -34,13 +34,25 @@ def run(args):
         paf_dic[record.query_name] = record
 
     processed_sam_record_count = 0
+    count_split_reads = 0
+    count_duplex_reads = 0
+    count_skipped_reads = 0
     for sam_record in samfile:
         if sam_record.is_unmapped or sam_record.is_supplementary or sam_record.is_secondary:
+            continue
+        if sam_record.has_tag("sp") or sam_record.has_tag("pi"):
+            count_split_reads += 1
+            continue
+        if sam_record.has_tag("dx") and int(sam_record.get_tag("dx")) == 1:
+            count_duplex_reads += 1
             continue
         # if sam_record.query_name != "80922061-df02-48ad-bd67-65e5adcc78f5" and sam_record.query_name != "a0d0047d-64d1-4cfd-9792-8c27ad9a8c06":
         #     continue
         sam_read_id = sam_record.query_name
         if sam_read_id not in paf_dic:
+            if args.skip:
+                count_skipped_reads += 1
+                continue
             raise Exception("Error: associated paf record is missing for the read id: {}".format(sam_read_id))
         paf_read_id = paf_dic[sam_read_id].query_name
         if paf_read_id != sam_read_id:
@@ -162,6 +174,7 @@ def run(args):
         processed_sam_record_count += 1
 
     print("processed_sam_record_count: " + str(processed_sam_record_count))
+    print("skipped: split reads ({}), duplex reads ({}), possible_split_or_duplex ({})".format(count_split_reads, count_duplex_reads, count_skipped_reads))
 
     paf_file.close()
     samfile.close()
@@ -178,6 +191,7 @@ def argparser():
     parser.add_argument('-c', action='store_true', help="write move table in paf format")
     parser.add_argument('-o', '--output', required=True, help="output reference-signal SAM/BAM/PAF file")
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
+    parser.add_argument('--skip', required=False, action='store_true', help="skip missing records (because of split reads)")
 
     return parser
 

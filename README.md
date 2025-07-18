@@ -241,6 +241,10 @@ squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 
 ````
+# ont_dorado (tested with 1.0.2)
+dorado basecaller  [DNA model] -i [INPUT] -x cuda:all --emit-moves
+e.g. dorado basecaller  dna_r10.4.1_e8.2_400bps_sup@v5.0.0 reads.pod5 -x cuda:all --emit-moves
+
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
 e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
@@ -367,6 +371,10 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 
 ````
+# ont_dorado (tested with 1.0.2)
+dorado basecaller  [DNA model] -i [INPUT] -x cuda:all --emit-moves
+e.g. dorado basecaller  dna_r10.4.1_e8.2_400bps_sup@v5.0.0 reads.pod5 -x cuda:all --emit-moves
+
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
 e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
@@ -650,6 +658,8 @@ Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to 
 ### Advanced Examples
 
 1. signal-to-referece alignments for both `lsk109_dna_r9.4.1_450bps_4kHz` and `lsk114_dna_r10.4.1_e8.2_400bps_5kHz` chemistry ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/plot_r9_r10_dna.html)).
+
+2. signal-to-referece alignments for `lsk114_dna_r10.4.1_e8.2_400bps_5kHz` chemistry using f5c eventalign and squigualiser realign ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/plot_r10_f5c_realign_dna.html)).
 
 ## Links to additional docs
 
