@@ -39,7 +39,7 @@ pip install --upgrade pip || die "upgrade pip failed"
 export CC=gcc
 export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
 
-if [[ "$1" == "test_pypi" ]]; then
+if [[ "$2" == "test_pypi" ]]; then
     echo "Installing from Test PyPI"
     pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ${TOOL} --pre || die "test.pip install ${TOOL} failed"
 else
@@ -65,12 +65,26 @@ cp ${TOOL}/README.md python || die "readme copy failed"
 
 rm -rf ${TOOL} || die "remove cloned dir failed"
 
-mv python/ ${TOOL} || die "renaming python to ${TOOL} failed"
+LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+OS_NAME="linux"
+if [ "${OS}" == "Darwin"  ]; then
+    OS_NAME="macos"
+fi
+ARCH_NAME="x86_64"
+if [ "${ARCH}" == "arm64"  ] || [ "${ARCH}" == "aarch64" ]; then
+    ARCH_NAME="arm64"
+fi
+TOOL_NAME=${TOOL}-${LATEST_TAG}
+TAR_NAME=${TOOL}-${LATEST_TAG}-${ARCH_NAME}-${OS_NAME}-binaries.tar.gz
+echo "TOOL_NAME: ${TOOL_NAME}"
+echo "TAR_NAME: ${TAR_NAME}"
 
-tar zcvf ${TOOL}.tar.gz ${TOOL}/ || die "tar balling ${TOOL} failed"
+mv python/ ${TOOL_NAME} || die "renaming python to ${TOOL_NAME} failed"
+
+tar zcvf ${TAR_NAME} ${TOOL_NAME}/ || die "tar balling ${TOOL_NAME} failed"
 
 # if user arg "docker" is provided, copy tarball to host directory
-if [[ "$2" == "docker" ]]; then
+if [[ "$1" == "docker" ]]; then
     echo "copying tar file to host directory"
-    cp ${TOOL}.tar.gz /host/ || die "copying tar file to host"
+    cp ${TAR_NAME} /host/ || die "copying tar file to host"
 fi
