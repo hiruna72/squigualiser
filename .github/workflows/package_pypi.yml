@@ -2,9 +2,9 @@ name: Dev_Package_Build
 
 on:
   push:
-    branches: [ 'dev' ]
-    # tags:
-    #   - '*'  # Run on any new tag
+    branches: [ 'main' ]
+    tags:
+      - '*'  # Run on any new tag
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
           docker run --rm -v ${{ github.workspace }}/build_dir:/host/ ubuntu:14.04 /bin/bash -c "
             apt-get update && \
             apt-get install -y git && \
-            /host/package.sh docker test_pypi
+            /host/package.sh docker pypi
           "
       - name: decompress squigualiser tar.gz
         run: |
@@ -77,7 +77,7 @@ jobs:
       - name: run without docker
         run: |
           cd build_dir && \
-          ./package.sh nodocker test_pypi && \
+          ./package.sh nodocker pypi && \
           cd ..
       - name: decompress squigualiser tar.gz
         run: |
@@ -130,7 +130,7 @@ jobs:
       - name: run without docker
         run: |
           cd build_dir && \
-          ./package.sh nodocker test_pypi && \
+          ./package.sh nodocker pypi && \
           cd ..
       - name: decompress squigualiser tar.gz
         run: |
