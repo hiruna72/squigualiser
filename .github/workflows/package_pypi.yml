@@ -42,7 +42,7 @@ jobs:
           FILE=$(ls build_dir/squigualiser-*.tar.gz)
           BASENAME=$(basename "$FILE" .tar.gz)
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
-          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev'  | sort -V  | tail -n1)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
       - name: quick run
         run: |
@@ -95,7 +95,7 @@ jobs:
           FILE=$(ls build_dir/squigualiser-*.tar.gz)
           BASENAME=$(basename "$FILE" .tar.gz)
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
-          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev'  | sort -V  | tail -n1)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
       - name: quick run
         run: |
@@ -148,7 +148,7 @@ jobs:
           FILE=$(ls build_dir/squigualiser-*.tar.gz)
           BASENAME=$(basename "$FILE" .tar.gz)
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
-          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev'  | sort -V  | tail -n1)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
       - name: quick run
         run: |
