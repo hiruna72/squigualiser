@@ -1,5 +1,13 @@
 # Commands and Options
 
+1. [reform](#reform)
+2. [realign](#realign)
+3. [plot](#plot)
+4. [plot_pileup](#plot_pileup)
+5. [plot_tracks](#plot_tracks)
+6. [calculate_offsets](#calculate_offsets)
+7. [metric](#metric)
+
 * `reform`:<br/>
          Convert basecaller's move table to [ss string](https://hasindu2008.github.io/f5c/docs/output#ss-tag) format.
 * `realign`:<br/>
