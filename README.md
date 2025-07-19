@@ -9,10 +9,12 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
 
 [![BioConda Install](https://img.shields.io/conda/dn/bioconda/squigualiser.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/squigualiser)
-![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/squigualiser?label=downloads)
+[![PyPI Downloads](https://static.pepy.tech/badge/squigualiser)](https://pepy.tech/projects/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
 [![GitHub Downloads](https://img.shields.io/github/downloads/hiruna72/squigualiser/total?logo=GitHub)](https://github.com/hiruna72/squigualiser/releases)
+
 
 # Citation
 Squigualiser paper - [https://doi.org/10.1093/bioinformatics/btae501](https://doi.org/10.1093/bioinformatics/btae501)
