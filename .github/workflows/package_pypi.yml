@@ -1,4 +1,4 @@
-name: Dev_Package_Build
+name: Main_Package_Build
 
 on:
   push:
