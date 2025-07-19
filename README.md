@@ -9,13 +9,12 @@ signals (**squig**gles) + vis**ualiser** = **squigualiser**
 Watch [the video](https://youtu.be/kClYH4KpOjk) to learn a few tricks to get the best out of the plots.
 
 [![BioConda Install](https://img.shields.io/conda/dn/bioconda/squigualiser.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/squigualiser)
-![PyPI Downloads](https://img.shields.io/pypi/dm/squigualiser?label=pypi%20downloads)
 [![PyPI](https://img.shields.io/pypi/v/squigualiser.svg?style=flat)](https://pypi.python.org/pypi/squigualiser)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/squigualiser?label=downloads)
+[![PyPI Downloads](https://static.pepy.tech/badge/squigualiser)](https://pepy.tech/projects/squigualiser)
 [![Snake CI](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml/badge.svg)](https://github.com/hiruna72/squigualiser/actions/workflows/snake.yml)
 [![GitHub Downloads](https://img.shields.io/github/downloads/hiruna72/squigualiser/total?logo=GitHub)](https://github.com/hiruna72/squigualiser/releases)
-<!---
-[![BioConda Install](https://img.shields.io/conda/dn/bioconda/slow5tools.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/slow5tools)
--->
+
 
 # Citation
 Squigualiser paper - [https://doi.org/10.1093/bioinformatics/btae501](https://doi.org/10.1093/bioinformatics/btae501)
@@ -244,6 +243,10 @@ squigualiser plot -f ${FASTQ} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR}
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 
 ````
+# ont_dorado (tested with 1.0.2)
+dorado basecaller  [DNA model] -i [INPUT] -x cuda:all --emit-moves
+e.g. dorado basecaller  dna_r10.4.1_e8.2_400bps_sup@v5.0.0 reads.pod5 -x cuda:all --emit-moves
+
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
 e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
@@ -370,6 +373,10 @@ squigualiser plot -f ${REF} -s ${SIGNAL_FILE} -a ${ALIGNMENT} -o ${OUTPUT_DIR} -
 1. Run basecaller ([slow5-dorado](https://github.com/hiruna72/slow5-dorado), [buttery-eel](https://github.com/Psy-Fer/buttery-eel) or ont-Guppy)
 
 ````
+# ont_dorado (tested with 1.0.2)
+dorado basecaller  [DNA model] -i [INPUT] -x cuda:all --emit-moves
+e.g. dorado basecaller  dna_r10.4.1_e8.2_400bps_sup@v5.0.0 reads.pod5 -x cuda:all --emit-moves
+
 # buttery-eel (tested with v0.2.2)
 buttery-eel -g [GUPPY exe path] --config [DNA model] -i [INPUT] -o [OUTPUT] --port 5558 --use_tcp -x "cuda:all" --moves_out
 e.g buttery-eel -g [GUPPY exe path] --config dna_r10.4.1_e8.2_400bps_sup.cfg -i input_reads.blow5 -o basecalls.sam --port 5558 --use_tcp -x "cuda:all" --moves_out
@@ -649,6 +656,12 @@ We provide methods to convert FAST5 and POD5 to BLOW5.
 These examples were generated using the testcases - `1.1, 2.1, 1.11,` and `3.2` respectively in [test_plot_signal_to_read.sh](test/test_plot_signal_to_read.sh).
 
 Please refer to the example [pipelines](docs/pipeline_basic.md) to learn how to integrate squigualiser into your analysis.
+
+### Advanced Examples
+
+1. signal-to-referece alignments for both `lsk109_dna_r9.4.1_450bps_4kHz` and `lsk114_dna_r10.4.1_e8.2_400bps_5kHz` chemistry ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/plot_r9_r10_dna.html)).
+
+2. signal-to-referece alignments for `lsk114_dna_r10.4.1_e8.2_400bps_5kHz` chemistry using f5c eventalign and squigualiser realign ([link](https://hiruna72.github.io/squigualiser/docs/figures/sig_to_reference/plot_r10_f5c_realign_dna.html)).
 
 ## Links to additional docs
 

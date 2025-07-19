@@ -18,6 +18,12 @@ fi
 #echo "this should be seen if verbose"
 #echo "this should always be seen" 1>&3 2>&4
 
+SAVE_SVG=""
+if [[ "$1" == "--save_svg" ]]; then
+  SAVE_SVG="--save_svg"
+  shift
+fi
+
 REL_PATH="$(dirname $0)/"
 #...directories files tools arguments commands clean
 OUTPUT_DIR="${REL_PATH}/data/out/plot_sig_read"
@@ -177,7 +183,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot ${SAVE_SVG} --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.1.1
   info "testcase:$TESTCASE - resquiggle read-signal plot save svg"
@@ -186,7 +192,7 @@ testcase_2s() {
   ALIGNMENT="${RAW_DIR}/resquiggle_dna/t1/resquiggle_move.paf"
   REGION=""
   OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
-  squigualiser plot --save_svg --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
+  squigualiser plot ${SAVE_SVG} --xrange 350 --no_samples -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --fixed_width --tag_name "testcase-${TESTCASE}"|| die "testcase:$TESTCASE failed"
 
   TESTCASE=2.1.2
   info "testcase:$TESTCASE - resquiggle read-signal plot"

@@ -12,8 +12,99 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sns
 
+from bokeh.io.export import export_svgs
+import os
+
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
+
+MIN_RAW_SIGNAL_VALUE = 0
+MAX_RAW_SIGNAL_VALUE = 2000
+
+def scale_signal(y, sig_scale, scale_params):
+    if sig_scale == "medmad":
+        arr = np.ma.array(y).compressed()
+        read_median = np.median(arr)
+        if read_median == np.nan:
+            raise Exception("Error: calculated median is NaN")
+        mad = np.median(np.abs(arr - read_median))
+        if mad == np.nan:
+            raise Exception("Error: calculated mad is NaN")
+        read_mad = mad * 1.4826
+        if read_mad < 1.0:
+            read_mad = 1.0
+        y = (y - read_mad) / read_mad
+    elif sig_scale == "znorm":
+        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
+        # Calculate the z-score from scratch
+        y = (y - np.mean(y)) / np.std(y)
+    elif sig_scale == "scaledpA":
+        y = (y - scale_params["sh"]) / scale_params["sc"]
+    elif not sig_scale == "":
+        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
+    return y
+
+
+def load_signal(args, read_id, s5, start_index, end_index, scale_params):
+    x = []
+    x_real = []
+    y = []
+    read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
+    if read is None:
+        raise Exception("Error: read {} not found in the slow5 file".format(read_id))
+    
+    if end_index == -1:
+        end_index = read['len_raw_signal']
+    x = list(range(1, end_index - start_index + 1))
+    x_real = list(range(start_index + 1, end_index + 1))  # 1based
+    y = read['signal']
+    
+    if args.remove_signal_outliers:
+        y_median = np.median(y)
+        read2 = s5.get_read(read_id, pA=False)
+        y2 = read2['signal']
+        # Mark outliers that are outside the range MIN_RAW_SIGNAL_VALUE and MAX_RAW_SIGNAL_VALUE using y2 on y
+        num_outliers = np.sum((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE))
+        if num_outliers > 0:
+            print(f"{num_outliers} outliers found in read {read_id} and replaced with median value {y_median}") 
+            y = np.where((y2 < MIN_RAW_SIGNAL_VALUE) | (y2 > MAX_RAW_SIGNAL_VALUE), y_median, y)
+    y = scale_signal(y, args.sig_scale, scale_params)
+    y = y[start_index:end_index]
+    return x, x_real, y
+
+def read_readid_color_file(filepath, default_color='#1f77b4'):
+    readid_to_color = {}
+    with open(filepath, 'r') as f:
+        for line in f:
+            if line.strip() == '':
+                continue  # skip empty lines
+            parts = line.strip().split()
+            if len(parts) == 1:
+                read_id = parts[0]
+                color = default_color
+            elif len(parts) == 2:
+                read_id, color = parts
+            else:
+                raise ValueError(f"Invalid line (too many columns): {line.strip()}")
+            readid_to_color[read_id] = color
+    return readid_to_color
+
+def svg_export_works(output_dir):
+    try:
+        # Create dummy Bokeh plot
+        p = figure(title="SVG test")
+        p.line([0, 1], [0, 1])
+        p.output_backend = "svg"
+
+        # Fixed test file name
+        temp_svg_path = output_dir + "/__svg_test.svg"
+
+        export_svgs(p, filename=temp_svg_path)
+
+        # Optionally clean up
+        os.remove(temp_svg_path)
+    except Exception as e:
+        raise RuntimeError(f"SVG export requires a headless browser. None (Firefox+geckodriver or Chromium+chromedriver) found in the PATH : {e}")
 
 def get_base_color_map():
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
@@ -120,28 +211,6 @@ def create_figure(args, plot_mode):
         p_default.toolbar.active_scroll = p_default.select_one(WheelZoomTool)
         # p_default.toolbar.logo = None
     return p_default
-def scale_signal(y, sig_scale, scale_params):
-    if sig_scale == "medmad":
-        arr = np.ma.array(y).compressed()
-        read_median = np.median(arr)
-        if read_median == np.nan:
-            raise Exception("Error: calculated median is NaN")
-        mad = np.median(np.abs(arr - read_median))
-        if mad == np.nan:
-            raise Exception("Error: calculated mad is NaN")
-        read_mad = mad * 1.4826
-        if read_mad < 1.0:
-            read_mad = 1.0
-        y = (y - read_mad) / read_mad
-    elif sig_scale == "znorm":
-        # zsig = sklearn.preprocessing.scale(y, axis=0, with_mean=True, with_std=True, copy=True)
-        # Calculate the z-score from scratch
-        y = (y - np.mean(y)) / np.std(y)
-    elif sig_scale == "scaledpA":
-        y = (y - scale_params["sh"]) / scale_params["sc"]
-    elif not sig_scale == "":
-        raise Exception("Error: given --sig_scale method: {} is not supported".format(sig_scale))
-    return y
 
 profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_5_mer": [-2, -2],

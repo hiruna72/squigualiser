@@ -175,6 +175,57 @@ testcase_20s() {
   PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
   squigualiser plot_pileup ${PROFILE} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
+  TESTCASE=20.11
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="scaledpA"
+  PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
+  READ_LIST="${RAW_DIR}/f5c_eventalign/reads.txt"
+  squigualiser plot_pileup ${PROFILE} --read_list ${READ_LIST} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.12
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="scaledpA"
+  PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
+  READ_LIST="${RAW_DIR}/f5c_eventalign/reads_with_colors.txt"
+  squigualiser plot_pileup ${PROFILE} --read_list ${READ_LIST} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.13
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads_with_outliers.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="medmad"
+  PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
+  READ_LIST="${RAW_DIR}/f5c_eventalign/reads_with_colors.txt"
+  squigualiser plot_pileup ${PROFILE} --read_list ${READ_LIST} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
+
+  TESTCASE=20.14
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/f5c_eventalign/reads_with_outliers.blow5"
+  ALIGNMENT="${RAW_DIR}/f5c_eventalign/sorted_eventalign.paf.gz"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT=10
+  REGION="chr1:6,811,011-6,811,198"
+  SCALING="medmad"
+  PROFILE="--profile kmer_model_dna_r10.4.1_e8.2_400bps_9_mer"
+  READ_LIST="${RAW_DIR}/f5c_eventalign/reads_with_colors.txt"
+  squigualiser plot_pileup --remove_signal_outliers ${PROFILE} --read_list ${READ_LIST} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" --plot_limit ${PLOT_LIMIT} --sig_scale ${SCALING} || die "testcase:$TESTCASE failed"
 
 }
 testcase_21s() {

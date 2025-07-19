@@ -3,6 +3,7 @@ Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """
+import bokeh
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Arrow, NormalHead, FreehandDrawTool, Range1d, CustomJS, FixedTicker, Spacer, Div
@@ -235,11 +236,11 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
 
     if not draw_data['overlap_only']:
         if num_plots != -1:
-            p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
+            p.line('x', 'y', name="sig_plot_line", line_width=2, source=source, color=draw_data['signal_color'])
     if not draw_data['no_overlap']:
         leg_lable = "read_" + str(num_plots+1)
         if num_plots != -1:
-            p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable)
+            p.line('x', 'y_real', line_width=2, source=source, legend_label=leg_lable, color=draw_data['signal_color'])
 
     # show the tooltip
     hover = p.select(dict(type=HoverTool))
@@ -284,7 +285,14 @@ def plot_function_fixed_width_pileup(read_id, signal_tuple, sig_algn_data, fasta
     p.x_range.js_on_change('start', x_callback_base_annotation)
 
     return p, location_plot, base_index
+
+
 def run(args):
+
+    if not args.list_profile and args.file == "":
+        print("\nPlease run with -h/--help to see the usage.")
+        exit(1)
+
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
         return
@@ -348,9 +356,11 @@ def run(args):
 
     if args.read_id != "":
         args.plot_limit = 1
+    read_id_list = {}
     if args.read_list != "":
         print(f'read_id list file: {args.read_list}')
-        read_id_list = list(line.strip() for line in open(args.read_list))
+        # read_id_list = list(line.strip() for line in open(args.read_list))
+        read_id_list = plot_utils.read_readid_color_file(args.read_list)
 
     bed_dic = {}
     if args.bed:
@@ -380,6 +390,7 @@ def run(args):
     draw_data["plot_num_samples"] = args.plot_num_samples
     draw_data["bed_labels"] = args.print_bed_labels
     draw_data["kmer_length"] = args.kmer_length
+    draw_data["signal_color"] = '#1f77b4'
 
     # priority order --base_shift  < --auto < --profile
     kmer_correction = 0
@@ -449,11 +460,13 @@ def run(args):
                 continue
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if args.read_list != "" and read_id not in read_id_list:
+            if args.read_list != "" and read_id not in read_id_list.keys():
                 continue
             if not sam_record.has_tag("ss"):
                 raise Exception("Error: ss string is missing for the read_id {} in {}".format(read_id, args.alignment))
 
+            draw_data["signal_color"] = read_id_list.get(read_id, '#1f77b4')  # Default color if not found in read_id_list
+            
             ref_seq_len = 0
             data_is_rna = 0
             start_index = -1
@@ -531,19 +544,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index+1, end_index+1))             # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -560,7 +560,8 @@ def run(args):
                         scale_params[tag] = sam_record.get_tag(tag)
                     else:
                         raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+    
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -605,8 +606,8 @@ def run(args):
 
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
-            y_min = math.floor(np.nanmin(y))
-            y_max = math.ceil(np.nanmax(y))
+            y_min = math.floor(np.nanmin(signal_tuple[2]))
+            y_max = math.ceil(np.nanmax(signal_tuple[2]))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
@@ -674,12 +675,15 @@ def run(args):
             read_id = paf_record[READ_ID]
             if args.read_id != "" and read_id != args.read_id:
                 continue
-            if args.read_list != "" and read_id not in read_id_list:
+            if args.read_list != "" and read_id not in read_id_list.keys():
                 continue
             if args.plot_reverse is True and paf_record[STRAND] == "+":
                 continue
             if args.plot_reverse is False and paf_record[STRAND] == "-":
                 continue
+            
+            draw_data["signal_color"] = read_id_list.get(read_id, '#1f77b4')  # Default color if not found in read_id_list
+            
             moves_string = ""
             for i in range(12, len(paf_record)):
                 tag = paf_record[i].split(':')[0]
@@ -760,19 +764,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files.")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -789,7 +780,8 @@ def run(args):
                             scale_params[tag] = float(paf_record[i].split(':')[2])
                     if tag not in scale_params:
                         raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+            
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
@@ -832,8 +824,8 @@ def run(args):
             sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + "fixed_width: " + str(args.base_width) + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             # print(len(sig_algn_dic['ss']))
-            y_min = math.floor(np.nanmin(y))
-            y_max = math.ceil(np.nanmax(y))
+            y_min = math.floor(np.nanmin(signal_tuple[2]))
+            y_max = math.ceil(np.nanmax(signal_tuple[2]))
 
             if num_plots == 0 and args.bed and args.overlap_bottom is False:
                 draw_data['y_min'] = y_min
@@ -916,18 +908,19 @@ def run(args):
         else:
             pileup_output_file_name = args.output_dir + "/" + "pileup_" + args.tag_name
             if args.save_svg:
+                plot_utils.svg_export_works(args.output_dir)  # will raise if it fails
                 pileup_output_file_name += ".svg"
                 p.output_backend = "svg"
                 export_svg(p, filename=pileup_output_file_name)
             else:
                 pileup_output_file_name += ".html"
                 output_file(pileup_output_file_name, title=read_id)
-                message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+                message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
                 layout_ = p, row(message_browser)
                 save(layout_)
 
             print(f'output file: {os.path.abspath(pileup_output_file_name)}')
-            print('Bokeh version: 3.1.1 (Google Chrome is recommended)')
+            print(f'Bokeh version: {bokeh.__version__} (Google Chrome is recommended)')
 
     elif num_plots == 0 and args.return_plot:
         return None, num_plots
@@ -963,6 +956,7 @@ def argparser():
     parser.add_argument('--rna', required=False, action='store_true', help="specify for RNA reads")
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--remove_signal_outliers', required=False, action='store_true', help="remove signal outliers that are outside the raw value range [0, 2000]")
     parser.add_argument('--overlap_bottom', required=False, action='store_true', help="plot the overlap at the bottom")
     parser.add_argument('--no_overlap', required=False, action='store_true', help="skip plotting the overlap")
     parser.add_argument('--overlap_only', required=False, action='store_true', help="plot only the overlap")

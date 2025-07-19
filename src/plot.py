@@ -3,6 +3,7 @@ Signal to seQuence alignment Plot - plot
 Hiruna Samarakoon - Garvan Medical Institute
 hiruna@unsw.edu.au
 """
+import bokeh
 import numpy as np
 from bokeh.plotting import figure, show, output_file, save
 from bokeh.models import BoxAnnotation, HoverTool, WheelZoomTool, ColumnDataSource, Label, LabelSet, Segment, Toggle, Range1d, FreehandDrawTool, CustomJS, FixedTicker, Spacer, Div
@@ -276,7 +277,7 @@ def plot_function(p, read_id, signal_tuple, sig_algn_data, fasta_sequence, base_
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
 
     layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
@@ -532,12 +533,13 @@ def plot_function_fixed_width(p, read_id, signal_tuple, sig_algn_data, fasta_seq
     move_annotation_labels['text_font_size'] = String(xzoom) + 'pt';
     """)
     p.x_range.js_on_change('start', x_callback_move_annotation)
-    message_browser = Div(text="Bokeh version: 3.1.1 (Google Chrome is recommended)", width=400, height=30)
+    message_browser = Div(text=f"Bokeh version: {bokeh.__version__} (Google Chrome is recommended)", width=400, height=30)
 
     layout_ = p, row(toggle_bases, toggle_kmers, toggle_samples, Spacer(width=10), toggle_moves), column(message_browser)
     return layout_
 
 def run(args):
+        
     if args.list_profile:
         plot_utils.list_profiles_base_shift()
         return
@@ -605,6 +607,9 @@ def run(args):
 
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
+    
+    if args.save_svg:
+        plot_utils.svg_export_works(args.output_dir)  # will raise if it fails
 
     # open signal file
     s5 = pyslow5.Open(args.slow5, 'r')
@@ -775,15 +780,6 @@ def run(args):
                 if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                     raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-                x = []
-                x_real = []
-                y = []
-                read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-                if read is not None:
-                    x = list(range(1, end_index - start_index + 1))
-                    x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                    y = read['signal'][start_index:end_index]
-
                 scaling_str = "no scaling"
                 if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                     scaling_str = args.sig_scale
@@ -799,7 +795,7 @@ def run(args):
                             raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
                         scale_params[tag] = paf_record.tags[tag][2]
 
-                y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+                x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
                 moves_string = re.sub('D', 'D,', moves_string)
                 moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
@@ -839,8 +835,8 @@ def run(args):
                 else:
                     sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: "
 
-                draw_data['y_min'] = np.nanmin(y)
-                draw_data['y_max'] = np.nanmax(y)
+                draw_data['y_min'] = np.nanmin(signal_tuple[2])
+                draw_data['y_max'] = np.nanmax(signal_tuple[2])
                 p = plot_utils.create_figure(args, plot_mode=0)
                 if args.bed:
                     p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit)
@@ -987,19 +983,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index+1, end_index+1))             # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -1016,7 +999,7 @@ def run(args):
                     else:
                         raise Exception("Error: given --sig_scale method: {} requires {} tag in the alignment file".format(args.sig_scale, tag))
 
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = sam_record.get_tag("ss")
             moves_string = re.sub('D', 'D,', moves_string)
@@ -1061,8 +1044,8 @@ def run(args):
                 sig_algn_dic['tag_name'] = args.tag_name + indt + "base_shift: " + str(draw_data["base_shift"]) + indt + "scale:" + scaling_str + indt + strand_dir + indt + "region: " + ref_name + ":"
 
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
+            draw_data['y_min'] = np.nanmin(signal_tuple[2])
+            draw_data['y_max'] = np.nanmax(signal_tuple[2])
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
@@ -1206,19 +1189,6 @@ def run(args):
             if not bool(re.match('^[ACGTUMRWSYKVHDBN]+$', fasta_seq)):
                 raise Exception("Error: base characters other than A,C,G,T/U,M,R,W,S,Y,K,V,H,D,B,N were detected. Please check your sequence files")
 
-            x = []
-            x_real = []
-            y = []
-
-            read = s5.get_read(read_id, pA=args.no_pa, aux=["read_number", "start_mux"])
-            if read is not None:
-                # print("read_id:", read['read_id'])
-                # print("len_raw_signal:", read['len_raw_signal'])
-                # end_index = read['len_raw_signal']
-                x = list(range(1, end_index - start_index + 1))
-                x_real = list(range(start_index + 1, end_index + 1))  # 1based
-                y = read['signal'][start_index:end_index]
-
             scaling_str = "no scaling"
             if args.sig_scale == "medmad" or args.sig_scale == "znorm" or args.sig_scale == "scaledpA":
                 scaling_str = args.sig_scale
@@ -1235,7 +1205,8 @@ def run(args):
                             scale_params[tag] = float(paf_record[i].split(':')[2])
                     if tag not in scale_params:
                         raise Exception("Error: required tag '{}' for given --sig_scale method: {} is not found in the alignment file".format(tag, args.sig_scale))
-            y = plot_utils.scale_signal(y, args.sig_scale, scale_params)
+
+            x, x_real, y = plot_utils.load_signal(args, read_id, s5, start_index, end_index, scale_params)
 
             moves_string = re.sub('D', 'D,', moves_string)
             moves_string = re.sub('I', 'I,', moves_string).rstrip(',')
@@ -1277,8 +1248,8 @@ def run(args):
             # print(len(moves))
             # print(fasta_seq)
             # print(len(sig_algn_dic['ss']))
-            draw_data['y_min'] = np.nanmin(y)
-            draw_data['y_max'] = np.nanmax(y)
+            draw_data['y_min'] = np.nanmin(signal_tuple[2])
+            draw_data['y_max'] = np.nanmax(signal_tuple[2])
             p = plot_utils.create_figure(args, plot_mode=0)
             if args.bed:
                 p = bed_annotation.plot_bed_annotation(p=p, ref_id=ref_name, bed_dic=bed_dic, sig_algn_data=sig_algn_dic, draw_data=draw_data, base_limit=base_limit, )
@@ -1307,6 +1278,8 @@ def run(args):
     print("Number of plots: {}".format(num_plots))
     if num_plots == 0:
         print("Squigualiser only plots reads that span across the specified region entirely. Reduce the region interval and double check with IGV : {}".format(num_plots))
+    else:
+        print(f'Bokeh version: {bokeh.__version__} (Google Chrome is recommended)')
 
     s5.close()
 def argparser():
@@ -1332,6 +1305,7 @@ def argparser():
     parser.add_argument('--sig_scale', required=False, type=str, default="", help="plot the scaled signal. Supported scalings: [medmad, znorm, scaledpA]")
     # parser.add_argument('--reverse_signal', required=False, action='store_true', help="plot RNA reference/read from 5`-3` and reverse the signal")
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
+    parser.add_argument('--remove_signal_outliers', required=False, action='store_true', help="remove signal outliers that are outside the raw value range [0, 2000]")
     parser.add_argument('--loose_bound', required=False, action='store_true', help="also plot alignments not completely within the specified region")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
     parser.add_argument('--base_width', required=False, type=int, default=FIXED_BASE_WIDTH, help="base width when plotting with fixed base width")

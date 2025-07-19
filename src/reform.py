@@ -38,6 +38,11 @@ def search_for_profile(profile):
     else:
         raise Exception("Error: specified profile ({}) is not found. Please run reform with -k 1 -s 0. Then run calculate_offsets.py and rerun reform with the recommended kmer_length and sig_move_offset.".format(profile))
 def run(args):
+
+    if not args.list_profile and args.bam == "":
+        print("\nPlease run with -h/--help to see the usage.")
+        exit(1)
+
     if args.list_profile:
         list_profiles()
         return
@@ -85,7 +90,7 @@ def run(args):
     with pysam.AlignmentFile(args.bam, "rb", check_sq=False) as bam:
         for sam_record in bam:
             len_seq = len(sam_record.get_forward_sequence()) - kmer_length + 1 # to get the number of kmers
-            if sam_record.has_tag("sp"):
+            if sam_record.has_tag("sp") or sam_record.has_tag("pi"):
                 count_split_reads += 1
                 continue
             if sam_record.has_tag("dx") and int(sam_record.get_tag("dx")) == 1:

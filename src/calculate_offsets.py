@@ -252,6 +252,11 @@ def calculate_base_shift(moves, raw_signal, sequence, kmer_length, record_is_rev
         return forward_shift
 
 def run(args):
+
+    if not args.use_model and args.file == "":
+        print("\nPlease run with -h/--help to see the usage.")
+        exit(1)
+
     if args.kmer_length < 1:
         raise Exception("Error: kmer length must be a positive integer")
 
