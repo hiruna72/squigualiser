@@ -153,6 +153,8 @@ Plot read/reference - signal alignments.
 	(optional) save as svg. tweak --region and --xrange to capture the necessary part of the plot [default value: false].
 * `--xrange`
 	(optional) initial x range [default value: 350].
+* `--remove_signal_outliers`
+	(optional) remove signal outliers that are outside the raw value range [0, 2000].
 
 ### plot_pileup
 
@@ -178,7 +180,7 @@ Plot reference - signal alignment pileups.
 * `-r, --read_id STR`
 	(optional) Plot only the read with the read id specified.
 * `-l, --read_list STR`
-	(optional) Path to a file containing a list of read_ids to plot only the reads listed.
+	(optional) Path to a file containing a list of read_ids to plot only the reads listed. The file can have two tab separated columns (readid and colour)
 * `--tag_name STR`
 	(optional) A tag name to easily identify the plot
 * `-k, --kmer_length INT`
@@ -235,6 +237,8 @@ Plot reference - signal alignment pileups.
 	(optional) save as svg. tweak --region and --xrange to capture the necessary part of the plot [default value: false].
 * `--xrange`
 	(optional) initial x range [default value: 350].
+* `--remove_signal_outliers`
+	(optional) remove signal outliers that are outside the raw value range [0, 2000].
 
 ### plot_tracks
 
@@ -348,3 +352,5 @@ Instead of generating figures `metric` will generate statistics after parsing th
 	(optional) the number of plots to be generated [default value: 1000]. 
 * `--sig_plot_limit INT`
 	(optional) The maximum number of signal samples to draw on a plot [default value: 20000].
+* `--remove_signal_outliers`
+	(optional) remove signal outliers that are outside the raw value range [0, 2000].
