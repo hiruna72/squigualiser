@@ -7,6 +7,7 @@
 5. [plot_tracks](#plot_tracks)
 6. [calculate_offsets](#calculate_offsets)
 7. [metric](#metric)
+8. [plot_signal](#plot_signal)
 
 * `reform`:<br/>
          Convert basecaller's move table to [ss string](https://hasindu2008.github.io/f5c/docs/output#ss-tag) format.
@@ -354,3 +355,45 @@ Instead of generating figures `metric` will generate statistics after parsing th
 	(optional) The maximum number of signal samples to draw on a plot [default value: 20000].
 * `--remove_signal_outliers`
 	(optional) remove signal outliers that are outside the raw value range [0, 2000].
+
+### plot_signal
+
+```
+squigualiser plot_signal [OPTIONS] -r reads_id_ -s reads.slow5 -o output_dir
+```
+
+Plot signal for a read_id.
+
+* `-r, --read_id STR`
+   Plot the read id specified.
+* `-s, --slow5 FILE`
+	Path to slow5 file containing raw signals.
+* `--region STR`
+	[start-end] 1-based closed interval region to plot. eg:100-200.
+*  `-o, --output_dir DIR `:<br/>
+   Specifies name/location of the output directory. A valid relative or absolute path can be provided. Data will be overwritten but the directory will not be recreated.
+* `--tag_name STR`
+	(optional) A tag name to easily identify the plot.
+* `--sig_scale`
+	(optional) Plot the scaled signal.
+	By default, the signal is not scaled but converted to pA values.
+	Supported scalings are: [medmad, znorm, scaledpA].
+	`medmad` is median absolute deviation scaling.  
+	`znorm` is zscore normalization scaling.
+	The implementation of each method can be found at `src/plot_utils.py/scale_signal()`
+* `--reverse_signal`
+	(optional) reverse the signal [default value: false].
+* `--no_pa`
+	(optional) Do not convert the signal to pA levels. By default, the raw signal is converted to pA levels [default value: false].
+* `--remove_signal_outliers`
+	(optional) remove signal outliers that are outside the raw value range [0, 2000].
+* `--point_size INT`
+	(optional) Radius of the signal point drawn in the plot [default value: 0.5].
+* `--sig_plot_limit INT`
+	(optional) The maximum number of signal samples to draw on a plot [default value: 20000].
+* `--no_samples`
+	(optional) hide sample points [default value: false].
+* `--save_svg`
+	(optional) save as svg. tweak --region and --xrange to capture the necessary part of the plot [default value: false].
+* `--xrange`
+	(optional) initial x range [default value: 350].
