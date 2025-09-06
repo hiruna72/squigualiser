@@ -57,9 +57,7 @@ Squigualiser supplementary material - https://zenodo.org/records/13733728
 
 ## Quickstart
 
-The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippet of commands for your operating system.
-<details open><summary>For common Linux/MacOS distributions</summary>
-<div markdown=1>
+The easiest way to setup squigualiser would be to use precompiled binaries.
 
 ```
 VERSION=v0.6.4
