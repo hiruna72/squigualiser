@@ -292,7 +292,7 @@ testcase_22s() {
   SCALING="--sig_scale znorm"
   # BASE_SHIFT="--base_shift -6"
   PROFILE="--profile kmer_model_rna004_130bps_9mer"
-  /data/hirsam/squigualiser-v0.6.4/squigualiser plot_pileup --rna ${BASE_SHIFT} ${PROFILE} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
+  squigualiser plot_pileup --rna ${BASE_SHIFT} ${PROFILE} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
 
 }
 testcase_20s #pileup DNA
