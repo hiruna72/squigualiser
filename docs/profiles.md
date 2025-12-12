@@ -50,7 +50,7 @@ Note that the default base_shift is 0. Hence, it is not necessary to provide the
 | corrected_at_reform                      |          0         |          0         |
 
 
-RNA models effectively have only one base_shift value because squigualisr only support reads that mapped to the transcriptome.
+RNA models effectively have only one base_shift value because squigualisr only support reads that mapped to the transcriptome. And nanopore RNA reads are sequenced from 3'->5'.
 
 | name                                     | RNA (3'->5')       |
 |------------------------------------------|--------------------|
