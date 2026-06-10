@@ -12,6 +12,9 @@ ARCH=$(uname -m)
 OS=$(uname -s)
 REPO_LINK="https://github.com/hiruna72/squigualiser.git"
 BRANCH="main"
+if [[ "$2" == "test_pypi" ]]; then
+    BRANCH="dev"
+fi
 TOOL="squigualiser"
 
 echo "O/S:${OS} architecture:${ARCH} python:${PYTHON_VERSION}"
