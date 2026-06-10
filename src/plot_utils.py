@@ -53,7 +53,7 @@ def load_signal(args, read_id, s5, start_index, end_index, scale_params):
     if read is None:
         raise Exception("Error: read {} not found in the slow5 file".format(read_id))
     
-    if end_index == -1:
+    if end_index == -1 or end_index > read['len_raw_signal']:
         end_index = read['len_raw_signal']
     x = list(range(1, end_index - start_index + 1))
     x_real = list(range(start_index + 1, end_index + 1))  # 1based
