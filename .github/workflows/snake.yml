@@ -15,7 +15,7 @@ jobs:
     steps:
     - name: install git
       run: apt-get update && apt-get install -y software-properties-common && add-apt-repository ppa:git-core/ppa && apt-get update -y && apt-get install git -y
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: install packages
@@ -24,6 +24,8 @@ jobs:
       run:  python3 --version && pip3 install --upgrade pip && pip3 install . && squigualiser --help
     - name: test
       run: test/test_reform.sh
+    - name: test_realign
+      run: test/test_realign.sh
     - name: test_signal_to_read_plot
       run: test/test_plot_signal_to_read.sh
     - name: test_calculate_offsets
@@ -32,7 +34,7 @@ jobs:
     name: ubuntu-22.04
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: install packages
@@ -51,7 +53,7 @@ jobs:
     name: Ubuntu 24
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: install packages
@@ -89,7 +91,7 @@ jobs:
 #   #  name: macos-11
 #   #  runs-on: macos-11
 #   #  steps:
-#   #   - uses: actions/checkout@v2
+#   #   - uses: actions/checkout@v4
 #   #     with:
 #   #       submodules: recursive
 #   #   - name: Set up Python virtual environment
@@ -121,7 +123,7 @@ jobs:
 #   #  name: macos-12
 #   #  runs-on: macos-12
 #   #  steps:
-#   #  - uses: actions/checkout@v2
+#   #  - uses: actions/checkout@v4
 #   #    with:
 #   #      submodules: recursive
 #   #  - name: install packages
@@ -136,7 +138,7 @@ jobs:
     name: OSX 13
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     # - name: install
@@ -170,7 +172,39 @@ jobs:
     name: OSX 14
     runs-on: macos-14
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Set up Python virtual environment
+      run: |
+        python3.11 -m venv venv
+        source venv/bin/activate
+        python --version
+        export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
+        pip install --upgrade pip
+        pip install .
+        squigualiser --help
+    - name: test_reform
+      run: |
+        source venv/bin/activate
+        test/test_reform.sh
+    - name: test_realign
+      run: |
+        source venv/bin/activate
+        test/test_realign.sh
+    - name: test_signal_to_read_plot
+      run: |
+        source venv/bin/activate
+        test/test_plot_signal_to_read.sh
+    - name: test_calculate_offsets
+      run: |
+        source venv/bin/activate
+        test/test_calculate_offsets.sh
+  os_x_15:
+    name: OSX 15
+    runs-on: macos-15
+    steps:
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set up Python virtual environment
