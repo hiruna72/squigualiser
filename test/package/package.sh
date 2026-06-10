@@ -40,9 +40,11 @@ pip install --upgrade pip || die "upgrade pip failed"
 export CC=gcc
 export HTSLIB_CONFIGURE_OPTIONS="--enable-bz2=no --enable-lzma=no --with-libdeflate=no --enable-libcurl=no  --enable-gcs=no --enable-s3=no"
 
+git clone --depth 1 --branch ${BRANCH} ${REPO_LINK} || die "Failed to clone ${TOOL}"
+
 if [[ "$2" == "test_pypi" ]]; then
-    echo "Installing from Test PyPI"
-    pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ${TOOL} --pre || die "test.pip install ${TOOL} failed"
+    echo "Installing from source (${BRANCH} branch)"
+    pip install ./${TOOL}/ --no-cache || die "pip install ${TOOL} from source failed"
 else
     echo "Installing from PyPI"
     pip install ${TOOL} --no-cache || die "pip install ${TOOL} failed"
@@ -58,9 +60,8 @@ elif [ "${OS}" == "Darwin"  ]; then
     sed -i '' "1s/.*/#\!\/usr\/bin\/env ${PYTHON_VERSION}/" python/bin/${TOOL} || die "changing headerline failed"
 fi
 
-git clone --depth 1 --branch ${BRANCH} ${REPO_LINK} || die "Failed to clone ${TOOL}"
 cp -r ${TOOL}/docs python || die "docs copy failed"
-cp ${TOOL}/test/package/${TOOL} python || die "script copy failed" 
+cp ${TOOL}/test/package/${TOOL} python || die "script copy failed"
 cp ${TOOL}/LICENSE python || die "license copy failed"
 cp ${TOOL}/README.md python || die "readme copy failed"
 
