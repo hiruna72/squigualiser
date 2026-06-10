@@ -11,7 +11,7 @@ PY_VENV="squig-venv"
 ARCH=$(uname -m)
 OS=$(uname -s)
 REPO_LINK="https://github.com/hiruna72/squigualiser.git"
-BRANCH="dev"
+BRANCH="main"
 TOOL="squigualiser"
 
 echo "O/S:${OS} architecture:${ARCH} python:${PYTHON_VERSION}"
@@ -67,7 +67,15 @@ cp ${TOOL}/README.md python || die "readme copy failed"
 
 rm -rf ${TOOL} || die "remove cloned dir failed"
 
-LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+LATEST_TAG=""
+if [[ "${BRANCH}" == "main" ]]; then
+    LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev'  | sort -V  | tail -n1)
+elif [[ "${BRANCH}" == "dev" ]]; then
+    LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+else
+    echo "Branch is neither main nor dev, skipping tag creation"
+    exit 0
+fi
 OS_NAME="linux"
 if [ "${OS}" == "Darwin"  ]; then
     OS_NAME="macos"

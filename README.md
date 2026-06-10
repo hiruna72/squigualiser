@@ -58,41 +58,22 @@ Squigualiser supplementary material - https://zenodo.org/records/13733728
 
 ## Quickstart
 
-The easiest way to setup squigualiser would be to use precompiled binaries. Click on the arrow to expand the snippet of commands for your operating system.
-<details open><summary>For Linux distributions</summary>
-<div markdown=1>
+The easiest way to setup squigualiser would be to use precompiled binaries.
 
 ```
-wget https://github.com/hiruna72/squigualiser/releases/download/v0.6.3/squigualiser-v0.6.3-linux-x86-64-binaries.tar.gz -O squigualiser.tar.gz
-tar xf squigualiser.tar.gz
-cd squigualiser
+VERSION=v0.6.4
+# For x86_64-inux 
+wget "https://github.com/hiruna72/squigualiser/releases/download/$VERSION/squigualiser-$VERSION-x86_64-linux-binaries.tar.gz" && tar xvf squigualiser-$VERSION-x86_64-linux-binaries.tar.gz && cd squigualiser-$VERSION/
+
+# For x86_64-macos
+curl -L "https://github.com/hiruna72/squigualiser/releases/download/$VERSION/squigualiser-$VERSION-x86_64-macos-binaries.tar.gz" -o squigualiser-$VERSION-x86_64-macos-binaries.tar.gz && tar xvf squigualiser-$VERSION-x86_64-macos-binaries.tar.gz && cd squigualiser-$VERSION/
+
+# For arm64-macos
+curl -L "https://github.com/hiruna72/squigualiser/releases/download/$VERSION/squigualiser-$VERSION-arm64-macos-binaries.tar.gz" -o squigualiser-$VERSION-arm64-macos-binaries.tar.gz && tar xvf squigualiser-$VERSION-arm64-macos-binaries.tar.gz && cd squigualiser-$VERSION/
+
 ./squigualiser --help
-```
 
-</div>
-</details>
-<details><summary>For macOS (Apple Silicon) distributions</summary>
-<div markdown=1>
-   
 ```
-python3.8 -m venv venv3
-source venv3/bin/activate
-pip install --upgrade pip
-pip install squigualiser
-squigualiser --help
-```
-
-Following is outdated.
-```
-curl -L https://github.com/hiruna72/squigualiser/releases/download/squigualiser-v0.3.0/squigualiser-v0.3.0-macos-arm64-binaries.tar.gz -O squigualiser.tar.gz
-tar xf squigualiser.tar.gz
-cd squigualiser
-./squigualiser --help
-```
-
-
-</div>
-</details>
 
 For a quick test run the following:
 ````
