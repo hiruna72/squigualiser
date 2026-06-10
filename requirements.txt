@@ -8,6 +8,8 @@ pyfastx
 pysam
 # matplotlib==3.7
 matplotlib
+# pandas 2.3+ dropped manylinux_2_17 wheels; pin for Ubuntu 14.04 build compatibility
+pandas<2.3
 seaborn
 # urllib3<2.c0
 selenium

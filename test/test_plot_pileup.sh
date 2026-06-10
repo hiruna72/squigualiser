@@ -278,8 +278,26 @@ testcase_21s() {
   squigualiser plot_pileup --cprofile --rna ${BASE_SHIFT} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
 
 }
+testcase_22s() {
+  GENOME="${REL_PATH}/data/raw/plot/reference_genomes/gencode.v40.transcripts.fa"
+
+  TESTCASE=22.0
+  info "testcase:$TESTCASE - reference-signal plot"
+  FASTA=${GENOME}
+  SIGNAL="${RAW_DIR}/rna/rna004/rna004.blow5"
+  ALIGNMENT="${RAW_DIR}/rna/rna004/f5c.bam"
+  OUTPUT="${OUTPUT_DIR}/testcase_${TESTCASE}"
+  PLOT_LIMIT="--plot_limit 10"
+  REGION="ENST00000389680.2|ENSG00000211459.2|-|-|MT-RNR1-201|MT-RNR1|954|Mt_rRNA|:449-581"
+  SCALING="--sig_scale znorm"
+  # BASE_SHIFT="--base_shift -6"
+  PROFILE="--profile kmer_model_rna004_130bps_9mer"
+  squigualiser plot_pileup --rna ${BASE_SHIFT} ${PROFILE} --region ${REGION} -f ${FASTA} -s ${SIGNAL} -a ${ALIGNMENT} -o ${OUTPUT} --tag_name "testcase-${TESTCASE}" ${PLOT_LIMIT} ${SCALING} || die "testcase:$TESTCASE failed"
+
+}
 testcase_20s #pileup DNA
 testcase_21s #pileup RNA
+testcase_22s #pileup RNA004
 
 info "all testcases passed"
 #rm -r "$OUTPUT_DIR" || die "could not delete $OUTPUT_DIR"

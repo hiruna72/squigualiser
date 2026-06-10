@@ -41,10 +41,18 @@ The following precomputed forward and reverse base shift are available as profil
 These profiles are used in `plot` and `plot_pileup` tool. More information can be found at [pore_model](pore_model.md), [calculate_offsets](calculate_offsets.md), [base_shift_of_reverse_mapped_reads](base_shift_of_reverse_mapped_reads.md), and [base_shift_and_eventalignment](base_shift_and_eventalignment.md).
 Note that the default base_shift is 0. Hence, it is not necessary to provide the argument `--profile [name]` where base shift is 0. 
 
-| name                                     | base_shift_forward | base_shift_reverse |
+| name                                     | base_shift_forward DNA (5'->3)| base_shift_reverse DNA (3'->5')  |
 |------------------------------------------|--------------------|--------------------|
 | kmer_model_dna_r9.4.1_450bps_5_mer       |         -2         |         -2         |
 | kmer_model_dna_r9.4.1_450bps_6_mer       |         -2         |         -3         |
-| kmer_model_rna_r9.4.1_70bps_5_mer        |         -3         |         -1         |
 | kmer_model_dna_r10.4.1_e8.2_400bps_9_mer |         -6         |         -2         |
+| kmer_model_dna_r10.4.1_e8.2_260bps_9_mer |         -6         |         -2         |
 | corrected_at_reform                      |          0         |          0         |
+
+
+RNA models effectively have only one base_shift value because squigualisr only support reads that mapped to the transcriptome. And nanopore RNA reads are sequenced from 3'->5'.
+
+| name                                     | RNA (3'->5')       |
+|------------------------------------------|--------------------|
+| kmer_model_rna_r9.4.1_70bps_5_mer        |         -3         |
+| kmer_model_rna004_130bps_9mer            |         -5         |

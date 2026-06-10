@@ -53,7 +53,7 @@ def load_signal(args, read_id, s5, start_index, end_index, scale_params):
     if read is None:
         raise Exception("Error: read {} not found in the slow5 file".format(read_id))
     
-    if end_index == -1:
+    if end_index == -1 or end_index > read['len_raw_signal']:
         end_index = read['len_raw_signal']
     x = list(range(1, end_index - start_index + 1))
     x_real = list(range(start_index + 1, end_index + 1))  # 1based
@@ -217,6 +217,7 @@ profile_dic_base_shift = {
         "kmer_model_dna_r9.4.1_450bps_6_mer": [-2, -3],
         "kmer_model_rna_r9.4.1_70bps_5_mer": [-3, -1],
         "kmer_model_dna_r10.4.1_e8.2_400bps_9_mer": [-6, -2],
+        "kmer_model_dna_r10.4.1_e8.2_260bps_9_mer": [-6, -2],
         "kmer_model_rna004_130bps_9mer": [-5, -3],
         "corrected_at_reform": [0, 0]}
 def list_profiles_base_shift():

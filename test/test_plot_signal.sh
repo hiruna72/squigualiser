@@ -94,6 +94,14 @@ testcase_70s() {
   READ_ID="00213403-4297-4f03-8412-3cc8b9cb845a"
   squigualiser plot_signal -s ${SIGNAL} -o ${OUTPUT_DIR} -r ${READ_ID} ||  die "testcase:$TESTCASE failed"
 
+  RAW_DIR="${REL_PATH}/data/raw/plot/f5c_eventalign"
+  TESTCASE=70.8
+  info "testcase:$TESTCASE - no BokehUserWarning when sig_plot_limit exceeds signal length"
+  SIGNAL="${RAW_DIR}/reads.blow5"
+  READ_ID="64a25d50-50e0-41f8-aed7-2689d566feaa"
+  output=$(squigualiser plot_signal -s ${SIGNAL} -o ${OUTPUT_DIR} -r ${READ_ID} --sig_plot_limit 100000 2>&1)
+  echo "$output" | grep -q "BokehUserWarning" && die "testcase:$TESTCASE failed - BokehUserWarning detected (x/y length mismatch)"
+
 }
 
 testcase_70s #basic
