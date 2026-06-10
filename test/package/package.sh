@@ -5,7 +5,8 @@ die (){
     exit 1
 }
 
-PYTHON_VERSION="python3.9"
+# python3.9 is EOL; pandas 2.3+ dropped py3.9 support and has no pre-built wheels for it
+PYTHON_VERSION="python3.10"
 PY_VENV="squig-venv"
 ARCH=$(uname -m)
 OS=$(uname -s)
@@ -19,16 +20,16 @@ if [ "${OS}" == "Linux"  ] && [ "${ARCH}" == "x86_64" ];
 then
     apt-get update || die "apt-get update failed"
     apt install wget gcc make zlib1g-dev git -y || die "system tools install failed"
-    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.9.23+20250712-x86_64-unknown-linux-gnu-install_only.tar.gz || die "python wget failed"
-    tar xf cpython-3.9.23+20250712-x86_64-unknown-linux-gnu-install_only.tar.gz || die "untar python failed"
+    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.10.18+20250712-x86_64-unknown-linux-gnu-install_only.tar.gz || die "python wget failed"
+    tar xf cpython-3.10.18+20250712-x86_64-unknown-linux-gnu-install_only.tar.gz || die "untar python failed"
 elif [[ "${OS}" == "Darwin" && ( "${ARCH}" == "arm64" || "${ARCH}" == "aarch64" ) ]];
 then
-    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.9.23+20250712-aarch64-apple-darwin-install_only.tar.gz || die "python wget failed"
-    tar xf cpython-3.9.23+20250712-aarch64-apple-darwin-install_only.tar.gz || die "untar python failed"
+    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.10.18+20250712-aarch64-apple-darwin-install_only.tar.gz || die "python wget failed"
+    tar xf cpython-3.10.18+20250712-aarch64-apple-darwin-install_only.tar.gz || die "untar python failed"
 elif [ "${OS}" == "Darwin"  ] && [ "${ARCH}" == "x86_64" ];
 then
-    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.9.23+20250712-x86_64-apple-darwin-install_only.tar.gz || die "python wget failed"
-    tar xf cpython-3.9.23+20250712-x86_64-apple-darwin-install_only.tar.gz || die "untar python failed"
+    wget https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.10.18+20250712-x86_64-apple-darwin-install_only.tar.gz || die "python wget failed"
+    tar xf cpython-3.10.18+20250712-x86_64-apple-darwin-install_only.tar.gz || die "untar python failed"
 else
     die "Unsupported O/S ${OS} or architecture ${ARCH} for packaging."
 fi
