@@ -1,17 +1,18 @@
-name: Dev_Package_Build
+name: Main_Package_Build
 
 on:
   push:
-    branches: [ 'main' ]
     tags:
-      - '*'  # Run on any new tag
+      - 'v*.*.*'  # Match only version tags like v1.0.0, v2.3.4, etc.
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
   build-package-x86_64-linux:
     runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.artifact_name.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: make build_dir dir
@@ -42,8 +43,9 @@ jobs:
           FILE=$(ls build_dir/squigualiser-*.tar.gz)
           BASENAME=$(basename "$FILE" .tar.gz)
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
-          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev' | sort -V | tail -n1)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "artifact_name=$BASENAME" >> $GITHUB_OUTPUT
       - name: quick run
         run: |
           ./squigualiser-${{ env.LATEST_TAG }}/squigualiser --help || exit 1
@@ -59,14 +61,14 @@ jobs:
       - name: test_calculate_offsets
         run: test/test_calculate_offsets.sh
       - name: Upload squigualiser tar.gz
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build_dir/squigualiser-*.tar.gz
   # build-package-x86_64-macos:
   #   runs-on: macos-13
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v4
   #       with:
   #         submodules: recursive
   #     - name: make build_dir dir
@@ -112,14 +114,16 @@ jobs:
   #     - name: test_calculate_offsets
   #       run: test/test_calculate_offsets.sh
   #     - name: Upload squigualiser tar.gz
-  #       uses: actions/upload-artifact@v4
+  #       uses: actions/upload-artifact@v7
   #       with:
   #         name: ${{ env.ARTIFACT_NAME }}
   #         path: build_dir/squigualiser-*.tar.gz
   build-package-arm64-macos:
     runs-on: macos-14
+    outputs:
+      artifact_name: ${{ steps.artifact_name.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: make build_dir dir
@@ -148,8 +152,9 @@ jobs:
           FILE=$(ls build_dir/squigualiser-*.tar.gz)
           BASENAME=$(basename "$FILE" .tar.gz)
           echo "ARTIFACT_NAME=$BASENAME" >> $GITHUB_ENV
-          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags ${REPO_LINK} | cut -d/ -f3 | grep -v '\^{}' | grep -v 'dev' | sort -V | tail -n1)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "artifact_name=$BASENAME" >> $GITHUB_OUTPUT
       - name: quick run
         run: |
           ./squigualiser-${{ env.LATEST_TAG }}/squigualiser --help || exit 1
@@ -165,9 +170,127 @@ jobs:
       - name: test_calculate_offsets
         run: test/test_calculate_offsets.sh
       - name: Upload squigualiser tar.gz
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build_dir/squigualiser-*.tar.gz
-
-
+  test-artifact-linux:
+    needs: build-package-x86_64-linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-package-x86_64-linux.outputs.artifact_name }}
+          path: ./artifact
+      - name: Decompress artifact
+        run: |
+          cd artifact
+          tar -xzf squigualiser-*.tar.gz
+      - name: Run compatibility checks
+        run: |
+          ./artifact/squigualiser-*/squigualiser --help
+          ./artifact/squigualiser-*/squigualiser --version
+      - name: Download sample dataset
+        run: |
+          curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
+          tar xf sample_dataset.tar.gz
+      - name: Run squigualiser plot_pileup on sample data
+        run: |
+          ./artifact/squigualiser-*/squigualiser plot_pileup \
+            -f ref.fasta \
+            -s reads.blow5 \
+            -a eventalign.bam \
+            -o dir_out \
+            --region chr1:92,778,040-92,782,120 \
+            --tag_name "test_0"
+  test-artifact-macos-14:
+    needs: build-package-arm64-macos
+    runs-on: macos-14
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
+          path: ./artifact
+      - name: Decompress artifact
+        run: |
+          cd artifact
+          tar -xzf squigualiser-*.tar.gz
+      - name: Run compatibility checks
+        run: |
+          ./artifact/squigualiser-*/squigualiser --help
+          ./artifact/squigualiser-*/squigualiser --version
+      - name: Download sample dataset
+        run: |
+          curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
+          tar xf sample_dataset.tar.gz
+      - name: Run squigualiser plot_pileup on sample data
+        run: |
+          ./artifact/squigualiser-*/squigualiser plot_pileup \
+            -f ref.fasta \
+            -s reads.blow5 \
+            -a eventalign.bam \
+            -o dir_out \
+            --region chr1:92,778,040-92,782,120 \
+            --tag_name "test_0"
+  test-artifact-macos-15:
+    needs: build-package-arm64-macos
+    runs-on: macos-15
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
+          path: ./artifact
+      - name: Decompress artifact
+        run: |
+          cd artifact
+          tar -xzf squigualiser-*.tar.gz
+      - name: Run compatibility checks
+        run: |
+          ./artifact/squigualiser-*/squigualiser --help
+          ./artifact/squigualiser-*/squigualiser --version
+      - name: Download sample dataset
+        run: |
+          curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
+          tar xf sample_dataset.tar.gz
+      - name: Run squigualiser plot_pileup on sample data
+        run: |
+          ./artifact/squigualiser-*/squigualiser plot_pileup \
+            -f ref.fasta \
+            -s reads.blow5 \
+            -a eventalign.bam \
+            -o dir_out \
+            --region chr1:92,778,040-92,782,120 \
+            --tag_name "test_0"
+  test-artifact-macos-latest:
+    needs: build-package-arm64-macos
+    runs-on: macos-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
+          path: ./artifact
+      - name: Decompress artifact
+        run: |
+          cd artifact
+          tar -xzf squigualiser-*.tar.gz
+      - name: Run compatibility checks
+        run: |
+          ./artifact/squigualiser-*/squigualiser --help
+          ./artifact/squigualiser-*/squigualiser --version
+      - name: Download sample dataset
+        run: |
+          curl -L https://hiruna72.github.io/squigualiser/docs/sample_dataset.tar.gz -o sample_dataset.tar.gz
+          tar xf sample_dataset.tar.gz
+      - name: Run squigualiser plot_pileup on sample data
+        run: |
+          ./artifact/squigualiser-*/squigualiser plot_pileup \
+            -f ref.fasta \
+            -s reads.blow5 \
+            -a eventalign.bam \
+            -o dir_out \
+            --region chr1:92,778,040-92,782,120 \
+            --tag_name "test_0"

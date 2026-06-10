@@ -13,7 +13,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.artifact_name.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: make build_dir dir
@@ -62,7 +62,7 @@ jobs:
       - name: test_calculate_offsets
         run: test/test_calculate_offsets.sh
       - name: Upload squigualiser tar.gz
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build_dir/squigualiser-*.tar.gz
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build-package-x86_64-linux.outputs.artifact_name }}
           path: ./artifact
@@ -101,7 +101,7 @@ jobs:
   #   outputs:
   #     artifact_name: ${{ steps.artifact_name.outputs.artifact_name }}
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v4
   #       with:
   #         submodules: recursive
   #     - name: make build_dir dir
@@ -148,7 +148,7 @@ jobs:
   #     - name: test_calculate_offsets
   #       run: test/test_calculate_offsets.sh
   #     - name: Upload squigualiser tar.gz
-  #       uses: actions/upload-artifact@v4
+  #       uses: actions/upload-artifact@v7
   #       with:
   #         name: ${{ env.ARTIFACT_NAME }}
   #         path: build_dir/squigualiser-*.tar.gz
@@ -157,7 +157,7 @@ jobs:
     outputs:
       artifact_name: ${{ steps.artifact_name.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: make build_dir dir
@@ -204,7 +204,7 @@ jobs:
       - name: test_calculate_offsets
         run: test/test_calculate_offsets.sh
       - name: Upload squigualiser tar.gz
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build_dir/squigualiser-*.tar.gz
@@ -213,7 +213,7 @@ jobs:
   #   runs-on: macos-13
   #   steps:
   #     - name: Download artifact
-  #       uses: actions/download-artifact@v4
+  #       uses: actions/download-artifact@v8
   #       with:
   #         name: ${{ needs.build-package-x86_64-macos.outputs.artifact_name }}
   #         path: ./artifact
@@ -243,7 +243,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
           path: ./artifact
@@ -273,7 +273,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
           path: ./artifact
@@ -303,7 +303,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build-package-arm64-macos.outputs.artifact_name }}
           path: ./artifact
