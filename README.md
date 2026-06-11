@@ -61,7 +61,7 @@ Squigualiser supplementary material - https://zenodo.org/records/13733728
 The easiest way to setup squigualiser would be to use precompiled binaries.
 
 ```
-VERSION=v0.6.5
+VERSION=v0.7.0
 # For x86_64-inux 
 wget "https://github.com/hiruna72/squigualiser/releases/download/$VERSION/squigualiser-$VERSION-x86_64-linux-binaries.tar.gz" && tar xvf squigualiser-$VERSION-x86_64-linux-binaries.tar.gz && cd squigualiser-$VERSION/
 
