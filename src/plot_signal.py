@@ -46,7 +46,7 @@ def plot_function(args, p, read_id, signal_tuple, draw_data):
     p.line('x', 'y', name="sig_plot_line", line_width=2, source=source)
     # add a circle renderer with a size, color, and alpha
     sample_labels = p.circle(x, y, radius=draw_data["point_size"], color="red", alpha=0.5, visible=draw_data['no_samples'])
-    toggle_samples = Toggle(label="samples", button_type="danger", active=True, height=30, width=60)
+    toggle_samples = Toggle(label="samples", button_type="default", active=draw_data['no_samples'], height=30, width=60)
     toggle_samples.js_link('active', sample_labels, 'visible')
 
     # show the tooltip
@@ -101,7 +101,7 @@ def run(args):
     indt = "\t\t\t\t\t\t\t\t"
     draw_data = {}
     draw_data["point_size"] = args.point_size
-    draw_data["no_samples"] = args.no_samples
+    draw_data["no_samples"] = args.show_samples
     draw_data["xrange"] = args.xrange
     draw_data["sig_dir"] = "->"
     if args.reverse_signal:
@@ -111,6 +111,12 @@ def run(args):
     start_index = int(start_index) - 1  # convert to 0-based index
     end_index = int(end_index)  # keep it 1-based for slicing
     x, x_real, y = plot_utils.load_signal(args, args.read_id, s5, start_index, end_index, scale_params)
+
+    # resolve -1 sentinel to actual signal length
+    if end_index == -1:
+        end_index = x_real[-1] if len(x_real) > 0 else start_index + 1
+    if draw_data["xrange"] == -1:
+        draw_data["xrange"] = len(x)
 
     if args.reverse_signal:
         # reverse the signal
@@ -163,10 +169,10 @@ def argparser():
     parser.add_argument('--no_pa', required=False, action='store_false', help="skip converting the signal to pA values")
     parser.add_argument('--remove_signal_outliers', required=False, action='store_true', help="remove signal outliers that are outside the raw value range [0, 2000]")
     parser.add_argument('--point_size', required=False, type=int, default=0.5, help="signal point radius [0.5]")
-    parser.add_argument('--sig_plot_limit', required=False, type=int, default=SIG_PLOT_LENGTH, help="maximum number of signal samples to plot")
-    parser.add_argument('--no_samples', required=False, action='store_false', help="hide sample points")
+    parser.add_argument('--sig_plot_limit', required=False, type=int, default=-1, help="maximum number of signal samples to plot (-1 for full signal)")
+    parser.add_argument('--show_samples', required=False, action='store_true', help="show sample points (default: hidden)")
     parser.add_argument('--save_svg', required=False, action='store_true', help="save as svg. tweak --region and --xrange to capture the necessary part of the plot")
-    parser.add_argument('--xrange', required=False, type=int, default=PLOT_X_RANGE, help="initial x range")
+    parser.add_argument('--xrange', required=False, type=int, default=-1, help="initial x range to display (-1 for full signal)")
     parser.add_argument('-o', '--output_dir', required=True, type=str, default="", help="output dir")
     return parser
 
