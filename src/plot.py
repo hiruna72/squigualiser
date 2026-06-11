@@ -1321,7 +1321,7 @@ def argparser():
     parser.add_argument('--no_samples', required=False, action='store_false', help="hide sample points")
     parser.add_argument('--save_svg', required=False, action='store_true', help="save as svg. tweak --region and --xrange to capture the necessary part of the plot")
     parser.add_argument('--xrange', required=False, type=int, default=PLOT_X_RANGE, help="initial x range")
-    parser.add_argument('-o', '--output_dir', required=True, type=str, default="", help="output dir")
+    parser.add_argument('-o', '--output_dir', required=False, type=str, default="", help="output dir")
     return parser
 
 if __name__ == "__main__":

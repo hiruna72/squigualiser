@@ -14,6 +14,7 @@ import seaborn as sns
 
 from bokeh.io.export import export_svgs
 import os
+import sys
 
 PLOT_X_RANGE = 300
 PLOT_HEIGHT = 600
@@ -91,20 +92,17 @@ def read_readid_color_file(filepath, default_color='#1f77b4'):
 
 def svg_export_works(output_dir):
     try:
-        # Create dummy Bokeh plot
         p = figure(title="SVG test")
         p.line([0, 1], [0, 1])
         p.output_backend = "svg"
-
-        # Fixed test file name
         temp_svg_path = output_dir + "/__svg_test.svg"
-
         export_svgs(p, filename=temp_svg_path)
-
-        # Optionally clean up
         os.remove(temp_svg_path)
-    except Exception as e:
-        raise RuntimeError(f"SVG export requires a headless browser. None (Firefox+geckodriver or Chromium+chromedriver) found in the PATH : {e}")
+    except Exception:
+        print("Error: --save_svg requires a headless browser which was not found on PATH.")
+        print("  Install Firefox + geckodriver:  conda install -c conda-forge firefox geckodriver")
+        print("  Install Chromium + chromedriver: apt install chromium-browser chromium-driver")
+        sys.exit(1)
 
 def get_base_color_map():
     base_color_map = {'A': '#d6f5d6', 'C': '#ccccff', 'T': '#ffcccc', 'G': '#ffedcc', 'U': '#ffcccc', 'N': '#fafafe', 'M': '#000000', 'R': '#000000', 'W': '#000000', 'S': '#000000', 'Y': '#000000', 'K': '#000000', 'V': '#000000', 'H': '#000000', 'D': '#000000', 'B': '#000000'}
